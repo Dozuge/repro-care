@@ -79,10 +79,24 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('cho.patients*') ? 'active' : '' }}"
+                   href="{{ route('cho.patients.index') }}">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Patients &amp; AI Triage</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('cho.analytics') ? 'active' : '' }}"
                    href="{{ route('cho.analytics') }}">
                     <i class="bi bi-bar-chart-fill"></i>
-                    <span>Analytics</span>
+                    <span>Analytics &amp; Interventions</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('learning.*') ? 'active' : '' }}"
+                   href="{{ route('learning.index') }}">
+                    <i class="bi bi-camera-video-fill"></i>
+                    <span>Media &amp; Training Library</span>
                 </a>
             </li>
         </ul>
@@ -118,6 +132,13 @@
 
         <div class="sidebar-section-label">System</div>
         <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('cho.archived*') ? 'active' : '' }}"
+                   href="{{ route('cho.archived.index') }}">
+                    <i class="bi bi-archive-fill"></i>
+                    <span>Archived Records</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('cho.logs*') ? 'active' : '' }}"
                    href="{{ route('cho.logs.index') }}">

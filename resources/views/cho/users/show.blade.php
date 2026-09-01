@@ -38,23 +38,25 @@
 
                 @php
                     $roleLabel = match($user->role) {
+                        'cho' => 'CHO Admin',
                         'rhu' => 'RHU Admin',
                         'midwife' => 'Midwife',
                         'bhw_president' => 'BHW President',
                         'bhw' => 'BHW',
                         default => ucfirst($user->role)
                     };
-                    $badgeColor = match($user->role) {
-                        'rhu' => 'indigo',
-                        'midwife' => 'purple',
-                        'bhw_president' => 'violet',
-                        'bhw' => 'info',
-                        default => 'secondary'
+                    $roleClass = match($user->role) {
+                        'cho' => 'badge-role-cho',
+                        'rhu' => 'badge-role-rhu',
+                        'midwife' => 'badge-role-midwife',
+                        'bhw_president' => 'badge-role-bhw-president',
+                        'bhw' => 'badge-role-bhw',
+                        default => 'badge-role-user'
                     };
                 @endphp
 
-                <div class="mb-3">
-                    <span class="badge bg-{{ $badgeColor }} text-white py-2 px-3 rounded-pill" style="font-size:0.8rem;">
+                <div class="mb-3 d-flex justify-content-center gap-2">
+                    <span class="badge {{ $roleClass }} py-2 px-3 rounded-pill" style="font-size:0.8rem;">
                         {{ $roleLabel }}
                     </span>
                     <span class="badge bg-{{ $user->status === 'approved' ? 'success' : ($user->status === 'suspended' ? 'danger' : 'warning') }} text-white py-2 px-3 rounded-pill" style="font-size:0.8rem;">

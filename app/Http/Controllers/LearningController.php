@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\LearningMaterial;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -30,65 +31,92 @@ class LearningController extends Controller
         return $directory . '/' . $filename;
     }
 
-    // Index - View all materials (for users)
-    public function index()
+    // Index - View all materials (for users, midwives, BHWs)
+    public function index(Request $request)
     {
         $query = LearningMaterial::query();
         
         // Search functionality
-        if (request('search')) {
-            $query->where(function($q) {
-                $q->where('title', 'like', '%' . request('search') . '%')
-                  ->orWhere('content', 'like', '%' . request('search') . '%');
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
             });
         }
         
         // Filter by type
-        if (request('type')) {
-            $query->where('material_type', request('type'));
+        if ($request->filled('type')) {
+            $type = $request->type;
+            if ($type === 'video') {
+                $query->where(function ($q) {
+                    $q->where('material_type', 'video')
+                      ->orWhereNotNull('video_url');
+                });
+            } else {
+                $query->where('material_type', $type);
+            }
+        }
+
+        // Filter by category
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
         }
         
-        $materials = $query->latest()->paginate(12);
+        $materials = $query->latest()->paginate(12)->withQueryString();
         return view('learning.index', compact('materials'));
     }
 
-    // Show single material
+    // Show single material with embedded playable media
     public function show($id)
     {
         $material = LearningMaterial::findOrFail($id);
-        return view('learning.show', compact('material'));
+        $relatedMaterials = LearningMaterial::where('id', '!=', $id)
+            ->where(function($q) use ($material) {
+                $q->where('category', $material->category)
+                  ->orWhere('material_type', $material->material_type);
+            })
+            ->limit(4)
+            ->get();
+
+        return view('learning.show', compact('material', 'relatedMaterials'));
     }
 
-    // Admin functions for midwives
-    public function adminIndex()
+    // Admin functions for midwives & CHO
+    public function adminIndex(Request $request)
     {
-        if (!$this->getCurrentUser()?->isMidwife()) {
-            abort(403);
+        $user = $this->getCurrentUser();
+        if (!$user || (!$user->isMidwife() && !$user->isCho())) {
+            abort(403, 'Unauthorized access.');
         }
 
         $query = LearningMaterial::query();
 
-        // Search functionality
-        if (request('search')) {
-            $query->where(function($q) {
-                $q->where('title', 'like', '%' . request('search') . '%')
-                  ->orWhere('content', 'like', '%' . request('search') . '%');
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
             });
         }
 
-        // Filter by type
-        if (request('type')) {
-            $query->where('material_type', request('type'));
+        if ($request->filled('type')) {
+            $query->where('material_type', $request->type);
         }
 
-        $materials = $query->latest()->paginate(10);
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        $materials = $query->latest()->paginate(10)->withQueryString();
         return view('midwife.learning.index', compact('materials'));
     }
 
     public function create()
     {
-        if (!$this->getCurrentUser()?->isMidwife()) {
-            abort(403);
+        $user = $this->getCurrentUser();
+        if (!$user || (!$user->isMidwife() && !$user->isCho())) {
+            abort(403, 'Unauthorized access.');
         }
 
         return view('midwife.learning.create');
@@ -96,8 +124,9 @@ class LearningController extends Controller
 
     public function store(Request $request)
     {
-        if (!$this->getCurrentUser()?->isMidwife()) {
-            abort(403);
+        $user = $this->getCurrentUser();
+        if (!$user || (!$user->isMidwife() && !$user->isCho())) {
+            abort(403, 'Unauthorized access.');
         }
 
         $request->validate([
@@ -106,11 +135,11 @@ class LearningController extends Controller
             'material_type' => 'required|in:article,link,file,video,quiz',
             'link_url'      => 'nullable|url|required_if:material_type,link',
             'video_url'     => 'nullable|required_if:material_type,video',
-            'category'      => 'nullable|in:general,nutrition,warning-signs,family-planning,postpartum,pregnancy-guide',
+            'category'      => 'nullable|in:general,prenatal-care,nutrition,warning-signs,family-planning,postpartum,pregnancy-guide,hcw-training',
             'week_number'   => 'nullable|integer|min:1|max:42',
             'quiz_data'     => 'nullable|json',
-            'image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'file'          => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,mp4,avi,mov,wmv,mp3,wav,pdf,doc,docx,xls,xlsx,ppt,pptx,txt|max:102400', // 100MB max
+            'image'         => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'file'          => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov,avi,mp3,wav,pdf,doc,docx,xls,xlsx,ppt,pptx,txt|max:102400', // 100MB max
         ]);
 
         $data = $request->except('image', 'file', 'quiz_data');
@@ -125,16 +154,18 @@ class LearningController extends Controller
             $data['file'] = $this->storePublicUpload($request->file('file'), 'learning_files');
         }
 
-        LearningMaterial::create($data);
+        $material = LearningMaterial::create($data);
+        ActivityLog::log('create', "Created learning material/video: {$material->title}");
 
         return redirect()->route('midwife.learning.index')
-            ->with('success', 'Learning material created successfully');
+            ->with('success', 'Learning material / playable video published successfully');
     }
 
     public function edit($id)
     {
-        if (!$this->getCurrentUser()?->isMidwife()) {
-            abort(403);
+        $user = $this->getCurrentUser();
+        if (!$user || (!$user->isMidwife() && !$user->isCho())) {
+            abort(403, 'Unauthorized access.');
         }
 
         $material = LearningMaterial::findOrFail($id);
@@ -143,8 +174,9 @@ class LearningController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!$this->getCurrentUser()?->isMidwife()) {
-            abort(403);
+        $user = $this->getCurrentUser();
+        if (!$user || (!$user->isMidwife() && !$user->isCho())) {
+            abort(403, 'Unauthorized access.');
         }
 
         $material = LearningMaterial::findOrFail($id);
@@ -155,11 +187,11 @@ class LearningController extends Controller
             'material_type' => 'required|in:article,link,file,video,quiz',
             'link_url'      => 'nullable|url|required_if:material_type,link',
             'video_url'     => 'nullable|required_if:material_type,video',
-            'category'      => 'nullable|in:general,nutrition,warning-signs,family-planning,postpartum,pregnancy-guide',
+            'category'      => 'nullable|in:general,prenatal-care,nutrition,warning-signs,family-planning,postpartum,pregnancy-guide,hcw-training',
             'week_number'   => 'nullable|integer|min:1|max:42',
             'quiz_data'     => 'nullable|json',
-            'image'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'file'          => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,mp4,avi,mov,wmv,mp3,wav,pdf,doc,docx,xls,xlsx,ppt,pptx,txt|max:102400', // 100MB max
+            'image'         => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'file'          => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov,avi,mp3,wav,pdf,doc,docx,xls,xlsx,ppt,pptx,txt|max:102400', // 100MB max
         ]);
 
         $data = $request->except('image', 'file', 'quiz_data');
@@ -175,28 +207,40 @@ class LearningController extends Controller
         }
 
         $material->update($data);
+        ActivityLog::log('update', "Updated learning material/video: {$material->title}");
 
         return redirect()->route('midwife.learning.index')
             ->with('success', 'Learning material updated successfully');
     }
 
+    // Soft delete (archive) - NO HARD DELETES
     public function destroy($id)
     {
-        if (!$this->getCurrentUser()?->isMidwife()) {
-            abort(403);
+        $user = $this->getCurrentUser();
+        if (!$user || (!$user->isMidwife() && !$user->isCho())) {
+            abort(403, 'Unauthorized access.');
         }
 
         $material = LearningMaterial::findOrFail($id);
-        $material->delete();
+        $title = $material->title;
+        $material->delete(); // Soft delete
+
+        ActivityLog::log('archive', "Archived learning material/video: {$title}");
 
         return redirect()->route('midwife.learning.index')
-            ->with('success', 'Learning material deleted successfully');
+            ->with('success', "Learning material '{$title}' moved to archives.");
     }
 
     // Filter by type
     public function articles()
     {
         $materials = LearningMaterial::articles()->latest()->paginate(12);
+        return view('learning.index', compact('materials'));
+    }
+
+    public function videos()
+    {
+        $materials = LearningMaterial::videos()->latest()->paginate(12);
         return view('learning.index', compact('materials'));
     }
 
@@ -209,6 +253,12 @@ class LearningController extends Controller
     public function files()
     {
         $materials = LearningMaterial::files()->latest()->paginate(12);
+        return view('learning.index', compact('materials'));
+    }
+
+    public function hcwTraining()
+    {
+        $materials = LearningMaterial::hcwTraining()->latest()->paginate(12);
         return view('learning.index', compact('materials'));
     }
 
@@ -247,27 +297,28 @@ class LearningController extends Controller
     }
 
     // BHW Learning Materials
-    public function bhwIndex()
+    public function bhwIndex(Request $request)
     {
         if (!$this->getCurrentUser()?->isBhw()) {
             abort(403);
         }
 
         $query = LearningMaterial::query();
-        if (request('search')) {
-            $query->where(function($q) {
-                $q->where('title', 'like', '%' . request('search') . '%')
-                  ->orWhere('content', 'like', '%' . request('search') . '%');
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
             });
         }
-        if (request('type')) {
-            $query->where('material_type', request('type'));
+        if ($request->filled('type')) {
+            $query->where('material_type', $request->type);
         }
-        if (request('category')) {
-            $query->where('category', request('category'));
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
         }
 
-        $materials = $query->latest()->paginate(12);
+        $materials = $query->latest()->paginate(12)->withQueryString();
         return view('learning.index', compact('materials'));
     }
 

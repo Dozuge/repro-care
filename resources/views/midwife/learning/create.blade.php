@@ -1,30 +1,37 @@
-@extends('midwife.layout')
+@php
+    $layout = auth()->user()?->isCho() ? 'cho.layout' : 'midwife.layout';
+    $section = auth()->user()?->isCho() ? 'cho-content' : 'midwife-content';
+@endphp
 
-@section('title', 'Add Learning Material - ReproCare')
+@extends($layout)
 
-@section('midwife-content')
-<div class="py-4" style="width: 100%; max-width: 100%;">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+@section('title', 'Publish Playable Media & Learning Material - ReproCare')
+
+@section($section)
+<div class="py-3" style="width: 100%; max-width: 100%;">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h1><i class="bi bi-plus-square"></i> Add Learning Material</h1>
-            <p class="text-muted mb-0">Create a new learning material for patients</p>
+            <h2 class="fw-800 text-dark mb-1" style="font-family:'Plus Jakarta Sans',sans-serif;">
+                <i class="bi bi-camera-video-fill text-primary me-2"></i>Publish Media &amp; Learning Material
+            </h2>
+            <p class="text-muted mb-0" style="font-size:0.9rem;">Upload educational MP4 videos, paste streaming URLs, or publish training guides.</p>
         </div>
-        <a href="{{ route('midwife.learning.index') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Materials
+        <a href="{{ route('midwife.learning.index') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="border-radius:10px;">
+            <i class="bi bi-arrow-left"></i> Back to Media Library
         </a>
     </div>
 
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mb-4">
-            <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+        <div class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm" style="border-radius:14px;">
+            <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
 
     @if($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show mb-4">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            <strong>Please fix the following errors:</strong>
+        <div class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm" style="border-radius:14px;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Please correct the following:</strong>
             <ul class="mb-0 mt-2">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -38,132 +45,122 @@
         @csrf
         
         <div class="row g-4">
-            <!-- Left Column - Main Form -->
+            <!-- Left Column - Main Content Details -->
             <div class="col-lg-8">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Material Information</h5>
+                <div class="card shadow-sm border mb-4" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
+                    <div class="card-header bg-transparent py-3 border-bottom">
+                        <h6 class="fw-800 mb-0 text-dark"><i class="bi bi-info-circle-fill me-2 text-primary"></i>Media Content Information</h6>
                     </div>
-                    <div class="card-body">
-                        <!-- Basic Information -->
-                        <div class="mb-4">
-                            <label for="title" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+                    <div class="card-body p-4">
+                        {{-- Title --}}
+                        <div class="mb-3">
+                            <label for="title" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">Title <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" 
-                                   value="{{ old('title') }}" required
-                                   placeholder="Enter material title">
+                                   value="{{ old('title') }}" required placeholder="e.g., Essential Antenatal Care & Nutrition in Third Trimester" style="border-radius:10px;">
                             @error('title')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         
-                        <div class="mb-4">
-                            <label for="material_type" class="form-label fw-semibold">Material Type <span class="text-danger">*</span></label>
-                            <select class="form-select @error('material_type') is-invalid @enderror" id="material_type" name="material_type" required onchange="if(this.value === 'file') { document.getElementById('file_upload_group').style.display = 'block'; document.getElementById('file').setAttribute('required', 'required'); } else { document.getElementById('file_upload_group').style.display = 'none'; document.getElementById('file').removeAttribute('required'); } if(this.value === 'link') { document.getElementById('link_url_group').style.display = 'block'; document.getElementById('link_url').setAttribute('required', 'required'); } else { document.getElementById('link_url_group').style.display = 'none'; document.getElementById('link_url').removeAttribute('required'); }">
-                                <option value="">Select Type</option>
-                                <option value="article" {{ old('material_type') == 'article' ? 'selected' : '' }}>Article</option>
-                                <option value="link" {{ old('material_type') == 'link' ? 'selected' : '' }}>External Link</option>
-                                <option value="file" {{ old('material_type') == 'file' ? 'selected' : '' }}>Downloadable File</option>
+                        {{-- Material Type --}}
+                        <div class="mb-3">
+                            <label for="material_type" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">Material Type <span class="text-danger">*</span></label>
+                            <select class="form-select @error('material_type') is-invalid @enderror" id="material_type" name="material_type" required onchange="handleTypeChange(this.value)" style="border-radius:10px;">
+                                <option value="">-- Select Content Format --</option>
+                                <option value="video" {{ old('material_type', 'video') === 'video' ? 'selected' : '' }}>🎬 Playable Video (Upload MP4 or Stream URL)</option>
+                                <option value="article" {{ old('material_type') === 'article' ? 'selected' : '' }}>📄 Educational Article</option>
+                                <option value="link" {{ old('material_type') === 'link' ? 'selected' : '' }}>🔗 External Resource Link</option>
+                                <option value="file" {{ old('material_type') === 'file' ? 'selected' : '' }}>📁 Downloadable Clinical Document (PDF / PPT / Doc)</option>
                             </select>
-                            @error('material_type')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
                         </div>
-                        
-                        <div class="mb-4" id="link_url_group" style="display: {{ old('material_type') == 'link' ? 'block' : 'none' }};">
-                            <label for="link_url" class="form-label fw-semibold">Link URL <span class="text-danger">*</span></label>
-                            <input type="url" class="form-control @error('link_url') is-invalid @enderror" id="link_url" name="link_url" 
-                                   value="{{ old('link_url') }}" placeholder="https://example.com" {{ old('material_type') == 'link' ? 'required' : '' }}>
-                            <small class="text-muted">Enter the complete URL for external resources</small>
-                            @error('link_url')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+
+                        {{-- Video URL / Stream Input --}}
+                        <div class="mb-3" id="video_url_group">
+                            <label for="video_url" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">
+                                Video Streaming URL (YouTube / Vimeo / Direct Stream)
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-youtube text-danger"></i></span>
+                                <input type="url" class="form-control @error('video_url') is-invalid @enderror" id="video_url" name="video_url" 
+                                       value="{{ old('video_url') }}" placeholder="https://www.youtube.com/watch?v=... or Vimeo link" style="border-radius:0 10px 10px 0;">
+                            </div>
+                            <small class="text-muted">Paste a YouTube or Vimeo link for embedded streaming, OR upload an MP4 file below.</small>
                         </div>
-                        
-                        <div class="mb-4" id="file_upload_group" style="display: {{ old('material_type') == 'file' ? 'block' : 'none' }};">
-                            <label for="file" class="form-label fw-semibold">Upload File <span class="text-danger">*</span></label>
-                            <input type="file" class="form-control @error('file') is-invalid @enderror" id="file" name="file" {{ old('material_type') == 'file' ? 'required' : '' }}>
+
+                        {{-- MP4 Video / File Upload --}}
+                        <div class="mb-3" id="file_upload_group">
+                            <label for="file" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">
+                                Upload Video File or Document (MP4, WEBM, MOV, PDF, DOCX)
+                            </label>
+                            <input type="file" class="form-control @error('file') is-invalid @enderror" id="file" name="file" accept=".mp4,.webm,.mov,.avi,.pdf,.doc,.docx,.ppt,.pptx" style="border-radius:10px;">
                             <small class="text-muted">
-                                Accepted: Images (JPG, PNG, GIF), Videos (MP4, AVI, MOV), Documents (PDF, DOC, XLS, PPT, TXT)<br>
-                                Max size: 100MB
+                                <i class="bi bi-file-earmark-play me-1"></i>Supports MP4 video files up to 100MB for direct inline browser playback.
                             </small>
                             @error('file')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
+                        {{-- External Link URL --}}
+                        <div class="mb-3" id="link_url_group" style="display:none;">
+                            <label for="link_url" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">External Resource URL</label>
+                            <input type="url" class="form-control" id="link_url" name="link_url" value="{{ old('link_url') }}" placeholder="https://doh.gov.ph/maternal-health" style="border-radius:10px;">
+                        </div>
                         
-                        <div class="mb-4">
-                            <label for="content" class="form-label fw-semibold">Content <span class="text-danger">*</span></label>
-                            <textarea class="form-control @error('content') is-invalid @enderror" id="content" name="content" rows="8" required
-                                      placeholder="Enter material content...">{{ old('content') }}</textarea>
-                            <div class="form-text text-muted">
-                                <strong>For articles:</strong> Full article content<br>
-                                <strong>For links:</strong> Brief description of the resource<br>
-                                <strong>For files:</strong> Description of what the file contains
-                            </div>
+                        {{-- Content / Description --}}
+                        <div class="mb-3">
+                            <label for="content" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">Description &amp; Key Teaching Points <span class="text-danger">*</span></label>
+                            <textarea class="form-control @error('content') is-invalid @enderror" id="content" name="content" rows="6" required
+                                      placeholder="Provide clinical counseling guidelines, key discussion points, or overview of the material..." style="border-radius:10px;">{{ old('content') }}</textarea>
                             @error('content')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
                 </div>
-                
-                <!-- Action Buttons -->
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex gap-2 justify-content-end">
-                            <a href="{{ route('midwife.learning.index') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle me-1"></i> Cancel
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save me-1"></i> Save Material
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
-            
-            <!-- Right Column - Sidebar -->
+
+            <!-- Right Column - Categories & Thumbnail -->
             <div class="col-lg-4">
-                <!-- Thumbnail Section -->
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-image me-2"></i>Thumbnail</h5>
+                <div class="card shadow-sm border mb-4" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
+                    <div class="card-header bg-transparent py-3 border-bottom">
+                        <h6 class="fw-800 mb-0 text-dark"><i class="bi bi-tags-fill me-2 text-primary"></i>Category &amp; Target</h6>
                     </div>
-                    <div class="card-body">
-                        <label class="form-label fw-semibold">Upload Thumbnail (Optional)</label>
-                        <div class="text-center py-4 mb-3 bg-light rounded" style="border: 2px dashed #dee2e6;">
-                            <i class="bi bi-image text-muted" style="font-size: 2.5rem;"></i>
-                            <p class="text-muted mb-0 mt-2">No thumbnail uploaded</p>
-                        </div>
-                        
-                        <input type="file" class="form-control @error('image') is-invalid @enderror" name="image" id="thumbnailInput" accept="image/*" onchange="previewThumbnail(event)">
-                        <small class="form-text text-muted">Recommended: 800x600px, max 2MB</small>
-                        @error('image')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        
-                        <div id="thumbnailPreview" class="mt-3" style="display: none;">
-                            <label class="form-label fw-semibold">Thumbnail Preview</label>
-                            <img id="thumbnailImage" src="" alt="Thumbnail Preview" class="img-thumbnail w-100" style="height: 200px; object-fit: cover; border-radius: 8px;">
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Tips -->
-                <div class="card shadow-sm">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Tips</h5>
-                    </div>
-                    <div class="card-body">
+                    <div class="card-body p-4">
+                        {{-- Category --}}
                         <div class="mb-3">
-                            <p class="mb-2 fw-semibold">Best Practices:</p>
-                            <ul class="mb-0 text-muted small">
-                                <li>Use clear, descriptive titles</li>
-                                <li>Include relevant keywords in content</li>
-                                <li>Add a thumbnail to increase engagement</li>
-                                <li>For links, provide a brief description</li>
-                                <li>For files, describe what users will learn</li>
-                            </ul>
+                            <label for="category" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">Topic Category</label>
+                            <select class="form-select" id="category" name="category" style="border-radius:10px;">
+                                <option value="prenatal-care" {{ old('category') === 'prenatal-care' ? 'selected' : '' }}>🤰 Prenatal Care</option>
+                                <option value="nutrition" {{ old('category') === 'nutrition' ? 'selected' : '' }}>🥗 Maternal Nutrition</option>
+                                <option value="warning-signs" {{ old('category') === 'warning-signs' ? 'selected' : '' }}>⚠️ Warning Signs &amp; Preeclampsia</option>
+                                <option value="family-planning" {{ old('category') === 'family-planning' ? 'selected' : '' }}>👨‍👩‍👧 Family Planning &amp; Contraception</option>
+                                <option value="postpartum" {{ old('category') === 'postpartum' ? 'selected' : '' }}>👶 Postpartum &amp; Newborn Care</option>
+                                <option value="hcw-training" {{ old('category') === 'hcw-training' ? 'selected' : '' }}>🎓 Healthcare Worker (HCW) Training</option>
+                                <option value="general" {{ old('category') === 'general' ? 'selected' : '' }}>General Health Education</option>
+                            </select>
+                        </div>
+
+                        {{-- Week Number (Optional for Pregnancy Guide) --}}
+                        <div class="mb-3">
+                            <label for="week_number" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">Pregnancy Week # (Optional)</label>
+                            <input type="number" class="form-control" id="week_number" name="week_number" value="{{ old('week_number') }}" min="1" max="42" placeholder="e.g. 12" style="border-radius:10px;">
+                            <small class="text-muted">Target specific gestational week guide</small>
+                        </div>
+
+                        {{-- Cover Image Thumbnail --}}
+                        <div class="mb-4">
+                            <label for="image" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">Cover Thumbnail Image</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*" style="border-radius:10px;">
+                            <small class="text-muted">PNG, JPG, or WEBP up to 4MB.</small>
+                        </div>
+
+                        {{-- Submit Buttons --}}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary fw-700 py-2.5" style="border-radius:10px;">
+                                <i class="bi bi-upload me-1"></i> Publish Media &amp; Material
+                            </button>
+                            <a href="{{ route('midwife.learning.index') }}" class="btn btn-light border py-2" style="border-radius:10px;">Cancel</a>
                         </div>
                     </div>
                 </div>
@@ -172,60 +169,35 @@
     </form>
 </div>
 
-@endsection
-
-@section('scripts')
+@push('scripts')
 <script>
-function toggleMaterialTypeFields() {
-    var materialType = document.getElementById('material_type').value;
-    var linkUrlGroup = document.getElementById('link_url_group');
-    var fileUploadGroup = document.getElementById('file_upload_group');
-    
-    if (materialType === 'link') {
-        linkUrlGroup.style.display = 'block';
-        document.getElementById('link_url').setAttribute('required', 'required');
-        if (fileUploadGroup) {
-            fileUploadGroup.style.display = 'none';
-            document.getElementById('file').removeAttribute('required');
-        }
-    } else if (materialType === 'file') {
-        linkUrlGroup.style.display = 'none';
-        document.getElementById('link_url').removeAttribute('required');
-        if (fileUploadGroup) {
-            fileUploadGroup.style.display = 'block';
-            document.getElementById('file').setAttribute('required', 'required');
-        }
+function handleTypeChange(val) {
+    const videoGrp = document.getElementById('video_url_group');
+    const fileGrp = document.getElementById('file_upload_group');
+    const linkGrp = document.getElementById('link_url_group');
+
+    if (val === 'video') {
+        videoGrp.style.display = 'block';
+        fileGrp.style.display = 'block';
+        linkGrp.style.display = 'none';
+    } else if (val === 'link') {
+        videoGrp.style.display = 'none';
+        fileGrp.style.display = 'none';
+        linkGrp.style.display = 'block';
+    } else if (val === 'file') {
+        videoGrp.style.display = 'none';
+        fileGrp.style.display = 'block';
+        linkGrp.style.display = 'none';
     } else {
-        linkUrlGroup.style.display = 'none';
-        document.getElementById('link_url').removeAttribute('required');
-        if (fileUploadGroup) {
-            fileUploadGroup.style.display = 'none';
-            document.getElementById('file').removeAttribute('required');
-        }
+        videoGrp.style.display = 'none';
+        fileGrp.style.display = 'none';
+        linkGrp.style.display = 'none';
     }
 }
-
-function previewThumbnail(event) {
-    const input = event.target;
-    const preview = document.getElementById('thumbnailPreview');
-    const image = document.getElementById('thumbnailImage');
-
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            image.src = e.target.result;
-            preview.style.display = 'block';
-        }
-        reader.readAsDataURL(input.files[0]);
-    } else {
-        preview.style.display = 'none';
-    }
-}
-
-// Run immediately (script is at bottom of page)
-toggleMaterialTypeFields();
-
-// Run on change
-document.getElementById('material_type').addEventListener('change', toggleMaterialTypeFields);
+document.addEventListener('DOMContentLoaded', () => {
+    handleTypeChange(document.getElementById('material_type').value);
+});
 </script>
+@endpush
+
 @endsection

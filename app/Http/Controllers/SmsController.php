@@ -104,7 +104,7 @@ class SmsController extends Controller
 
         return back()->with(
             $sent ? 'success' : 'error',
-            $sent ? "SMS sent to {$user->name} successfully." : "Failed to send SMS. Check FMCSMS configuration."
+            $sent ? "SMS sent to {$user->name} successfully." : "Failed to send SMS. Check Movider SMS configuration."
         );
     }
 

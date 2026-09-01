@@ -76,6 +76,8 @@ class MidwifeController extends Controller
         $purokId = request('purok_id');
         $pregnancyStatus = request('pregnancy_status', 'all');
         $ageRange = request('age_range', 'all');
+        $riskLevel = request('risk_level', 'all');
+        $trimester = request('trimester', 'all');
 
         // Get registered patients
         $registeredQuery = User::where('role', 'user')
@@ -84,12 +86,17 @@ class MidwifeController extends Controller
                 'pregnancies' => function($query) {
                     $query->active();
                 },
+                'healthRecords' => function($query) {
+                    $query->latest();
+                },
             ])
             ->where('status', 'approved');
 
         if ($search) {
-            $registeredQuery->where(function($q) use ($search) {
-                $q->where('first_name', 'like', '%' . $search . '%')
+            $cleanSearch = ltrim($search, '#');
+            $registeredQuery->where(function($q) use ($search, $cleanSearch) {
+                $q->where('id', $cleanSearch)
+                  ->orWhere('first_name', 'like', '%' . $search . '%')
                   ->orWhere('middle_initial', 'like', '%' . $search . '%')
                   ->orWhere('last_name', 'like', '%' . $search . '%')
                   ->orWhere('contact_number', 'like', '%' . $search . '%')
@@ -136,7 +143,7 @@ class MidwifeController extends Controller
         // Combine both collections
         $allPatients = $registeredPatients->concat($unregisteredPatients);
 
-        // Apply filter
+        // Apply filter (registered/unregistered)
         if ($filter === 'registered') {
             $allPatients = $allPatients->where('type', 'registered');
         } elseif ($filter === 'unregistered') {
@@ -149,14 +156,43 @@ class MidwifeController extends Controller
             $allPatients = $allPatients->filter(fn ($patient) => !$patient->pregnancies || $patient->pregnancies->count() === 0);
         }
 
+        // Age filter (including <19 teenage pregnancy)
         if ($ageRange !== 'all') {
             $allPatients = $allPatients->filter(function ($patient) use ($ageRange) {
                 $age = $patient->age;
-
                 return match ($ageRange) {
-                    'under_20' => $age !== null && $age < 20,
-                    '20_34' => $age !== null && $age >= 20 && $age <= 34,
+                    'teen', 'under_20' => $age !== null && $age < 19,
+                    '20_34' => $age !== null && $age >= 19 && $age <= 34,
                     '35_plus' => $age !== null && $age >= 35,
+                    default => true,
+                };
+            });
+        }
+
+        // Risk Level filter
+        if ($riskLevel !== 'all') {
+            $allPatients = $allPatients->filter(function ($patient) use ($riskLevel) {
+                $activePreg = $patient->pregnancies?->first();
+                $latestRecord = $patient->healthRecords?->first();
+                $currentRisk = strtolower($activePreg?->risk_level ?? $latestRecord?->risk_level ?? 'low');
+
+                if ($riskLevel === 'high_risk_only') {
+                    return in_array($currentRisk, ['high', 'critical']);
+                }
+                return $currentRisk === strtolower($riskLevel);
+            });
+        }
+
+        // Trimester filter
+        if ($trimester !== 'all') {
+            $allPatients = $allPatients->filter(function ($patient) use ($trimester) {
+                $activePreg = $patient->pregnancies?->first();
+                if (!$activePreg) return false;
+                $aog = (int)($activePreg->aog_weeks ?? 0);
+                return match ($trimester) {
+                    '1' => $aog <= 13,
+                    '2' => $aog >= 14 && $aog <= 26,
+                    '3' => $aog >= 27,
                     default => true,
                 };
             });
@@ -189,7 +225,9 @@ class MidwifeController extends Controller
             'puroks',
             'purokId',
             'pregnancyStatus',
-            'ageRange'
+            'ageRange',
+            'riskLevel',
+            'trimester'
         ));
     }
 

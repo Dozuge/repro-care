@@ -57,6 +57,11 @@ class WalkInPatient extends Model
         return $this->hasMany(Pregnancy::class, 'walk_in_patient_id');
     }
 
+    public function healthRecords(): HasMany
+    {
+        return $this->hasMany(HealthRecord::class, 'walk_in_patient_id');
+    }
+
     public function getFullNameAttribute(): string
     {
         return trim("{$this->first_name} {$this->middle_initial} {$this->last_name}");
@@ -68,6 +73,11 @@ class WalkInPatient extends Model
             return null;
         }
         return $this->date_of_birth->age;
+    }
+
+    public function isTeenage(): bool
+    {
+        return $this->date_of_birth && $this->date_of_birth->age < 19;
     }
 
     public function scopeNotConverted($query)

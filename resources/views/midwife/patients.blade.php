@@ -89,40 +89,60 @@
     </div>
 @endif
 
-<div class="card fade-in-card my-4">
-    <div class="card-body">
-        <form method="GET" action="{{ route('midwife.patients') }}" class="row g-3 align-items-end">
+<div class="card fade-in-card my-4 shadow-sm" style="border-radius:16px;">
+    <div class="card-body p-3">
+        <form method="GET" action="{{ route('midwife.patients') }}" class="row g-2 align-items-end">
             <input type="hidden" name="filter" value="{{ request('filter', 'all') }}">
             <input type="hidden" name="search" value="{{ request('search') }}">
-            <div class="col-md-3">
-                <label class="form-label">Purok</label>
-                <select name="purok_id" class="form-select">
+            <div class="col-6 col-md-2">
+                <label class="form-label text-xs fw-600 text-muted mb-1">Purok</label>
+                <select name="purok_id" class="form-select form-select-sm">
                     <option value="">All Puroks</option>
                     @foreach($puroks as $purok)
                         <option value="{{ $purok->id }}" {{ (string) $purokId === (string) $purok->id ? 'selected' : '' }}>{{ $purok->name }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-label">Pregnancy Status</label>
-                <select name="pregnancy_status" class="form-select">
-                    <option value="all" {{ $pregnancyStatus === 'all' ? 'selected' : '' }}>All</option>
+            <div class="col-6 col-md-2">
+                <label class="form-label text-xs fw-600 text-muted mb-1">Risk Triage</label>
+                <select name="risk_level" class="form-select form-select-sm">
+                    <option value="all" {{ ($riskLevel ?? 'all') === 'all' ? 'selected' : '' }}>All Risk Tiers</option>
+                    <option value="high_risk_only" {{ ($riskLevel ?? '') === 'high_risk_only' ? 'selected' : '' }}>🚨 High Risk Only</option>
+                    <option value="critical" {{ ($riskLevel ?? '') === 'critical' ? 'selected' : '' }}>Critical Risk</option>
+                    <option value="high" {{ ($riskLevel ?? '') === 'high' ? 'selected' : '' }}>High Risk</option>
+                    <option value="medium" {{ ($riskLevel ?? '') === 'medium' ? 'selected' : '' }}>Medium Risk</option>
+                    <option value="low" {{ ($riskLevel ?? '') === 'low' ? 'selected' : '' }}>Low Risk</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label text-xs fw-600 text-muted mb-1">Age Tier</label>
+                <select name="age_range" class="form-select form-select-sm">
+                    <option value="all" {{ $ageRange === 'all' ? 'selected' : '' }}>All Ages</option>
+                    <option value="teen" {{ $ageRange === 'teen' || $ageRange === 'under_20' ? 'selected' : '' }}>⚠️ Adolescent (&lt;19 yrs)</option>
+                    <option value="20_34" {{ $ageRange === '20_34' ? 'selected' : '' }}>20 to 34 yrs</option>
+                    <option value="35_plus" {{ $ageRange === '35_plus' ? 'selected' : '' }}>35+ yrs (Advanced)</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label text-xs fw-600 text-muted mb-1">Trimester</label>
+                <select name="trimester" class="form-select form-select-sm">
+                    <option value="all" {{ ($trimester ?? 'all') === 'all' ? 'selected' : '' }}>All Stages</option>
+                    <option value="1" {{ ($trimester ?? '') === '1' ? 'selected' : '' }}>1st Trimester (1-13 wks)</option>
+                    <option value="2" {{ ($trimester ?? '') === '2' ? 'selected' : '' }}>2nd Trimester (14-26 wks)</option>
+                    <option value="3" {{ ($trimester ?? '') === '3' ? 'selected' : '' }}>3rd Trimester (27+ wks)</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label text-xs fw-600 text-muted mb-1">Pregnancy Status</label>
+                <select name="pregnancy_status" class="form-select form-select-sm">
+                    <option value="all" {{ $pregnancyStatus === 'all' ? 'selected' : '' }}>All Status</option>
                     <option value="pregnant" {{ $pregnancyStatus === 'pregnant' ? 'selected' : '' }}>Pregnant</option>
                     <option value="not_pregnant" {{ $pregnancyStatus === 'not_pregnant' ? 'selected' : '' }}>Not Pregnant</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-label">Age</label>
-                <select name="age_range" class="form-select">
-                    <option value="all" {{ $ageRange === 'all' ? 'selected' : '' }}>All Ages</option>
-                    <option value="under_20" {{ $ageRange === 'under_20' ? 'selected' : '' }}>Under 20</option>
-                    <option value="20_34" {{ $ageRange === '20_34' ? 'selected' : '' }}>20 to 34</option>
-                    <option value="35_plus" {{ $ageRange === '35_plus' ? 'selected' : '' }}>35 and above</option>
-                </select>
-            </div>
-            <div class="col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-funnel me-1"></i>Apply</button>
-                <a href="{{ route('midwife.patients') }}" class="btn btn-outline-secondary">Clear</a>
+            <div class="col-12 col-md-2 d-flex gap-1">
+                <button type="submit" class="btn btn-sm btn-primary flex-fill"><i class="bi bi-funnel-fill me-1"></i>Filter</button>
+                <a href="{{ route('midwife.patients') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x"></i></a>
             </div>
         </form>
     </div>
@@ -178,8 +198,8 @@
                         <th>Type</th>
                         <th>Contact Number</th>
                         <th>Purok / Barangay</th>
-                        <th>Pregnancy</th>
-                        <th class="text-center">Action</th>
+                        <th>Pregnancy &amp; Risk Level</th>
+                        <th class="text-end px-3">Clinical Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -188,14 +208,30 @@
                             $isWalkIn = $patient->type === 'unregistered';
                             $name = $isWalkIn ? $patient->full_name : $patient->name;
                             $contact = $isWalkIn ? ($patient->contact_number ?? null) : ($patient->contact_number ?? $patient->phone ?? null);
+                            $activePreg = $patient->pregnancies?->first();
+                            $latestRecord = $patient->healthRecords?->first();
+                            $risk = strtolower($activePreg?->risk_level ?? $latestRecord?->risk_level ?? 'low');
+                            $isTeen = method_exists($patient, 'isTeenage') ? $patient->isTeenage() : ($patient->age !== null && $patient->age < 19);
+                            $badgeClass = match($risk) {
+                                'critical', 'high' => 'badge-critical',
+                                'medium'           => 'badge-warning',
+                                default            => 'badge-success',
+                            };
                         @endphp
                         <tr>
                             <td>
                                 <div class="women-table-name">
                                     <div class="women-avatar">{{ strtoupper(substr($name, 0, 1)) }}</div>
                                     <div>
-                                        <div class="women-name">{{ $name }}</div>
-                                        <div class="women-sub">{{ $patient->purok?->name ?? 'No purok selected' }}</div>
+                                        <div class="women-name">
+                                            {{ $name }}
+                                            @if($isTeen)
+                                                <span class="badge" style="background:var(--badge-critical-bg); color:var(--badge-critical-text); font-size:0.68rem; font-weight:700;">
+                                                    Teen &lt;19
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="women-sub">Age: {{ $patient->age ? $patient->age . ' yrs' : 'N/A' }} · ID: #{{ $patient->id }}</div>
                                     </div>
                                 </div>
                             </td>
@@ -207,29 +243,39 @@
                             </td>
                             <td>{{ $contact ?: '—' }}</td>
                             <td>
-                                <div>{{ $patient->purok?->name ?? '—' }}</div>
-                                <div class="women-sub">{{ $patient->barangay ?? 'Burgos' }}</div>
+                                <div class="fw-600">{{ $patient->purok?->name ?? '—' }}</div>
+                                <div class="women-sub">{{ $patient->barangay ?? 'Central' }}</div>
                             </td>
                             <td>
-                                @if($patient->pregnancies && $patient->pregnancies->count() > 0)
-                                    @foreach($patient->pregnancies as $pregnancy)
-                                        <div class="text-success small">
-                                            <i class="bi bi-calendar-heart me-1"></i>
-                                            EDD: {{ $pregnancy->edd ? $pregnancy->edd->format('M j, Y') : 'Unknown' }}
-                                        </div>
-                                    @endforeach
+                                @if($activePreg)
+                                    <div>
+                                        <span class="pill-badge {{ $badgeClass }}">{{ ucfirst($risk) }} Risk</span>
+                                    </div>
+                                    <div class="text-muted text-xs mt-1">
+                                        🤰 {{ $activePreg->aog_weeks ?? 0 }} wks AOG (EDD: {{ $activePreg->expected_delivery_date ? \Carbon\Carbon::parse($activePreg->expected_delivery_date)->format('M d') : 'N/A' }})
+                                    </div>
                                 @else
-                                    <span class="women-sub">Not Pregnant</span>
+                                    <span class="women-sub">Non-pregnant / Postpartum</span>
                                 @endif
                             </td>
-                            <td class="text-center">
-                                <a
-                                    href="{{ $isWalkIn ? route('midwife.walk-in-patients.show', $patient->id) : route('midwife.patient-details', $patient->id) }}"
-                                    class="women-action-btn"
-                                    title="View"
-                                >
-                                    <i class="bi bi-eye"></i>
-                                </a>
+                            <td class="text-end px-3">
+                                <div class="d-inline-flex align-items-center gap-1.5">
+                                    {{-- Video Consultation Helper --}}
+                                    <a href="{{ route('learning.index', ['type' => 'video']) }}" 
+                                       class="btn btn-sm btn-light border text-danger" 
+                                       title="Stream Patient Counseling Video"
+                                       style="border-radius:8px; padding:0.35rem 0.6rem; font-size:0.8rem; font-weight:600;">
+                                        <i class="bi bi-play-circle-fill"></i> Stream
+                                    </a>
+
+                                    {{-- View Profile / Case --}}
+                                    <a href="{{ $isWalkIn ? route('midwife.walk-in-patients.show', $patient->id) : route('midwife.patient-details', $patient->id) }}"
+                                       class="btn btn-sm btn-primary"
+                                       style="border-radius:8px; padding:0.35rem 0.65rem; font-size:0.8rem; font-weight:600;"
+                                       title="Review Patient Record">
+                                        <i class="bi bi-eye-fill me-1"></i> Review
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

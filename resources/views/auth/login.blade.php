@@ -420,6 +420,12 @@
     <div class="login-right">
         <div class="login-form-wrap">
 
+            <div class="mb-3">
+                <a href="{{ url('/') }}" class="d-inline-flex align-items-center gap-1 text-decoration-none text-muted" style="font-size: 0.85rem; font-weight: 600; transition: color 0.15s ease;">
+                    <i class="bi bi-arrow-left"></i> Back to ReproCare
+                </a>
+            </div>
+
             <h2 class="login-form-title">Welcome back! 👋</h2>
             <p class="login-form-sub">Sign in to continue to your health dashboard</p>
 

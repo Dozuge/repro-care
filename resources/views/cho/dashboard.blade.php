@@ -234,6 +234,38 @@
     </div>
 </div>
 
+{{-- ═══════════════════════════════════════════════════════
+     CITY HEALTH OFFICE & RHU GEOGRAPHIC FACILITY MAP
+═══════════════════════════════════════════════════════ --}}
+<div class="card fade-in-card shadow-sm border mt-4 mb-4" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
+    <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">
+        <div>
+            <h5 class="fw-800 mb-0 text-dark d-flex align-items-center gap-2" style="font-family:'Plus Jakarta Sans',sans-serif;">
+                <i class="bi bi-geo-alt-fill text-danger"></i> Geographic Facility Mapping — San Carlos City, Pangasinan
+            </h5>
+            <small class="text-muted">Live Google Maps location for Rural Health Unit &amp; City Health jurisdiction</small>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge" style="background:var(--primary-subtle); color:var(--primary); font-size:0.78rem; font-weight:700;">
+                <i class="bi bi-pin-map-fill me-1"></i> RHU San Carlos City
+            </span>
+            <a href="https://www.google.com/maps?q=Rural+Health+Unit+San+Carlos+CIty+Pangasinan%2C+Philippines" target="_blank" class="btn btn-xs btn-outline-secondary" style="border-radius:8px; font-size:0.75rem;">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Open in Maps
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0 overflow-hidden" style="border-radius:0 0 16px 16px;">
+        <div class="ratio ratio-21x9" style="min-height:380px;">
+            <iframe src="https://www.google.com/maps?q=Rural+Health+Unit+San+Carlos+CIty+Pangasinan%2C+Philippines&amp;z=14&amp;t=p&amp;hl=en&amp;output=embed" 
+                    class="w-100 h-100 border-0" 
+                    loading="lazy" 
+                    allowfullscreen 
+                    referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 function animateStatNumbers() {

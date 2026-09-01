@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\SmsLog;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class SmsService
 {
@@ -154,15 +156,14 @@ class SmsService
     }
 
     /**
-     * Dispatch the actual SMS via FMCSMS (fortmed.org) API using cURL and log the result.
+     * Dispatch the actual SMS via Movider API and log the result.
      *
-     * API Endpoint: POST https://fortmed.org/web/FMCSMS/api/messages.php
-     * Auth Header:  X-API-Key: <api_key>
-     * JSON Body:    { SenderName, ToNumber, MessageBody, FromNumber }
+     * API Endpoint: POST https://api.movider.co/v1/sms
+     * Parameters:   api_key, api_secret, to, text
      */
     private function dispatch(string $phone, string $message, string $type, ?int $userId): bool
     {
-        $phone = $this->normalizePhilippinesPhone($phone);
+        $normalizedPhone = $this->normalizePhilippinesPhone($phone);
 
         // Build log record first as pending
         $log = SmsLog::create([
@@ -173,18 +174,17 @@ class SmsService
             'status'       => 'pending',
         ]);
 
-        // Read FMCSMS config
-        $apiKey     = config('services.fmcsms.api_key');
-        $apiUrl     = config('services.fmcsms.api_url');
-        $senderName = config('services.fmcsms.sender_name', 'REPROCARE');
-        $fromNumber = config('services.fmcsms.from_number');
-        $mock       = config('services.fmcsms.mock');
+        // Read Movider config
+        $apiKey    = config('services.movider.api_key');
+        $apiSecret = config('services.movider.api_secret');
+        $apiUrl    = config('services.movider.api_url', 'https://api.movider.co/v1/sms');
+        $mock      = config('services.movider.mock');
 
         // ── MOCK MODE ──────────────────────────────────────────────────
         if ($mock) {
             $log->update([
                 'status'       => 'sent',
-                'provider_sid' => 'MOCK_' . \Illuminate\Support\Str::random(10),
+                'provider_sid' => 'MOCK_' . Str::random(10),
                 'sent_at'      => now(),
             ]);
             Log::info("SmsService: [MOCK] SMS sent to {$phone}. Type: {$type}.");
@@ -192,57 +192,39 @@ class SmsService
         }
 
         // ── Validate configuration ─────────────────────────────────────
-        if (empty($apiKey) || empty($apiUrl)) {
-            Log::warning("SmsService: FMCSMS not configured. SMS not sent to {$phone}. Message: {$message}");
-            $log->update(['status' => 'failed', 'error_message' => 'FMCSMS API key or URL not configured.']);
+        if (empty($apiKey)) {
+            Log::warning("SmsService: Movider not configured. SMS not sent to {$phone}. Message: {$message}");
+            $log->update(['status' => 'failed', 'error_message' => 'Movider API key not configured.']);
             return false;
         }
 
-        // ── Send via FMCSMS cURL ───────────────────────────────────────
+        // ── Format Endpoint URL ────────────────────────────────────────
+        $endpoint = $this->formatMoviderEndpoint($apiUrl);
+
+        // ── Send via Movider API ───────────────────────────────────────
         try {
-            $payload = json_encode([
-                'SenderName'  => $senderName,
-                'ToNumber'    => $phone,
-                'MessageBody' => $message,
-                'FromNumber'  => $fromNumber,
-            ]);
+            $payload = [
+                'api_key' => $apiKey,
+                'to'      => $normalizedPhone,
+                'text'    => $message,
+            ];
 
-            $ch = curl_init($apiUrl);
-            curl_setopt_array($ch, [
-                CURLOPT_POST           => true,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT        => 30,
-                CURLOPT_CONNECTTIMEOUT => 10,
-                CURLOPT_HTTPHEADER     => [
-                    'Content-Type: application/json',
-                    'X-API-Key: ' . $apiKey,
-                ],
-                CURLOPT_POSTFIELDS     => $payload,
-                CURLOPT_SSL_VERIFYPEER => true,
-            ]);
-
-            $responseBody = curl_exec($ch);
-            $httpCode     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $curlError    = curl_error($ch);
-            curl_close($ch);
-
-            // Handle cURL-level errors (network failure, timeout, etc.)
-            if ($responseBody === false || !empty($curlError)) {
-                $errorMsg = 'cURL error: ' . ($curlError ?: 'No response from FMCSMS API');
-                Log::error("SmsService: {$errorMsg}");
-                $log->update(['status' => 'failed', 'error_message' => $errorMsg]);
-                return false;
+            if (!empty($apiSecret)) {
+                $payload['api_secret'] = $apiSecret;
             }
 
-            $response = json_decode($responseBody, true);
+            $response = Http::asForm()
+                ->timeout(30)
+                ->acceptJson()
+                ->post($endpoint, $payload);
 
-            // ── Evaluate the API response ──────────────────────────────
-            // Success: HTTP 200/201 and response indicates success
-            if ($httpCode >= 200 && $httpCode < 300 && $this->isSuccessResponse($response)) {
-                $providerSid = $response['message_id']
-                    ?? $response['id']
-                    ?? $response['sid']
-                    ?? ('FMCSMS_' . \Illuminate\Support\Str::random(10));
+            $statusCode = $response->status();
+            $data = $response->json();
+
+            // Evaluate Movider response
+            if ($response->successful() && !empty($data['phone_number_list'])) {
+                $item = $data['phone_number_list'][0];
+                $providerSid = $item['message_id'] ?? ('MOVIDER_' . Str::random(10));
 
                 $log->update([
                     'status'       => 'sent',
@@ -250,22 +232,23 @@ class SmsService
                     'sent_at'      => now(),
                 ]);
 
-                Log::info("SmsService: SMS sent to {$phone}. Type: {$type}. Provider SID: {$providerSid}");
+                Log::info("SmsService: SMS sent via Movider to {$phone}. Type: {$type}. Provider SID: {$providerSid}");
                 return true;
             }
 
-            // ── API returned an error ──────────────────────────────────
-            $errorMsg = $response['error']
-                ?? $response['message']
-                ?? $response['error_message']
-                ?? "HTTP {$httpCode}: " . substr($responseBody, 0, 500);
+            // Handle errors reported in response
+            $errorMsg = $data['error']['description']
+                ?? $data['error']['name']
+                ?? (isset($data['bad_phone_number_list']) && !empty($data['bad_phone_number_list']) ? 'Failed to deliver to number: ' . json_encode($data['bad_phone_number_list']) : null)
+                ?? ($data['message'] ?? null)
+                ?? "HTTP {$statusCode}: " . substr($response->body(), 0, 500);
 
             $log->update([
                 'status'        => 'failed',
                 'error_message' => $errorMsg,
             ]);
 
-            Log::error("SmsService: FMCSMS API error for {$phone}. HTTP {$httpCode}. Response: {$responseBody}");
+            Log::error("SmsService: Movider API error for {$phone}. HTTP {$statusCode}. Response: " . $response->body());
             return false;
 
         } catch (\Throwable $e) {
@@ -280,32 +263,26 @@ class SmsService
     }
 
     /**
-     * Determine if the FMCSMS API response indicates success.
+     * Build the Movider SMS API endpoint URL.
      */
-    private function isSuccessResponse(?array $response): bool
+    private function formatMoviderEndpoint(string $apiUrl): string
     {
-        if (!$response) {
-            return false;
+        $url = trim($apiUrl);
+        if (!str_starts_with($url, 'http://') && !str_starts_with($url, 'https://')) {
+            $url = 'https://' . $url;
         }
-
-        // Check common success indicators in the response
-        if (isset($response['success']) && $response['success']) {
-            return true;
+        $url = rtrim($url, '/');
+        if (str_contains($url, 'console.movider.co')) {
+            return 'https://api.movider.co/v1/sms';
         }
-        if (isset($response['status']) && in_array(strtolower($response['status']), ['sent', 'queued', 'success', 'ok', 'accepted'])) {
-            return true;
+        if (!str_contains($url, '/v1/sms')) {
+            $url .= '/v1/sms';
         }
-        if (isset($response['message_id']) || isset($response['id'])) {
-            return true;
-        }
-
-        return false;
+        return $url;
     }
 
     /**
-     * Normalize a Philippine phone number to E.164 format (+63).
-     * e.g. 09171234567 → +639171234567
-     *      639171234567 → +639171234567
+     * Normalize a Philippine phone number to international MSISDN format (e.g. 639384548234).
      */
     public function normalizePhilippinesPhone(string $phone): string
     {
@@ -313,18 +290,18 @@ class SmsService
         $digits = preg_replace('/\D/', '', $phone);
 
         if (str_starts_with($digits, '63') && strlen($digits) === 12) {
-            return '+' . $digits;
+            return $digits;
         }
 
         if (str_starts_with($digits, '0') && strlen($digits) === 11) {
-            return '+63' . substr($digits, 1);
+            return '63' . substr($digits, 1);
         }
 
         if (str_starts_with($digits, '9') && strlen($digits) === 10) {
-            return '+63' . $digits;
+            return '63' . $digits;
         }
 
-        // Return as-is if already formatted or unrecognized
-        return str_starts_with($phone, '+') ? $phone : '+' . $digits;
+        // Return digits if available, otherwise original string
+        return $digits ?: $phone;
     }
 }

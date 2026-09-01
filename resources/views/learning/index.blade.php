@@ -1,202 +1,230 @@
 @php
     $learningUser = auth()->user();
     $learningLayout = match($learningUser?->role) {
-        'midwife' => 'midwife.layout',
-        'bhw' => 'bhw.layout',
+        'cho'           => 'cho.layout',
+        'midwife'       => 'midwife.layout',
+        'bhw'           => 'bhw.layout',
         'bhw_president' => 'bhw-president.layout',
-        default => 'user.layout',
+        default         => 'user.layout',
     };
     $learningSection = match($learningUser?->role) {
-        'midwife' => 'midwife-content',
-        'bhw' => 'bhw-content',
+        'cho'           => 'cho-content',
+        'midwife'       => 'midwife-content',
+        'bhw'           => 'bhw-content',
         'bhw_president' => 'bhw-president-content',
-        default => 'user-content',
+        default         => 'user-content',
     };
-
-    $articlesCount = $materials->where('material_type', 'article')->count();
-    $linksCount = $materials->where('material_type', 'link')->count();
-    $filesCount = $materials->where('material_type', 'file')->count();
     $activeFilter = request('type');
+    $activeCategory = request('category');
 @endphp
 
 @extends($learningLayout)
 
-@section('title', 'Learning Materials - ReproCare')
+@section('title', 'Media & Learning Library - ReproCare')
 
 @section($learningSection)
-<div class="workspace-stack">
-    <div class="page-hero fade-in-card">
-        <div class="workspace-toolbar" style="position:relative;z-index:1;">
-            <div>
-                <div class="page-hero-title">
-                    <i class="bi bi-journal-richtext me-2"></i>Learning Materials
-                </div>
-                <p class="page-hero-subtitle">Trusted articles, files, and links to support every stage of reproductive care.</p>
-            </div>
+
+{{-- Header Banner --}}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h2 class="fw-800 mb-1" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text); letter-spacing:-0.5px;">
+            <i class="bi bi-camera-video-fill me-2 text-primary"></i>Embedded Playable Media &amp; Learning Center
+        </h2>
+        <p class="text-muted mb-0" style="font-size:0.9rem;">
+            Streaming video guidance, clinical counseling materials, and healthcare worker (HCW) training modules.
+        </p>
+    </div>
+    @if($learningUser?->isMidwife() || $learningUser?->isCho())
+        <div class="d-flex gap-2">
+            <a href="{{ route('midwife.learning.create') }}" class="btn btn-primary d-inline-flex align-items-center gap-1.5 shadow-sm" style="border-radius:10px; font-weight:600;">
+                <i class="bi bi-plus-lg"></i> Add New Video / Material
+            </a>
             @if($learningUser?->isMidwife())
-                <div class="workspace-toolbar-actions">
-                    <a href="{{ route('midwife.learning.create') }}" class="btn-hero-primary">
-                        <i class="bi bi-plus-circle-fill"></i>Add Material
-                    </a>
-                </div>
+                <a href="{{ route('midwife.learning.index') }}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5" style="border-radius:10px;">
+                    <i class="bi bi-gear"></i> Manage Materials
+                </a>
             @endif
-        </div>
-    </div>
-
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mb-0" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    <div class="metric-grid">
-        <div class="metric-card metric-card-primary fade-in-card">
-            <i class="bi bi-file-text metric-card-icon"></i>
-            <div class="metric-card-label">Articles</div>
-            <div class="metric-card-value">{{ $articlesCount }}</div>
-            <div class="metric-card-note">Written guides you can review at your own pace.</div>
-        </div>
-        <div class="metric-card metric-card-green fade-in-card">
-            <i class="bi bi-link-45deg metric-card-icon"></i>
-            <div class="metric-card-label">Links</div>
-            <div class="metric-card-value">{{ $linksCount }}</div>
-            <div class="metric-card-note">External references from helpful reproductive health resources.</div>
-        </div>
-        <div class="metric-card metric-card-amber fade-in-card">
-            <i class="bi bi-file-earmark-arrow-down metric-card-icon"></i>
-            <div class="metric-card-label">Files</div>
-            <div class="metric-card-value">{{ $filesCount }}</div>
-            <div class="metric-card-note">Downloadable materials for offline reading and sharing.</div>
-        </div>
-        <div class="metric-card metric-card-indigo fade-in-card">
-            <i class="bi bi-search-heart metric-card-icon"></i>
-            <div class="metric-card-label">Visible Results</div>
-            <div class="metric-card-value">{{ $materials->total() }}</div>
-            <div class="metric-card-note">{{ request('search') ? 'Search results for your current query.' : 'All available materials in the current filter.' }}</div>
-        </div>
-    </div>
-
-    <div class="workspace-panel fade-in-card">
-        <div class="workspace-panel-header">
-            <h2 class="workspace-panel-title"><i class="bi bi-sliders"></i>Browse Materials</h2>
-            <p class="workspace-panel-subtitle">Filter by content type or search by topic.</p>
-        </div>
-        <div class="workspace-panel-body">
-            <form method="GET" action="{{ route('learning.index') }}" class="workspace-filter-grid">
-                <div class="span-5">
-                    <label class="form-label">Search Topic</label>
-                    <input type="text" name="search" class="form-control" placeholder="Search materials..." value="{{ request('search') }}">
-                </div>
-                <div class="span-4">
-                    <label class="form-label">Material Type</label>
-                    <select name="type" class="form-select">
-                        <option value="">All materials</option>
-                        <option value="article" {{ $activeFilter === 'article' ? 'selected' : '' }}>Articles</option>
-                        <option value="link" {{ $activeFilter === 'link' ? 'selected' : '' }}>Links</option>
-                        <option value="file" {{ $activeFilter === 'file' ? 'selected' : '' }}>Files</option>
-                    </select>
-                </div>
-                <div class="span-3 workspace-filter-actions">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="bi bi-search me-1"></i>Search
-                    </button>
-                    <a href="{{ route('learning.index') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-lg me-1"></i>Reset
-                    </a>
-                </div>
-            </form>
-
-            <div class="section-chip-row mt-4">
-                <a href="{{ route('learning.index') }}" class="summary-chip {{ !$activeFilter ? 'chip-primary' : 'chip-info' }}">All Materials</a>
-                <a href="{{ route('learning.index', ['type' => 'article']) }}" class="summary-chip {{ $activeFilter === 'article' ? 'chip-primary' : 'chip-info' }}">Articles</a>
-                <a href="{{ route('learning.index', ['type' => 'link']) }}" class="summary-chip {{ $activeFilter === 'link' ? 'chip-primary' : 'chip-info' }}">Links</a>
-                <a href="{{ route('learning.index', ['type' => 'file']) }}" class="summary-chip {{ $activeFilter === 'file' ? 'chip-primary' : 'chip-info' }}">Files</a>
-            </div>
-        </div>
-    </div>
-
-    @if($materials->count() > 0)
-        <div class="row g-4">
-            @foreach($materials as $material)
-                @php
-                    $typeMap = [
-                        'article' => ['chip' => 'chip-primary', 'icon' => 'bi-file-text', 'cta' => 'Read Material'],
-                        'link' => ['chip' => 'chip-success', 'icon' => 'bi-link-45deg', 'cta' => 'Open Link'],
-                        'file' => ['chip' => 'chip-warning', 'icon' => 'bi-file-earmark-arrow-down', 'cta' => 'View Material'],
-                    ];
-                    $type = $typeMap[$material->material_type] ?? $typeMap['article'];
-                @endphp
-                <div class="col-xl-4 col-md-6">
-                    <div class="workspace-panel h-100 fade-in-card">
-                        <div class="workspace-panel-body h-100 d-flex flex-column">
-                            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
-                                <span class="summary-chip {{ $type['chip'] }}">
-                                    <i class="bi {{ $type['icon'] }}"></i>{{ ucfirst($material->material_type) }}
-                                </span>
-                                @if($learningUser?->isMidwife())
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" href="{{ route('midwife.learning.edit', $material->id) }}"><i class="bi bi-pencil me-2"></i>Edit</a></li>
-                                            <li>
-                                                <form action="{{ route('midwife.learning.destroy', $material->id) }}" method="POST" onsubmit="return confirm('Delete this material?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete</button>
-                                                </form>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                @endif
-                            </div>
-
-                            @if($material->image_url)
-                                <div class="mb-3 rounded-4 overflow-hidden border" style="border-color:var(--border)!important;height:190px;">
-                                    <img src="{{ $material->image_url }}" alt="{{ $material->title }}" class="w-100 h-100" style="object-fit:cover;">
-                                </div>
-                            @endif
-
-                            <h3 class="h5 mb-2">{{ $material->title }}</h3>
-                            <p class="text-muted mb-3 flex-grow-1">{{ \Illuminate\Support\Str::limit(strip_tags($material->content), 150) }}</p>
-
-                            <div class="mb-3">
-                                <small class="text-muted">
-                                    <i class="bi bi-calendar3 me-1"></i>Published {{ $material->created_at->format('M j, Y') }}
-                                </small>
-                            </div>
-
-                            @if($material->material_type === 'link' && $material->link_url)
-                                <a href="{{ $material->link_url }}" target="_blank" class="btn btn-primary w-100">
-                                    <i class="bi bi-box-arrow-up-right me-2"></i>{{ $type['cta'] }}
-                                </a>
-                            @else
-                                <a href="{{ route('learning.show', $material->id) }}" class="btn btn-primary w-100">
-                                    <i class="bi bi-eye me-2"></i>{{ $type['cta'] }}
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
-        <div class="d-flex justify-content-center">
-            {{ $materials->links('pagination::bootstrap-5') }}
-        </div>
-    @else
-        <div class="workspace-panel fade-in-card">
-            <div class="empty-state-panel">
-                <i class="bi bi-journal-x"></i>
-                <h3>No learning materials found</h3>
-                <p>{{ request('search') ? 'Try a broader topic or remove one of the filters.' : 'There are no learning materials available in this category yet.' }}</p>
-                @if(request('search') || request('type'))
-                    <a href="{{ route('learning.index') }}" class="btn btn-primary mt-3">View All Materials</a>
-                @endif
-            </div>
         </div>
     @endif
 </div>
+
+{{-- Filter Toolbar --}}
+<div class="card shadow-sm border mb-4" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
+    <div class="card-body p-3">
+        <form method="GET" action="{{ route('learning.index') }}" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label text-xs fw-700 text-muted mb-1 text-uppercase" style="letter-spacing:0.5px;">Search Topic / Keyword</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control form-control-sm bg-light border-start-0" 
+                           placeholder="Search videos, articles, counseling guides..." value="{{ request('search') }}">
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label text-xs fw-700 text-muted mb-1 text-uppercase" style="letter-spacing:0.5px;">Format</label>
+                <select name="type" class="form-select form-select-sm bg-light" onchange="this.form.submit()">
+                    <option value="">All Formats</option>
+                    <option value="video" {{ $activeFilter === 'video' ? 'selected' : '' }}>🎬 Playable Videos</option>
+                    <option value="article" {{ $activeFilter === 'article' ? 'selected' : '' }}>📄 Articles &amp; Guides</option>
+                    <option value="file" {{ $activeFilter === 'file' ? 'selected' : '' }}>📁 Downloadable Files</option>
+                    <option value="link" {{ $activeFilter === 'link' ? 'selected' : '' }}>🔗 External Links</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <label class="form-label text-xs fw-700 text-muted mb-1 text-uppercase" style="letter-spacing:0.5px;">Category</label>
+                <select name="category" class="form-select form-select-sm bg-light" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    <option value="prenatal-care" {{ $activeCategory === 'prenatal-care' ? 'selected' : '' }}>🤰 Prenatal Care</option>
+                    <option value="nutrition" {{ $activeCategory === 'nutrition' ? 'selected' : '' }}>🥗 Nutrition</option>
+                    <option value="warning-signs" {{ $activeCategory === 'warning-signs' ? 'selected' : '' }}>⚠️ Warning Signs</option>
+                    <option value="family-planning" {{ $activeCategory === 'family-planning' ? 'selected' : '' }}>👨‍👩‍👧 Family Planning</option>
+                    <option value="postpartum" {{ $activeCategory === 'postpartum' ? 'selected' : '' }}>👶 Postpartum &amp; Newborn</option>
+                    <option value="hcw-training" {{ $activeCategory === 'hcw-training' ? 'selected' : '' }}>🎓 HCW Training</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-sm btn-primary w-100" style="border-radius:8px;"><i class="bi bi-funnel-fill"></i></button>
+                <a href="{{ route('learning.index') }}" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;"><i class="bi bi-x"></i></a>
+            </div>
+        </form>
+
+        {{-- Interactive Category Chips --}}
+        <div class="d-flex align-items-center gap-1.5 mt-3 pt-3 border-top flex-wrap" style="font-size:0.8rem;">
+            <span class="text-xs text-muted fw-700 text-uppercase me-2" style="letter-spacing:0.5px;">Quick Filters:</span>
+            <a href="{{ route('learning.index') }}" 
+               class="badge text-decoration-none px-3 py-2 rounded-pill {{ !$activeFilter && !$activeCategory ? 'bg-primary text-white' : 'bg-light text-dark border' }}">
+                All ({{ $materials->total() }})
+            </a>
+            <a href="{{ route('learning.index', ['type' => 'video']) }}" 
+               class="badge text-decoration-none px-3 py-2 rounded-pill {{ $activeFilter === 'video' ? 'bg-danger text-white' : 'bg-light text-dark border' }}">
+                <i class="bi bi-play-circle-fill me-1"></i> Playable Videos
+            </a>
+            <a href="{{ route('learning.index', ['category' => 'hcw-training']) }}" 
+               class="badge text-decoration-none px-3 py-2 rounded-pill {{ $activeCategory === 'hcw-training' ? 'bg-primary text-white' : 'bg-light text-dark border' }}">
+                <i class="bi bi-mortarboard-fill me-1"></i> HCW Training
+            </a>
+            <a href="{{ route('learning.index', ['category' => 'warning-signs']) }}" 
+               class="badge text-decoration-none px-3 py-2 rounded-pill {{ $activeCategory === 'warning-signs' ? 'bg-warning text-dark' : 'bg-light text-dark border' }}">
+                <i class="bi bi-exclamation-triangle me-1"></i> Warning Signs
+            </a>
+            <a href="{{ route('learning.index', ['category' => 'prenatal-care']) }}" 
+               class="badge text-decoration-none px-3 py-2 rounded-pill {{ $activeCategory === 'prenatal-care' ? 'bg-primary text-white' : 'bg-light text-dark border' }}">
+                🤰 Prenatal Care
+            </a>
+        </div>
+    </div>
+</div>
+
+{{-- Media Grid --}}
+<div class="row g-4">
+    @forelse($materials as $material)
+        @php
+            $isVideo = $material->isPlayableVideo();
+            $badgeColor = match($material->category) {
+                'hcw-training' => '#6C5CE7',
+                'warning-signs' => '#EF4444',
+                'nutrition' => '#10B981',
+                'family-planning' => '#F59E0B',
+                default => '#0EA5E9',
+            };
+        @endphp
+        <div class="col-md-6 col-xl-4">
+            <div class="card h-100 shadow-sm border video-media-card position-relative" 
+                 style="border-radius:18px; background:var(--bg-card); border-color:var(--border) !important; overflow:hidden; transition:transform 0.2s ease, box-shadow 0.2s ease;">
+                
+                {{-- Media Thumbnail with Video Overlay --}}
+                <div class="position-relative overflow-hidden bg-dark" style="height:200px;">
+                    @if($material->image_url)
+                        <img src="{{ $material->image_url }}" alt="{{ $material->title }}" class="w-100 h-100" style="object-fit:cover; opacity:0.9;">
+                    @else
+                        <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white" 
+                             style="background:linear-gradient(135deg, #1E1B4B, #312E81);">
+                            <i class="bi {{ $isVideo ? 'bi-camera-video-fill' : 'bi-file-earmark-text' }}" style="font-size:2.8rem; opacity:0.6;"></i>
+                        </div>
+                    @endif
+
+                    {{-- Play Icon Overlay for Videos --}}
+                    @if($isVideo)
+                        <a href="{{ route('learning.show', $material->id) }}" 
+                           class="position-absolute top-50 start-50 translate-middle rounded-circle d-flex align-items-center justify-content-center text-white shadow"
+                           style="width:52px; height:52px; background:rgba(239, 68, 68, 0.9); backdrop-filter:blur(4px); transition:transform 0.2s ease;">
+                            <i class="bi bi-play-fill fs-3 ms-0.5"></i>
+                        </a>
+                        <span class="position-absolute bottom-0 start-0 m-2.5 badge bg-dark bg-opacity-75 text-white text-xs px-2 py-1">
+                            <i class="bi bi-play-circle-fill text-danger me-1"></i> Stream Ready
+                        </span>
+                    @endif
+
+                    {{-- Category Tag --}}
+                    <span class="position-absolute top-0 end-0 m-2.5 badge text-white text-xs px-2.5 py-1" style="background:{{ $badgeColor }}; border-radius:8px;">
+                        {{ ucfirst(str_replace('-', ' ', $material->category ?? 'General')) }}
+                    </span>
+                </div>
+
+                {{-- Body Info --}}
+                <div class="card-body p-3.5 d-flex flex-column justify-content-between">
+                    <div>
+                        <h6 class="fw-800 text-dark mb-1.5 line-clamp-2" style="font-size:0.98rem; line-height:1.4;">
+                            {{ $material->title }}
+                        </h6>
+                        <p class="text-muted text-xs mb-3 line-clamp-2" style="line-height:1.5;">
+                            {{ Str::limit(strip_tags($material->content), 120) }}
+                        </p>
+                    </div>
+
+                    <div class="pt-2.5 border-top d-flex align-items-center justify-content-between">
+                        <small class="text-muted text-xs">
+                            <i class="bi bi-calendar3 me-1"></i>{{ $material->created_at->format('M d, Y') }}
+                        </small>
+                        <div class="d-flex gap-1">
+                            <a href="{{ route('learning.show', $material->id) }}" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" style="border-radius:8px; font-size:0.8rem; font-weight:600;">
+                                <i class="bi {{ $isVideo ? 'bi-play-fill' : 'bi-eye-fill' }}"></i> {{ $isVideo ? 'Play Video' : 'View Guide' }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @empty
+        <div class="col-12 text-center py-5">
+            <div class="card shadow-sm border p-5" style="border-radius:16px; background:var(--bg-card);">
+                <i class="bi bi-camera-video text-muted mb-3" style="font-size:2.5rem;"></i>
+                <h5 class="fw-700 text-dark">No Media Found</h5>
+                <p class="text-muted text-xs mb-3">No learning materials match your active search or filter category.</p>
+                <div>
+                    <a href="{{ route('learning.index') }}" class="btn btn-sm btn-outline-primary" style="border-radius:10px;">
+                        Reset Filter
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endforelse
+</div>
+
+{{-- Pagination --}}
+@if($materials->hasPages())
+    <div class="mt-4 d-flex justify-content-center">
+        {{ $materials->links() }}
+    </div>
+@endif
+
+@push('styles')
+<style>
+    .video-media-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px -4px rgba(108, 92, 231, 0.14) !important;
+        border-color: var(--primary) !important;
+    }
+    .video-media-card:hover .rounded-circle {
+        transform: scale(1.1);
+    }
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+@endpush
+
 @endsection

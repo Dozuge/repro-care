@@ -209,35 +209,126 @@ class ChoController extends Controller
 
     public function patients(Request $request)
     {
-        $search = $request->input('search');
-        $barangay = $request->input('barangay');
-        $status = $request->input('status', 'approved');
+        $search       = $request->input('search');
+        $barangay     = $request->input('barangay');
+        $status       = $request->input('status', 'approved');
+        $riskLevel    = $request->input('risk_level');
+        $ageGroup     = $request->input('age_group');
+        $trimester    = $request->input('trimester');
+        $showArchived = $request->boolean('show_archived');
 
-        $patients = User::where('role', 'user')
-            ->when($status !== 'all', fn ($query) => $query->where('status', $status))
-            ->when($search, function ($query) use ($search) {
-                $query->where(function ($inner) use ($search) {
-                    $inner->where('first_name', 'like', "%{$search}%")
-                        ->orWhere('last_name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('contact_number', 'like', "%{$search}%");
+        $query = User::where('role', 'user')
+            ->with(['purok', 'pregnancies' => fn($q) => $q->active(), 'healthRecords' => fn($q) => $q->latest()]);
+
+        if ($showArchived) {
+            $query->onlyTrashed();
+        } else {
+            $query->when($status !== 'all', fn ($q) => $q->where('status', $status));
+        }
+
+        // Text Search
+        if ($search) {
+            $cleanSearch = ltrim($search, '#');
+            $query->where(function ($inner) use ($search, $cleanSearch) {
+                $inner->where('id', $cleanSearch)
+                    ->orWhere('first_name', 'like', "%{$search}%")
+                    ->orWhere('middle_initial', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('contact_number', 'like', "%{$search}%")
+                    ->orWhere('barangay', 'like', "%{$search}%")
+                    ->orWhere('medical_history', 'like', "%{$search}%");
+            });
+        }
+
+        // Barangay filter
+        if ($barangay) {
+            $query->where('barangay', 'like', "%{$barangay}%");
+        }
+
+        // Age Group filter (Teenage <19, Adult 19-34, Advanced 35+)
+        if ($ageGroup === 'teen') {
+            $query->whereNotNull('date_of_birth')
+                  ->where('date_of_birth', '>', now()->subYears(19)->toDateString());
+        } elseif ($ageGroup === 'adult') {
+            $query->whereNotNull('date_of_birth')
+                  ->where('date_of_birth', '<=', now()->subYears(19)->toDateString())
+                  ->where('date_of_birth', '>', now()->subYears(35)->toDateString());
+        } elseif ($ageGroup === 'advanced') {
+            $query->whereNotNull('date_of_birth')
+                  ->where('date_of_birth', '<=', now()->subYears(35)->toDateString());
+        }
+
+        // Risk Level filter
+        if ($riskLevel) {
+            if ($riskLevel === 'high_risk_only') {
+                $query->where(function ($q) {
+                    $q->whereHas('pregnancies', fn($p) => $p->active()->whereIn('risk_level', ['High', 'Critical']))
+                      ->orWhereHas('healthRecords', fn($h) => $h->whereIn('risk_level', ['High', 'Critical']));
                 });
-            })
-            ->when($barangay, fn ($query) => $query->where('barangay', $barangay))
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+            } else {
+                $query->where(function ($q) use ($riskLevel) {
+                    $q->whereHas('pregnancies', fn($p) => $p->active()->where('risk_level', ucfirst($riskLevel)))
+                      ->orWhereHas('healthRecords', fn($h) => $h->where('risk_level', ucfirst($riskLevel)));
+                });
+            }
+        }
 
-        return view('cho.patients.index', compact('patients', 'search', 'barangay', 'status'));
+        // Trimester filter (1st: 1-13, 2nd: 14-26, 3rd: 27+)
+        if ($trimester) {
+            $query->whereHas('pregnancies', function ($p) use ($trimester) {
+                $p->active();
+                if ($trimester == '1') {
+                    $p->where('aog_weeks', '<=', 13);
+                } elseif ($trimester == '2') {
+                    $p->whereBetween('aog_weeks', [14, 26]);
+                } elseif ($trimester == '3') {
+                    $p->where('aog_weeks', '>=', 27);
+                }
+            });
+        }
+
+        $patients = $query->latest()->paginate(15)->withQueryString();
+
+        $barangays = User::where('role', 'user')
+            ->whereNotNull('barangay')
+            ->where('barangay', '!=', '')
+            ->distinct()
+            ->pluck('barangay')
+            ->toArray();
+
+        return view('cho.patients.index', compact(
+            'patients',
+            'search',
+            'barangay',
+            'status',
+            'riskLevel',
+            'ageGroup',
+            'trimester',
+            'barangays',
+            'showArchived'
+        ));
     }
 
     public function patientDetails($id)
     {
-        $patient = User::where('role', 'user')->findOrFail($id);
+        $patient = User::withTrashed()->where('role', 'user')->findOrFail($id);
         $pregnancies = Pregnancy::where('user_id', $id)->latest()->get();
         $healthRecords = \App\Models\HealthRecord::where('user_id', $id)->latest()->paginate(10);
+        $availableVideos = \App\Models\LearningMaterial::videos()->latest()->take(6)->get();
 
-        return view('cho.patients.show', compact('patient', 'pregnancies', 'healthRecords'));
+        return view('cho.patients.show', compact('patient', 'pregnancies', 'healthRecords', 'availableVideos'));
+    }
+
+    public function archivePatient($id)
+    {
+        $patient = User::where('role', 'user')->findOrFail($id);
+        $name = $patient->name;
+        $patient->delete(); // Soft delete only
+
+        ActivityLog::log('archive', "Archived patient record for {$name}", $patient);
+
+        return back()->with('success', "Patient record for '{$name}' has been moved to archives.");
     }
 
     public function pregnancies(Request $request)
@@ -478,28 +569,75 @@ class ChoController extends Controller
         $ancCoverageRate = $this->ancCoverageRate();
         $facilityBirthRate = $this->facilityBirthRate();
         $smsEnabledCount = User::where('role', 'user')->whereNotNull('contact_number')->where('sms_opt_out', false)->count();
+
+        // ── 1. Monthly Pregnancy Registrations Trend (Last 12 Months) ─────────
         $monthlyPregnancies = Pregnancy::selectRaw("DATE_FORMAT(created_at, '%b %Y') as period, COUNT(*) as total")
             ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
             ->groupBy('period')
             ->orderByRaw('MIN(created_at)')
             ->pluck('total', 'period')
             ->toArray();
+
+        // ── 2. Maternal Mortality & Morbidity Causes ───────────────────────────
         $causes = MaternalDeath::selectRaw('cause_category, COUNT(*) as total')
             ->groupBy('cause_category')
             ->pluck('total', 'cause_category')
             ->toArray();
 
-        // Rule-based insights (AI fallback only)
-        $aiInsights = app(AIInsightService::class)->generateInsights([
-            'totalPregnant' => $totalPregnant,
-            'highRiskCount' => $highRiskCount,
-            'ancCoverageRate' => $ancCoverageRate,
-            'facilityBirthRate' => $facilityBirthRate,
-            'totalDeaths' => array_sum($causes),
-            'totalNearMiss' => MaternalMorbidity::count(),
-        ]);
+        $totalDeaths = array_sum($causes);
+        $totalNearMiss = MaternalMorbidity::count();
 
-        // Prioritized patients list (top 10)
+        // ── 3. Adolescent / Teenage Pregnancy Analysis (<19 years) ────────────
+        $teenPatientsQuery = User::where('role', 'user')
+            ->whereNotNull('date_of_birth')
+            ->where('date_of_birth', '>', now()->subYears(19)->toDateString())
+            ->whereHas('pregnancies', fn($q) => $q->active());
+
+        $teenPregnancies = $teenPatientsQuery->count();
+
+        $teenByBarangay = User::where('role', 'user')
+            ->whereNotNull('date_of_birth')
+            ->where('date_of_birth', '>', now()->subYears(19)->toDateString())
+            ->whereHas('pregnancies', fn($q) => $q->active())
+            ->whereNotNull('barangay')
+            ->selectRaw('barangay, COUNT(*) as total')
+            ->groupBy('barangay')
+            ->orderByDesc('total')
+            ->pluck('total', 'barangay')
+            ->toArray();
+
+        $teenHotspots = array_keys(array_slice($teenByBarangay, 0, 3, true));
+
+        // ── 4. High-Risk Distribution by Barangay ─────────────────────────────
+        $highRiskByBarangay = Pregnancy::active()->highRisk()
+            ->join('users', 'pregnancies.user_id', '=', 'users.id')
+            ->whereNotNull('users.barangay')
+            ->selectRaw('users.barangay, COUNT(*) as total')
+            ->groupBy('users.barangay')
+            ->orderByDesc('total')
+            ->pluck('total', 'barangay')
+            ->toArray();
+
+        $highRiskHotspots = array_keys(array_slice($highRiskByBarangay, 0, 3, true));
+
+        // ── 5. Dynamic Context-Aware Strategic Interventions Engine ───────────
+        $insightService = app(AIInsightService::class);
+        $analyticsPayload = [
+            'totalPregnant'     => $totalPregnant,
+            'highRiskCount'     => $highRiskCount,
+            'ancCoverageRate'   => $ancCoverageRate,
+            'facilityBirthRate' => $facilityBirthRate,
+            'totalDeaths'       => $totalDeaths,
+            'totalNearMiss'     => $totalNearMiss,
+            'teenPregnancies'   => $teenPregnancies,
+            'teenHotspots'      => $teenHotspots,
+            'highRiskHotspots'  => $highRiskHotspots,
+        ];
+
+        $strategicInterventions = $insightService->generateStrategicInterventions($analyticsPayload);
+        $aiInsights = $insightService->generateInsights($analyticsPayload);
+
+        // ── 6. Prioritized Patients List (Top 10 High-Risk) ───────────────────
         try {
             $patientIds = User::where('role', 'user')->where('status', 'approved')->pluck('id')->toArray();
             $prioritized = app(\App\Services\RiskAnalysisService::class)->prioritize($patientIds)->take(10);
@@ -517,6 +655,12 @@ class ChoController extends Controller
             'smsEnabledCount',
             'monthlyPregnancies',
             'causes',
+            'totalDeaths',
+            'totalNearMiss',
+            'teenPregnancies',
+            'teenByBarangay',
+            'highRiskByBarangay',
+            'strategicInterventions',
             'aiInsights',
             'prioritized'
         ));

@@ -46,7 +46,8 @@ class LearningMaterial extends Model
 
     public function scopeVideos($query)
     {
-        return $query->where('material_type', 'video');
+        return $query->where('material_type', 'video')
+            ->orWhereNotNull('video_url');
     }
 
     public function scopeQuizzes($query)
@@ -59,6 +60,11 @@ class LearningMaterial extends Model
         return $query->where('category', $category);
     }
 
+    public function scopeHcwTraining($query)
+    {
+        return $query->where('category', 'hcw-training');
+    }
+
     public function scopeWeekGuide($query, ?int $week = null)
     {
         $q = $query->whereNotNull('week_number');
@@ -66,15 +72,52 @@ class LearningMaterial extends Model
     }
 
     /**
-     * Get the YouTube embed URL from a YouTube watch URL
+     * Check if material has a playable video (MP4 file or streaming link).
+     */
+    public function isPlayableVideo(): bool
+    {
+        if ($this->material_type === 'video' || !empty($this->video_url)) {
+            return true;
+        }
+
+        return $this->isDirectVideoFile();
+    }
+
+    /**
+     * Check if the uploaded file is a direct video file (MP4, WEBM, MOV, AVI).
+     */
+    public function isDirectVideoFile(): bool
+    {
+        if (!$this->file) {
+            return false;
+        }
+
+        $ext = strtolower(pathinfo($this->file, PATHINFO_EXTENSION));
+        return in_array($ext, ['mp4', 'webm', 'mov', 'avi', 'm4v'], true);
+    }
+
+    /**
+     * Get the YouTube / Vimeo embed URL from watch / share URLs.
      */
     public function getEmbedUrlAttribute(): ?string
     {
-        if (!$this->video_url) return null;
-        if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/', $this->video_url, $m)) {
-            return 'https://www.youtube.com/embed/' . $m[1];
+        if (!$this->video_url) {
+            return null;
         }
-        return $this->video_url;
+
+        $url = trim($this->video_url);
+
+        // YouTube watch URL or shorts or youtu.be
+        if (preg_match('/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]+)/', $url, $m)) {
+            return 'https://www.youtube.com/embed/' . $m[1] . '?rel=0&modestbranding=1&enablejsapi=1';
+        }
+
+        // Vimeo URL
+        if (preg_match('/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|)(\d+)/', $url, $m)) {
+            return 'https://player.vimeo.com/video/' . $m[1];
+        }
+
+        return $url;
     }
 
     public function getImageUrlAttribute(): ?string

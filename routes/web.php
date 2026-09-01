@@ -25,10 +25,19 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\RhuController;
 use App\Http\Controllers\ChoController;
 use App\Http\Controllers\SmsController;
+use App\Http\Controllers\ArchivedRecordController;
 
-// Redirect root to login
+// Landing page routes
 Route::get('/', function () {
-    return redirect()->route('login');
+    return view('landing');
+})->name('home');
+
+Route::get('/Reprocare', function () {
+    return view('landing');
+})->name('reprocare');
+
+Route::get('/reprocare', function () {
+    return view('landing');
 });
 
 // Dashboard route (redirects based on role)
@@ -544,8 +553,10 @@ Route::prefix('profile')->name('profile.')->middleware(['web', 'absolute.logout'
 Route::prefix('learning')->name('learning.')->middleware(['web', 'absolute.logout', 'auth', 'prevent-back'])->group(function () {
     Route::get('/', [LearningController::class, 'index'])->name('index');
     Route::get('/articles', [LearningController::class, 'articles'])->name('articles');
+    Route::get('/videos', [LearningController::class, 'videos'])->name('videos');
     Route::get('/links', [LearningController::class, 'links'])->name('links');
     Route::get('/files', [LearningController::class, 'files'])->name('files');
+    Route::get('/training', [LearningController::class, 'hcwTraining'])->name('training');
     Route::get('/week/{week}', [LearningController::class, 'weekGuide'])->name('week-guide');
     Route::get('/{id}', [LearningController::class, 'show'])->name('show');
     Route::post('/{id}/quiz', [LearningController::class, 'submitQuiz'])->name('quiz.submit');
@@ -564,6 +575,13 @@ Route::prefix('api/notifications')->name('api.notifications.')->middleware(['web
 Route::prefix('cho')->name('cho.')->middleware(['web', 'absolute.logout', 'auth', 'role:cho', 'prevent-back'])->group(function () {
     Route::get('/dashboard', [ChoController::class, 'dashboard'])->name('dashboard');
     Route::get('/settings', [ChoController::class, 'settings'])->name('settings');
+
+    // Patient Registry & Triage
+    Route::prefix('patients')->name('patients.')->group(function () {
+        Route::get('/', [ChoController::class, 'patients'])->name('index');
+        Route::get('/{id}', [ChoController::class, 'patientDetails'])->name('show');
+        Route::post('/{id}/archive', [ChoController::class, 'archivePatient'])->name('archive');
+    });
 
     // User Management
     Route::prefix('users')->name('users.')->group(function () {
@@ -602,6 +620,12 @@ Route::prefix('cho')->name('cho.')->middleware(['web', 'absolute.logout', 'auth'
     // SMS Management (Read Only)
     Route::prefix('sms')->name('sms.')->group(function () {
         Route::get('/', [SmsController::class, 'index'])->name('index');
+    });
+
+    // Archived Records Hub (No Hard Deletes / Data Integrity)
+    Route::prefix('archived')->name('archived.')->group(function () {
+        Route::get('/', [ArchivedRecordController::class, 'index'])->name('index');
+        Route::post('/{type}/{id}/restore', [ArchivedRecordController::class, 'restore'])->name('restore');
     });
 });
 

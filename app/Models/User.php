@@ -280,9 +280,14 @@ class User extends Authenticatable
     public function getAgeAttribute()
     {
         if (!$this->date_of_birth) {
-            return 'N/A';
+            return null;
         }
-        return Carbon::parse($this->date_of_birth)->age;
+        return \Carbon\Carbon::parse($this->date_of_birth)->age;
+    }
+
+    public function isTeenage(): bool
+    {
+        return $this->date_of_birth && \Carbon\Carbon::parse($this->date_of_birth)->age < 19;
     }
 
     public function getPregnancyStatusAttribute()

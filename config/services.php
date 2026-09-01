@@ -35,13 +35,12 @@ return [
         ],
     ],
 
-    // ─── FMCSMS Gateway (fortmed.org) ────────────────────────────────
-    'fmcsms' => [
-        'api_key'     => env('FMCSMS_API_KEY'),
-        'api_url'     => env('FMCSMS_API_URL', 'https://fortmed.org/web/FMCSMS/api/messages.php'),
-        'sender_name' => env('FMCSMS_SENDER_NAME', 'REPROCARE'),
-        'from_number' => env('FMCSMS_FROM_NUMBER'),
-        'mock'        => env('FMCSMS_MOCK', false),
+    // ─── Movider SMS Gateway ──────────────────────────────────────────
+    'movider' => [
+        'api_key'    => env('MOVIDER_API_KEY'),
+        'api_secret' => env('MOVIDER_API_SECRET'),
+        'api_url'    => env('MOVIDER_API_URL', 'https://api.movider.co/v1/sms'),
+        'mock'       => env('MOVIDER_MOCK', false),
     ],
 
     // ─── Google Gemini AI ─────────────────────────────────────────────

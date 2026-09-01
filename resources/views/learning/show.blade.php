@@ -1,12 +1,14 @@
 @php
     $learningUser = auth()->user();
     $learningLayout = match($learningUser?->role) {
+        'cho' => 'cho.layout',
         'midwife' => 'midwife.layout',
         'bhw' => 'bhw.layout',
         'bhw_president' => 'bhw-president.layout',
         default => 'user.layout',
     };
     $learningSection = match($learningUser?->role) {
+        'cho' => 'cho-content',
         'midwife' => 'midwife-content',
         'bhw' => 'bhw-content',
         'bhw_president' => 'bhw-president-content',
@@ -16,7 +18,7 @@
 
 @extends($learningLayout)
 
-@section('title', $material->title . ' - ReproCare')
+@section('title', $material->title . ' - ReproCare Playable Media')
 
 @push('styles')
 <style>
@@ -27,37 +29,42 @@
         overflow: hidden;
         margin-bottom: 1.5rem;
     }
-    .material-banner { width: 100%; height: 220px; object-fit: cover; }
+    .material-banner { width: 100%; height: 240px; object-fit: cover; }
     .material-body { padding: 2rem; }
     .material-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--text); margin-bottom: 1rem; line-height: 1.3; }
     .material-prose { font-size: 0.95rem; line-height: 1.8; color: var(--text); white-space: pre-wrap; }
-    .video-embed { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 16px; margin-bottom: 1.5rem; }
-    .video-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    .video-embed-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 16px; margin-bottom: 1.5rem; background: #000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+    .video-embed-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    .html5-video-player { width: 100%; max-height: 520px; border-radius: 16px; background: #000; margin-bottom: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
     .category-pill { background: var(--primary-subtle); color: var(--primary-light); padding: 0.25em 0.85em; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
     .meta-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; font-size: 0.8rem; color: var(--text-muted); }
-    .quiz-cta { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 16px; padding: 1.5rem; color: #fff; text-align: center; margin-top: 1.5rem; }
-    .quiz-cta h5 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; margin-bottom: 0.5rem; }
-    .btn-quiz { background: #fff; color: var(--primary-dark); border: none; border-radius: 12px; font-weight: 700; padding: 0.65rem 2rem; font-size: 0.9rem; transition: transform 0.2s; }
-    .btn-quiz:hover { transform: translateY(-2px); color: var(--primary-dark); }
+    .consultation-badge { background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
 </style>
 @endpush
 
 @section($learningSection)
 
-<div class="d-flex align-items-center gap-3 mb-4 fade-in-card">
-    <a href="{{ $learningUser?->role === 'midwife' ? route('midwife.learning.index') : route('learning.index') }}" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Back
-    </a>
-    <div>
-        <h1 class="page-title mb-0">{{ $material->title }}</h1>
-        <p class="page-subtitle mb-0">Learning Material</p>
+<div class="d-flex align-items-center justify-content-between gap-3 mb-4 fade-in-card flex-wrap">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{{ $learningUser?->isMidwife() ? route('midwife.learning.index') : route('learning.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Materials
+        </a>
+        <div>
+            <h1 class="page-title mb-0" style="font-size:1.4rem;">{{ $material->title }}</h1>
+            <p class="page-subtitle mb-0">Educational & Training Media Module</p>
+        </div>
     </div>
+    @if($learningUser?->isMidwife() || $learningUser?->isCho())
+        <span class="consultation-badge d-inline-flex align-items-center">
+            <i class="bi bi-broadcast me-1"></i> Consultation & Training Stream Ready
+        </span>
+    @endif
 </div>
 
 <div class="material-hero fade-in-card">
 
-    {{-- Banner image if available --}}
-    @if($material->image_url)
+    {{-- Banner image if available and not a direct video --}}
+    @if($material->image_url && !$material->isPlayableVideo())
         <img src="{{ $material->image_url }}"
              alt="{{ $material->title }}"
              class="material-banner"
@@ -66,15 +73,15 @@
 
     <div class="material-body">
 
-        {{-- Meta --}}
+        {{-- Meta Badges --}}
         <div class="meta-row">
-            <span class="category-pill">{{ ucfirst($material->category ?? 'General') }}</span>
+            <span class="category-pill">{{ ucfirst(str_replace('-', ' ', $material->category ?? 'General')) }}</span>
             @php
                 $typeConfig = [
                     'article' => ['bg' => '#6366f1', 'icon' => 'bi-file-text', 'label' => 'Article'],
                     'link'    => ['bg' => '#10b981', 'icon' => 'bi-link-45deg', 'label' => 'Link'],
                     'file'    => ['bg' => '#f59e0b', 'icon' => 'bi-file-earmark', 'label' => 'File'],
-                    'video'   => ['bg' => '#ef4444', 'icon' => 'bi-play-circle', 'label' => 'Video'],
+                    'video'   => ['bg' => '#ef4444', 'icon' => 'bi-play-circle-fill', 'label' => 'Playable Video'],
                     'quiz'    => ['bg' => '#8b5cf6', 'icon' => 'bi-patch-question', 'label' => 'Quiz'],
                 ];
                 $tc = $typeConfig[$material->material_type] ?? $typeConfig['article'];
@@ -92,73 +99,68 @@
 
         <h2 class="material-title">{{ $material->title }}</h2>
 
-        {{-- VIDEO --}}
-        @if($material->material_type === 'video')
-            @if($material->embed_url)
-                <div class="video-embed mb-3">
+        {{-- ── 1. DYNAMIC PLAYABLE VIDEO PLAYER ─────────────────── --}}
+        @if($material->isPlayableVideo())
+            {{-- Case A: Uploaded Direct MP4 Video File --}}
+            @if($material->isDirectVideoFile())
+                <div class="mb-4">
+                    <video class="html5-video-player" controls preload="metadata" playsinline poster="{{ $material->image_url ?? '' }}">
+                        <source src="{{ $material->file_url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            {{-- Case B: YouTube / Vimeo Embedded Video Player --}}
+            @elseif($material->embed_url)
+                <div class="video-embed-container mb-4">
                     <iframe src="{{ $material->embed_url }}"
                             title="{{ $material->title }}"
                             allowfullscreen
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share">
+                    </iframe>
                 </div>
+            {{-- Case C: External Video Link Fallback --}}
             @elseif($material->video_url)
-                <div class="mb-3 text-center">
-                    <a href="{{ $material->video_url }}" target="_blank" class="btn btn-danger btn-lg">
-                        <i class="bi bi-play-circle-fill me-2"></i> Watch Video
+                <div class="p-4 bg-light text-center rounded-3 mb-4">
+                    <i class="bi bi-film text-danger mb-2" style="font-size:2.5rem;"></i>
+                    <h5>External Video Resource</h5>
+                    <a href="{{ $material->video_url }}" target="_blank" class="btn btn-danger mt-2">
+                        <i class="bi bi-play-circle-fill me-1"></i> Open Video Stream
                     </a>
                 </div>
             @endif
         @endif
 
-        {{-- LINK --}}
+        {{-- ── 2. EXTERNAL RESOURCE LINK ────────────────────────── --}}
         @if($material->material_type === 'link' && $material->link_url)
-            <div class="alert" style="background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.3);border-radius:14px;margin-bottom:1.25rem;">
-                <i class="bi bi-box-arrow-up-right me-2" style="color:#38bdf8;"></i>
-                External resource:
-                <a href="{{ $material->link_url }}" target="_blank" style="color:#38bdf8;font-weight:600;">
-                    {{ $material->link_url }}
-                </a>
+            <div class="alert alert-info d-flex align-items-center mb-4" style="border-radius:14px;">
+                <i class="bi bi-box-arrow-up-right me-2 fs-5"></i>
+                <div>
+                    <strong>External Resource Reference:</strong><br>
+                    <a href="{{ $material->link_url }}" target="_blank" class="alert-link text-break">
+                        {{ $material->link_url }}
+                    </a>
+                </div>
             </div>
         @endif
 
-        {{-- Content --}}
-        @if($material->material_type !== 'quiz')
+        {{-- ── 3. CONTENT & CLINICAL TEACHING NOTES ──────────────── --}}
+        <div class="card p-3 bg-light border-0 mb-4" style="border-radius:14px;">
+            <h6 class="fw-700 text-xs text-muted text-uppercase mb-2"><i class="bi bi-card-text me-1"></i>Educational Content & Discussion Points</h6>
             <div class="material-prose">{{ $material->content }}</div>
-        @else
-            <div class="material-prose mb-2">{{ $material->content }}</div>
-        @endif
+        </div>
 
-        {{-- QUIZ CTA --}}
-        @if($material->material_type === 'quiz' && $material->quiz_data)
-            <div class="quiz-cta">
-                <h5><i class="bi bi-patch-question-fill me-2"></i>Ready to Test Your Knowledge?</h5>
-                <p style="font-size:0.9rem;opacity:0.85;margin-bottom:1rem;">
-                    {{ count($material->quiz_data) }} question(s) · Take the quiz now
-                </p>
-                <a href="{{ route('learning.show', $material->id) }}#quiz-section" class="btn-quiz">
-                    <i class="bi bi-play-fill me-1"></i> Start Quiz
-                </a>
-            </div>
-            {{-- Inline quiz --}}
-            <div id="quiz-section" class="mt-4">
-                <a href="{{ route('learning.quiz.submit', $material->id) }}"
-                   class="btn btn-primary w-100"
-                   onclick="this.href='{{ route('learning.show', $material->id) }}'">
-                </a>
-                {{-- Route to quiz view instead --}}
-            </div>
-            <div class="mt-3 text-center">
-                <a href="{{ url('/learning/' . $material->id . '/quiz') }}" class="btn btn-primary px-5">
-                    <i class="bi bi-patch-question-fill me-2"></i> Take Quiz
-                </a>
-            </div>
-        @endif
-
-        {{-- FILE download --}}
-        @if($material->material_type === 'file')
-            <div class="text-center mt-3">
-                <a href="{{ $material->file_url ?: '#' }}" class="btn btn-warning px-4" {{ $material->file_url ? 'target=_blank' : '' }}>
-                    <i class="bi bi-download me-2"></i> Download File
+        {{-- ── 4. DOWNLOADABLE FILE ATTACHMENT ──────────────────── --}}
+        @if($material->material_type === 'file' && !$material->isDirectVideoFile())
+            <div class="d-flex align-items-center justify-content-between p-3 border rounded-3 mt-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-file-earmark-arrow-down-fill text-warning fs-3"></i>
+                    <div>
+                        <div class="fw-700">{{ basename($material->file ?? 'Attachment') }}</div>
+                        <small class="text-muted">Downloadable teaching resource</small>
+                    </div>
+                </div>
+                <a href="{{ $material->file_url ?: '#' }}" class="btn btn-sm btn-warning" {{ $material->file_url ? 'target=_blank' : '' }}>
+                    <i class="bi bi-download me-1"></i> Download
                 </a>
             </div>
         @endif

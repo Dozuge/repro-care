@@ -42,29 +42,37 @@
 
     <style>
         /* ============================================================
-           REPROCARE DESIGN SYSTEM v2 — #da36ff Primary Theme
-           Supports [data-theme="dark"] and [data-theme="light"]
+           REPROCARE DESIGN SYSTEM v3 — Modern Healthcare Purple (#6C5CE7)
+           Supports [data-theme="light"] (default) and [data-theme="dark"]
            ============================================================ */
 
         /* ── 1. CSS VARIABLES ── */
         :root {
-            /* Brand Colors */
-            --primary:           #da36ff;
-            --primary-dark:      #b020d4;
-            --primary-light:     #e75fff;
-            --primary-glow:      rgba(218, 54, 255, 0.35);
-            --primary-subtle:    rgba(218, 54, 255, 0.10);
-            --secondary:         #f43f8e;
-            --accent-violet:     #9b36ff;
-            --accent-pink:       #ff36b0;
+            /* Primary Purple Brand Family */
+            --primary:           #6C5CE7;
+            --primary-dark:      #5E35B1;
+            --primary-light:     #8075ea;
+            --primary-glow:      rgba(108, 92, 231, 0.28);
+            --primary-subtle:    rgba(108, 92, 231, 0.10);
+            --secondary:         #8b5cf6;
+            --accent-violet:     #5E35B1;
+            --accent-pink:       #ec4899;
 
-            /* Semantic Colors */
-            --success:   #10b981;
-            --warning:   #f59e0b;
-            --danger:    #ef4444;
-            --info:      #06b6d4;
+            /* Priority Color Signals */
+            --success:   #10B981;
+            --warning:   #F59E0B;
+            --danger:    #EF4444;
+            --info:      #0EA5E9;
 
-            /* Sidebar */
+            /* Priority Badges */
+            --badge-critical-bg: rgba(239, 68, 68, 0.12);
+            --badge-critical-text: #DC2626;
+            --badge-warning-bg: rgba(245, 158, 11, 0.12);
+            --badge-warning-text: #D97706;
+            --badge-success-bg: rgba(16, 185, 129, 0.12);
+            --badge-success-text: #059669;
+
+            /* Sidebar Dimensions */
             --sidebar-w: 265px;
             --sidebar-collapsed-w: 88px;
 
@@ -74,56 +82,56 @@
             --transition-slow:   0.4s ease;
         }
 
-        /* ── DARK MODE (default) ── */
-        [data-theme="dark"] {
-            --bg-main:       #08040f;
-            --bg-card:       #130a22;
-            --bg-card2:      #1d0f33;
-            --bg-input:      #27104a;
-            --bg-glass:      rgba(30, 10, 50, 0.65);
-            --border:        rgba(218, 54, 255, 0.24);  /* ↑ more visible */
-            --border-glass:  rgba(218, 54, 255, 0.28);
-            --text:          #f0e8ff;                   /* white with purple tint */
-            --text-muted:    #c4a3e0;                   /* ↑ brighter muted text */
-            --text-dim:      #8a6aaa;                   /* very muted (timestamps) */
-            --shadow-sm:     0 2px 12px rgba(0,0,0,0.5);
-            --shadow-md:     0 8px 40px rgba(0,0,0,0.55);
-            --shadow-glow:   0 0 50px rgba(218,54,255,0.4);
-            --nav-bg:        rgba(13, 6, 22, 0.92);
-            --sidebar-bg:    linear-gradient(180deg, #130a22 0%, #08040f 100%);
-            --skeleton-from: #1d0f33;
-            --skeleton-to:   #2a1545;
-            --row-alt:       rgba(218, 54, 255, 0.04);  /* alternating table rows */
-            --row-hover:     rgba(218, 54, 255, 0.10);
-            --input-border:  rgba(218, 54, 255, 0.35);
-            --focus-ring:    rgba(218, 54, 255, 0.35);
-            --placeholder:   rgba(196, 163, 224, 0.50);
+        /* ── LIGHT MODE (Modern Healthcare Canvas) ── */
+        [data-theme="light"], :root {
+            --bg-main:       #F8F9FA;
+            --bg-card:       #FFFFFF;
+            --bg-card2:      #F1F5F9;
+            --bg-input:      #FFFFFF;
+            --bg-glass:      rgba(255, 255, 255, 0.92);
+            --border:        #E2E8F0;
+            --border-glass:  #E2E8F0;
+            --text:          #1E293B;
+            --text-muted:    #64748B;
+            --text-dim:      #94A3B8;
+            --shadow-sm:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md:     0 4px 16px -2px rgba(108, 92, 231, 0.08), 0 2px 6px -1px rgba(0,0,0,0.04);
+            --shadow-glow:   0 0 30px rgba(108, 92, 231, 0.18);
+            --nav-bg:        rgba(255, 255, 255, 0.95);
+            --sidebar-bg:    #FFFFFF;
+            --skeleton-from: #F1F5F9;
+            --skeleton-to:   #E2E8F0;
+            --row-alt:       rgba(241, 245, 249, 0.6);
+            --row-hover:     rgba(108, 92, 231, 0.04);
+            --input-border:  #CBD5E1;
+            --focus-ring:    rgba(108, 92, 231, 0.25);
+            --placeholder:   #94A3B8;
         }
 
-        /* ── LIGHT MODE ── */
-        [data-theme="light"] {
-            --bg-main:       #f4eeff;
-            --bg-card:       #ffffff;
-            --bg-card2:      #f0e6ff;
-            --bg-input:      #faf6ff;
-            --bg-glass:      rgba(255, 255, 255, 0.82);
-            --border:        rgba(139, 77, 255, 0.22);  /* ↑ more visible on white */
-            --border-glass:  rgba(139, 77, 255, 0.28);
-            --text:          #1a0630;
-            --text-muted:    #5c4080;                   /* ↑ darker = better contrast */
-            --text-dim:      #9176b8;
-            --shadow-sm:     0 2px 8px rgba(218,54,255,0.09);
-            --shadow-md:     0 8px 30px rgba(218,54,255,0.16);
-            --shadow-glow:   0 0 40px rgba(218,54,255,0.22);
-            --nav-bg:        rgba(255, 255, 255, 0.92);
-            --sidebar-bg:    linear-gradient(180deg, #fdfaff 0%, #f1e8ff 100%);
-            --skeleton-from: #ede8f7;
-            --skeleton-to:   #f5f0ff;
-            --row-alt:       rgba(139, 77, 255, 0.04);
-            --row-hover:     rgba(139, 77, 255, 0.08);
-            --input-border:  rgba(139, 77, 255, 0.30);
-            --focus-ring:    rgba(218, 54, 255, 0.25);
-            --placeholder:   rgba(92, 64, 128, 0.45);
+        /* ── DARK MODE ── */
+        [data-theme="dark"] {
+            --bg-main:       #0F172A;
+            --bg-card:       #1E293B;
+            --bg-card2:      #334155;
+            --bg-input:      #1E293B;
+            --bg-glass:      rgba(30, 41, 59, 0.85);
+            --border:        #334155;
+            --border-glass:  #334155;
+            --text:          #F8FAFC;
+            --text-muted:    #94A3B8;
+            --text-dim:      #64748B;
+            --shadow-sm:     0 2px 10px rgba(0,0,0,0.3);
+            --shadow-md:     0 8px 30px rgba(0,0,0,0.4);
+            --shadow-glow:   0 0 40px rgba(108, 92, 231, 0.35);
+            --nav-bg:        rgba(15, 23, 42, 0.95);
+            --sidebar-bg:    #1E293B;
+            --skeleton-from: #1E293B;
+            --skeleton-to:   #334155;
+            --row-alt:       rgba(51, 65, 85, 0.4);
+            --row-hover:     rgba(108, 92, 231, 0.12);
+            --input-border:  #475569;
+            --focus-ring:    rgba(108, 92, 231, 0.4);
+            --placeholder:   #64748B;
         }
 
         /* ── 2. GLOBAL RESET & BASE ── */
@@ -245,6 +253,44 @@
             background: linear-gradient(135deg, var(--secondary), var(--primary));
             color: #fff;
             box-shadow: 0 2px 10px rgba(244,63,142,0.35);
+        }
+
+        /* ── HIGH-CONTRAST ROLE BADGES (Light & Dark Mode) ── */
+        .badge-role-cho {
+            background: rgba(108, 92, 231, 0.15) !important;
+            color: #5E35B1 !important;
+            border: 1px solid rgba(108, 92, 231, 0.35) !important;
+            font-weight: 700 !important;
+        }
+        .badge-role-rhu {
+            background: rgba(14, 165, 233, 0.15) !important;
+            color: #0369A1 !important;
+            border: 1px solid rgba(14, 165, 233, 0.35) !important;
+            font-weight: 700 !important;
+        }
+        .badge-role-midwife {
+            background: rgba(16, 185, 129, 0.15) !important;
+            color: #047857 !important;
+            border: 1px solid rgba(16, 185, 129, 0.35) !important;
+            font-weight: 700 !important;
+        }
+        .badge-role-bhw-president {
+            background: rgba(139, 92, 246, 0.15) !important;
+            color: #6D28D9 !important;
+            border: 1px solid rgba(139, 92, 246, 0.35) !important;
+            font-weight: 700 !important;
+        }
+        .badge-role-bhw {
+            background: rgba(6, 182, 212, 0.15) !important;
+            color: #0E7490 !important;
+            border: 1px solid rgba(6, 182, 212, 0.35) !important;
+            font-weight: 700 !important;
+        }
+        .badge-role-user {
+            background: rgba(236, 72, 153, 0.15) !important;
+            color: #BE185D !important;
+            border: 1px solid rgba(236, 72, 153, 0.35) !important;
+            font-weight: 700 !important;
         }
 
         /* Notification Bell */

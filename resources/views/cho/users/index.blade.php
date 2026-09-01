@@ -99,14 +99,16 @@
                                 </td>
                                 <td>
                                     @php
-                                        $badgeColor = match($u->role) {
-                                            'rhu' => 'indigo',
-                                            'midwife' => 'purple',
-                                            'bhw_president' => 'violet',
-                                            'bhw' => 'info',
-                                            default => 'secondary'
+                                        $roleClass = match($u->role) {
+                                            'cho' => 'badge-role-cho',
+                                            'rhu' => 'badge-role-rhu',
+                                            'midwife' => 'badge-role-midwife',
+                                            'bhw_president' => 'badge-role-bhw-president',
+                                            'bhw' => 'badge-role-bhw',
+                                            default => 'badge-role-user'
                                         };
                                         $roleLabel = match($u->role) {
+                                            'cho' => 'CHO Admin',
                                             'rhu' => 'RHU Admin',
                                             'midwife' => 'Midwife',
                                             'bhw_president' => 'BHW President',
@@ -114,7 +116,7 @@
                                             default => ucfirst($u->role)
                                         };
                                     @endphp
-                                    <span class="badge bg-{{ $badgeColor }} text-white text-xs">
+                                    <span class="badge {{ $roleClass }} px-2.5 py-1 rounded-pill" style="font-size:0.75rem;">
                                         {{ $roleLabel }}
                                     </span>
                                 </td>

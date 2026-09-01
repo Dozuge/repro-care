@@ -47,13 +47,13 @@
                                 </td>
                                 <td>
                                     @php
-                                        $badgeColor = match($log->user_role) {
-                                            'cho' => 'success',
-                                            'rhu' => 'indigo',
-                                            'midwife' => 'purple',
-                                            'bhw_president' => 'violet',
-                                            'bhw' => 'info',
-                                            default => 'secondary'
+                                        $roleClass = match($log->user_role) {
+                                            'cho' => 'badge-role-cho',
+                                            'rhu' => 'badge-role-rhu',
+                                            'midwife' => 'badge-role-midwife',
+                                            'bhw_president' => 'badge-role-bhw-president',
+                                            'bhw' => 'badge-role-bhw',
+                                            default => 'badge-role-user'
                                         };
                                         $roleLabel = match($log->user_role) {
                                             'cho' => 'CHO Admin',
@@ -64,7 +64,7 @@
                                             default => ucfirst($log->user_role ?? 'System')
                                         };
                                     @endphp
-                                    <span class="badge bg-{{ $badgeColor }} text-white text-xs">
+                                    <span class="badge {{ $roleClass }} px-2.5 py-1 rounded-pill" style="font-size:0.72rem;">
                                         {{ $roleLabel }}
                                     </span>
                                 </td>
