@@ -21,10 +21,22 @@ return new class extends Migration
         // Step 1: Convert menstruation_records.symptoms to JSON format
         $this->standardizeSymptoms();
 
-        // Step 2: Change column type to JSON
-        Schema::table('menstruation_records', function (Blueprint $table) {
-            $table->json('symptoms')->nullable()->change();
-        });
+        // Step 2: Change column type to JSON. PostgreSQL cannot infer a text-to-
+        // JSON conversion, so its ALTER TABLE needs an explicit USING cast.
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("
+                ALTER TABLE menstruation_records
+                ALTER COLUMN symptoms TYPE json
+                USING CASE
+                    WHEN symptoms IS NULL OR BTRIM(symptoms) = '' THEN NULL
+                    ELSE symptoms::json
+                END
+            ");
+        } else {
+            Schema::table('menstruation_records', function (Blueprint $table) {
+                $table->json('symptoms')->nullable()->change();
+            });
+        }
 
         // Step 3: Refresh stale AOG values in pregnancies
         $this->refreshStaleAog();
