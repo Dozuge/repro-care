@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -17,7 +18,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('woman_id')->nullable()->after('id');
             }
 
-            $foreignKeys = collect(DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menstruation_records' AND CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_NAME LIKE '%foreign'"))->pluck('CONSTRAINT_NAME')->toArray();
+            $foreignKeys = collect(Schema::getForeignKeys('menstruation_records'))->pluck('name')->toArray();
 
             if (Schema::hasColumn('menstruation_records', 'woman_id') && !in_array('menstruation_records_woman_id_foreign', $foreignKeys)) {
                 $table->foreign('woman_id')->references('id')->on('women')->onDelete('cascade');
@@ -26,9 +27,9 @@ return new class extends Migration
 
         if (Schema::hasColumn('menstruation_records', 'patient_id')) {
             DB::statement("
-                UPDATE menstruation_records mr
-                SET mr.woman_id = mr.patient_id
-                WHERE EXISTS (SELECT 1 FROM women w WHERE w.id = mr.patient_id)
+                UPDATE menstruation_records
+                SET woman_id = patient_id
+                WHERE EXISTS (SELECT 1 FROM women w WHERE w.id = patient_id)
             ");
         }
 
@@ -44,7 +45,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('woman_id')->nullable()->after('id');
             }
 
-            $foreignKeys = collect(DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'menstruation_dailies' AND CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_NAME LIKE '%foreign'"))->pluck('CONSTRAINT_NAME')->toArray();
+            $foreignKeys = collect(Schema::getForeignKeys('menstruation_dailies'))->pluck('name')->toArray();
 
             if (Schema::hasColumn('menstruation_dailies', 'woman_id') && !in_array('menstruation_dailies_woman_id_foreign', $foreignKeys)) {
                 $table->foreign('woman_id')->references('id')->on('women')->onDelete('cascade');
@@ -53,10 +54,10 @@ return new class extends Migration
 
         if (Schema::hasColumn('menstruation_dailies', 'patient_id')) {
             DB::statement("
-                UPDATE menstruation_dailies md
-                SET md.woman_id = md.patient_id
-                WHERE (md.patient_type = 'App\\\\Models\\\\Woman' OR md.patient_type = 'App\\\\Models\\\\Patient')
-                AND EXISTS (SELECT 1 FROM women w WHERE w.id = md.patient_id)
+                UPDATE menstruation_dailies
+                SET woman_id = patient_id
+                WHERE (patient_type = 'App\\\\Models\\\\Woman' OR patient_type = 'App\\\\Models\\\\Patient')
+                AND EXISTS (SELECT 1 FROM women w WHERE w.id = patient_id)
             ");
         }
 
@@ -81,7 +82,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('woman_id')->nullable()->after('id');
             }
 
-            $foreignKeys = collect(DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'cycles' AND CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_NAME LIKE '%foreign'"))->pluck('CONSTRAINT_NAME')->toArray();
+            $foreignKeys = collect(Schema::getForeignKeys('cycles'))->pluck('name')->toArray();
 
             if (Schema::hasColumn('cycles', 'woman_id') && !in_array('cycles_woman_id_foreign', $foreignKeys)) {
                 $table->foreign('woman_id')->references('id')->on('women')->onDelete('cascade');
@@ -90,10 +91,10 @@ return new class extends Migration
 
         if (Schema::hasColumn('cycles', 'patient_id')) {
             DB::statement("
-                UPDATE cycles c
-                SET c.woman_id = c.patient_id
-                WHERE (c.patient_type = 'App\\\\Models\\\\Woman' OR c.patient_type = 'App\\\\Models\\\\Patient')
-                AND EXISTS (SELECT 1 FROM women w WHERE w.id = c.patient_id)
+                UPDATE cycles
+                SET woman_id = patient_id
+                WHERE (patient_type = 'App\\\\Models\\\\Woman' OR patient_type = 'App\\\\Models\\\\Patient')
+                AND EXISTS (SELECT 1 FROM women w WHERE w.id = patient_id)
             ");
         }
 
@@ -117,7 +118,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('woman_id')->nullable()->after('id');
             }
 
-            $foreignKeys = collect(DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'fertility_logs' AND CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_NAME LIKE '%foreign'"))->pluck('CONSTRAINT_NAME')->toArray();
+            $foreignKeys = collect(Schema::getForeignKeys('fertility_logs'))->pluck('name')->toArray();
 
             if (Schema::hasColumn('fertility_logs', 'woman_id') && !in_array('fertility_logs_woman_id_foreign', $foreignKeys)) {
                 $table->foreign('woman_id')->references('id')->on('women')->onDelete('cascade');
@@ -126,10 +127,10 @@ return new class extends Migration
 
         if (Schema::hasColumn('fertility_logs', 'patient_id')) {
             DB::statement("
-                UPDATE fertility_logs fl
-                SET fl.woman_id = fl.patient_id
-                WHERE (fl.patient_type = 'App\\\\Models\\\\Woman' OR fl.patient_type = 'App\\\\Models\\\\Patient')
-                AND EXISTS (SELECT 1 FROM women w WHERE w.id = fl.patient_id)
+                UPDATE fertility_logs
+                SET woman_id = patient_id
+                WHERE (patient_type = 'App\\\\Models\\\\Woman' OR patient_type = 'App\\\\Models\\\\Patient')
+                AND EXISTS (SELECT 1 FROM women w WHERE w.id = patient_id)
             ");
         }
 
