@@ -3,8 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Models\MenstruationRecord;
-use App\Models\Cycle;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         // Update MenstruationRecord for user 6
-        MenstruationRecord::where('user_id', 6)
+        DB::table('menstruation_records')->where('user_id', 6)
             ->where('start_date', '2026-04-10')
             ->update([
                 'start_date' => '2026-04-11',
@@ -22,7 +21,7 @@ return new class extends Migration
             ]);
 
         // Update Cycle for user 6
-        Cycle::where('user_id', 6)
+        DB::table('cycles')->where('user_id', 6)
             ->where('period_start_date', '2026-04-10')
             ->update([
                 'period_start_date' => '2026-04-11',
@@ -36,7 +35,7 @@ return new class extends Migration
     public function down(): void
     {
         // Revert MenstruationRecord for user 6
-        MenstruationRecord::where('user_id', 6)
+        DB::table('menstruation_records')->where('user_id', 6)
             ->where('start_date', '2026-04-11')
             ->update([
                 'start_date' => '2026-04-10',
@@ -44,7 +43,7 @@ return new class extends Migration
             ]);
 
         // Revert Cycle for user 6
-        Cycle::where('user_id', 6)
+        DB::table('cycles')->where('user_id', 6)
             ->where('period_start_date', '2026-04-11')
             ->update([
                 'period_start_date' => '2026-04-10',

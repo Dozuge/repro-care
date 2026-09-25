@@ -3,8 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Models\MenstruationRecord;
-use App\Models\Cycle;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,22 +12,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Sync existing MenstruationRecord data to Cycle records
-        $records = MenstruationRecord::all();
+        // Do not depend on application models in migrations: models can be
+        // renamed or removed long after this migration has been recorded.
+        $records = DB::table('menstruation_records')->get();
         
         foreach ($records as $record) {
-            // Check if Cycle record already exists for this MenstruationRecord
-            $existingCycle = Cycle::where('user_id', $record->user_id)
+            $existingCycle = DB::table('cycles')->where('user_id', $record->user_id)
                 ->where('period_start_date', $record->start_date)
                 ->first();
             
             if (!$existingCycle) {
-                // Create Cycle record from MenstruationRecord
-                Cycle::create([
+                DB::table('cycles')->insert([
                     'user_id' => $record->user_id,
                     'period_start_date' => $record->start_date,
                     'period_end_date' => $record->end_date,
                     'flow_intensity' => 'medium', // Default value
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
         }
