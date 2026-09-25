@@ -15,14 +15,10 @@ return new class extends Migration
 
         // Clean up legacy indexes that still point to the pre-polymorphic user column.
         foreach (['idx_cycles_user_id', 'idx_cycles_user_start', 'cycles_user_id_period_start_date_index'] as $indexName) {
-            $indexExists = DB::table('information_schema.STATISTICS')
-                ->whereRaw('TABLE_SCHEMA = DATABASE()')
-                ->where('TABLE_NAME', 'cycles')
-                ->where('INDEX_NAME', $indexName)
-                ->exists();
-
-            if ($indexExists) {
-                DB::statement("DROP INDEX {$indexName} ON cycles");
+            if (Schema::hasIndex('cycles', $indexName)) {
+                Schema::table('cycles', function (Blueprint $table) use ($indexName) {
+                    $table->dropIndex($indexName);
+                });
             }
         }
 
@@ -32,11 +28,7 @@ return new class extends Migration
             });
         }
 
-        $patientIndexExists = DB::table('information_schema.STATISTICS')
-            ->whereRaw('TABLE_SCHEMA = DATABASE()')
-            ->where('TABLE_NAME', 'cycles')
-            ->where('INDEX_NAME', 'cycles_patient_id_patient_type_period_start_date_index')
-            ->exists();
+        $patientIndexExists = Schema::hasIndex('cycles', 'cycles_patient_id_patient_type_period_start_date_index');
 
         if (!$patientIndexExists && Schema::hasColumn('cycles', 'patient_id') && Schema::hasColumn('cycles', 'patient_type')) {
             Schema::table('cycles', function (Blueprint $table) {
@@ -51,11 +43,7 @@ return new class extends Migration
             return;
         }
 
-        $patientIndexExists = DB::table('information_schema.STATISTICS')
-            ->whereRaw('TABLE_SCHEMA = DATABASE()')
-            ->where('TABLE_NAME', 'cycles')
-            ->where('INDEX_NAME', 'cycles_patient_id_patient_type_period_start_date_index')
-            ->exists();
+        $patientIndexExists = Schema::hasIndex('cycles', 'cycles_patient_id_patient_type_period_start_date_index');
 
         if ($patientIndexExists) {
             Schema::table('cycles', function (Blueprint $table) {

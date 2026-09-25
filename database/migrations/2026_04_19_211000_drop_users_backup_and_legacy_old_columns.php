@@ -13,11 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         $indexExists = function (string $table, string $indexName): bool {
-            return DB::table('information_schema.STATISTICS')
-                ->where('TABLE_SCHEMA', DB::raw('DATABASE()'))
-                ->where('TABLE_NAME', $table)
-                ->where('INDEX_NAME', $indexName)
-                ->exists();
+            return Schema::hasIndex($table, $indexName);
         };
 
         if (Schema::hasTable('forum_likes') && !$indexExists('forum_likes', 'forum_likes_post_id_user_id_user_type_unique')) {
@@ -67,21 +63,17 @@ return new class extends Migration
                 return;
             }
 
-            $indexes = DB::table('information_schema.STATISTICS')
-                ->select('INDEX_NAME')
-                ->where('TABLE_SCHEMA', DB::raw('DATABASE()'))
-                ->where('TABLE_NAME', $table)
-                ->where('COLUMN_NAME', $column)
-                ->where('INDEX_NAME', '!=', 'PRIMARY')
-                ->distinct()
-                ->pluck('INDEX_NAME');
+            $indexes = collect(Schema::getIndexes($table))
+                ->filter(fn (array $index) => ! $index['primary'] && in_array($column, $index['columns']));
 
-            foreach ($indexes as $indexName) {
-                DB::statement(sprintf(
-                    'ALTER TABLE `%s` DROP INDEX `%s`',
-                    $table,
-                    $indexName
-                ));
+            foreach ($indexes as $index) {
+                Schema::table($table, function (Blueprint $blueprint) use ($index) {
+                    if ($index['unique']) {
+                        $blueprint->dropUnique($index['name']);
+                    } else {
+                        $blueprint->dropIndex($index['name']);
+                    }
+                });
             }
 
             Schema::table($table, function (Blueprint $tableBlueprint) use ($column) {
@@ -120,14 +112,15 @@ return new class extends Migration
     public function down(): void
     {
         $dropIndexIfExists = function (string $table, string $indexName): void {
-            $exists = DB::table('information_schema.STATISTICS')
-                ->where('TABLE_SCHEMA', DB::raw('DATABASE()'))
-                ->where('TABLE_NAME', $table)
-                ->where('INDEX_NAME', $indexName)
-                ->exists();
-
-            if ($exists) {
-                DB::statement(sprintf('ALTER TABLE `%s` DROP INDEX `%s`', $table, $indexName));
+            if (Schema::hasIndex($table, $indexName)) {
+                $index = collect(Schema::getIndexes($table))->firstWhere('name', $indexName);
+                Schema::table($table, function (Blueprint $blueprint) use ($indexName, $index) {
+                    if ($index['unique']) {
+                        $blueprint->dropUnique($indexName);
+                    } else {
+                        $blueprint->dropIndex($indexName);
+                    }
+                });
             }
         };
 
