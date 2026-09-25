@@ -13,7 +13,6 @@ return new class extends Migration
         // Get all menstruation records with symptoms
         $records = DB::table('menstruation_records')
             ->whereNotNull('symptoms')
-            ->where('symptoms', '!=', '')
             ->get();
         
         foreach ($records as $record) {
