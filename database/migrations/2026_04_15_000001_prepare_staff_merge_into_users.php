@@ -16,38 +16,34 @@ return new class extends Migration
     public function up(): void
     {
         // Step 1: Add legacy tracking columns to users (if not exists)
-        $columns = DB::select("SHOW COLUMNS FROM users LIKE 'legacy_%'");
-        
-        if (!collect($columns)->contains('Field', 'legacy_midwife_id')) {
+        if (!Schema::hasColumn('users', 'legacy_midwife_id')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->unsignedBigInteger('legacy_midwife_id')->nullable()->after('profile_image');
+                $table->unsignedBigInteger('legacy_midwife_id')->nullable();
             });
         }
         
-        if (!collect($columns)->contains('Field', 'legacy_bhw_id')) {
+        if (!Schema::hasColumn('users', 'legacy_bhw_id')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->unsignedBigInteger('legacy_bhw_id')->nullable()->after('legacy_midwife_id');
+                $table->unsignedBigInteger('legacy_bhw_id')->nullable();
             });
         }
 
-        // Add indexes if not exists
-        $indexes = DB::select("SHOW INDEX FROM users WHERE Key_name LIKE 'idx_users_legacy_%'");
-        if (!collect($indexes)->contains('Key_name', 'idx_users_legacy_midwife_id')) {
+        // Schema::hasIndex works with MySQL and PostgreSQL; SHOW INDEX does not.
+        if (!Schema::hasIndex('users', 'idx_users_legacy_midwife_id')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->index('legacy_midwife_id', 'idx_users_legacy_midwife_id');
             });
         }
-        if (!collect($indexes)->contains('Key_name', 'idx_users_legacy_bhw_id')) {
+        if (!Schema::hasIndex('users', 'idx_users_legacy_bhw_id')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->index('legacy_bhw_id', 'idx_users_legacy_bhw_id');
             });
         }
 
         // Step 2: Add soft delete support (if not exists)
-        $deletedAtExists = DB::select("SHOW COLUMNS FROM users LIKE 'deleted_at'");
-        if (!count($deletedAtExists)) {
+        if (!Schema::hasColumn('users', 'deleted_at')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->softDeletes()->after('updated_at');
+                $table->softDeletes();
             });
         }
 
@@ -58,10 +54,9 @@ return new class extends Migration
         $this->migrateBhwToUsers();
 
         // Step 5: Add new FK column to checkups (if not exists)
-        $midwifeUserIdExists = DB::select("SHOW COLUMNS FROM checkups LIKE 'midwife_user_id'");
-        if (!count($midwifeUserIdExists)) {
+        if (!Schema::hasColumn('checkups', 'midwife_user_id')) {
             Schema::table('checkups', function (Blueprint $table) {
-                $table->unsignedBigInteger('midwife_user_id')->nullable()->after('midwife_id');
+                $table->unsignedBigInteger('midwife_user_id')->nullable();
                 
                 $table->foreign('midwife_user_id', 'fk_checkups_midwife_user')
                     ->references('id')->on('users');
@@ -70,12 +65,22 @@ return new class extends Migration
             });
 
             // Step 6: Populate new FK from migrated data
-            DB::statement("
-                UPDATE checkups c
-                INNER JOIN midwives m ON c.midwife_id = m.id
-                INNER JOIN users u ON u.legacy_midwife_id = m.id
-                SET c.midwife_user_id = u.id
-            ");
+            if (DB::getDriverName() === 'pgsql') {
+                DB::statement("
+                    UPDATE checkups c
+                    SET midwife_user_id = u.id
+                    FROM midwives m
+                    INNER JOIN users u ON u.legacy_midwife_id = m.id
+                    WHERE c.midwife_id = m.id
+                ");
+            } else {
+                DB::statement("
+                    UPDATE checkups c
+                    INNER JOIN midwives m ON c.midwife_id = m.id
+                    INNER JOIN users u ON u.legacy_midwife_id = m.id
+                    SET c.midwife_user_id = u.id
+                ");
+            }
         }
 
         // Step 7: Create legacy views for backward compatibility
@@ -136,12 +141,23 @@ return new class extends Migration
         ");
 
         // Link midwives to their user records
-        DB::statement("
-            UPDATE users u
-            INNER JOIN midwives m ON m.email = u.email AND u.role = 'midwife'
-            SET u.legacy_midwife_id = m.id
-            WHERE u.legacy_midwife_id IS NULL
-        ");
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("
+                UPDATE users u
+                SET legacy_midwife_id = m.id
+                FROM midwives m
+                WHERE m.email = u.email
+                  AND u.role = 'midwife'
+                  AND u.legacy_midwife_id IS NULL
+            ");
+        } else {
+            DB::statement("
+                UPDATE users u
+                INNER JOIN midwives m ON m.email = u.email AND u.role = 'midwife'
+                SET u.legacy_midwife_id = m.id
+                WHERE u.legacy_midwife_id IS NULL
+            ");
+        }
     }
 
     /**
@@ -173,12 +189,23 @@ return new class extends Migration
         ");
 
         // Link bhw to their user records
-        DB::statement("
-            UPDATE users u
-            INNER JOIN bhw b ON b.email = u.email AND u.role = 'bhw'
-            SET u.legacy_bhw_id = b.id
-            WHERE u.legacy_bhw_id IS NULL
-        ");
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("
+                UPDATE users u
+                SET legacy_bhw_id = b.id
+                FROM bhw b
+                WHERE b.email = u.email
+                  AND u.role = 'bhw'
+                  AND u.legacy_bhw_id IS NULL
+            ");
+        } else {
+            DB::statement("
+                UPDATE users u
+                INNER JOIN bhw b ON b.email = u.email AND u.role = 'bhw'
+                SET u.legacy_bhw_id = b.id
+                WHERE u.legacy_bhw_id IS NULL
+            ");
+        }
     }
 
     /**

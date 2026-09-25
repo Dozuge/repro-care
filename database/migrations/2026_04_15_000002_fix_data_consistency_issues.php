@@ -122,6 +122,18 @@ return new class extends Migration
      */
     protected function refreshStaleAog(): void
     {
+        if (DB::getDriverName() === 'pgsql') {
+            DB::table('pregnancies')
+                ->whereNull('ended_at')
+                ->whereRaw("ABS(aog - ROUND((CURRENT_DATE - lmp) / 7.0)) > 1")
+                ->update([
+                    'aog' => DB::raw("ROUND((CURRENT_DATE - lmp) / 7.0)"),
+                    'updated_at' => now(),
+                ]);
+
+            return;
+        }
+
         DB::table('pregnancies')
             ->whereNull('ended_at')
             ->whereRaw('ABS(aog - ROUND(DATEDIFF(CURDATE(), lmp) / 7)) > 1')
