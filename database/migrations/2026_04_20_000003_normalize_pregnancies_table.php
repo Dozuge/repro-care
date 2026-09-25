@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -23,11 +24,9 @@ return new class extends Migration
         });
 
         // Migrate data from polymorphic columns to specific columns
-        DB::statement("
-            UPDATE pregnancies p
-            SET p.woman_id = p.patient_id
-            WHERE p.patient_type = 'App\\\\Models\\\\Woman' OR p.patient_type = 'App\\\\Models\\\\Patient'
-        ");
+        DB::table('pregnancies')
+            ->whereIn('patient_type', ['App\\Models\\Woman', 'App\\Models\\Patient'])
+            ->update(['woman_id' => DB::raw('patient_id')]);
 
         // Drop polymorphic columns
         Schema::table('pregnancies', function (Blueprint $table) {
