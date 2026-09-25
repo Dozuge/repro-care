@@ -15,6 +15,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // PostgreSQL prevents dropping or altering columns used by views. Remove
+        // these legacy views before touching their source tables.
+        DB::statement('DROP VIEW IF EXISTS midwives_legacy');
+        DB::statement('DROP VIEW IF EXISTS bhw_legacy');
+        DB::statement('DROP VIEW IF EXISTS health_records_enriched');
+
         // Step 1: Migrate any remaining checkups.midwife_id data to midwife_user_id
         $this->migrateRemainingCheckupData();
 
@@ -31,25 +37,20 @@ return new class extends Migration
             $table->dropColumn('created_by_role');
         });
 
-        // Step 5: Drop legacy views
-        DB::statement('DROP VIEW IF EXISTS midwives_legacy');
-        DB::statement('DROP VIEW IF EXISTS bhw_legacy');
-        DB::statement('DROP VIEW IF EXISTS health_records_enriched');
-
-        // Step 6: Drop midwives table (data migrated to users)
+        // Step 5: Drop midwives table (data migrated to users)
         Schema::dropIfExists('midwives');
 
-        // Step 7: Drop bhw table (data migrated to users)
+        // Step 6: Drop bhw table (data migrated to users)
         Schema::dropIfExists('bhw');
 
-        // Step 8: Clean up legacy tracking columns from users
+        // Step 7: Clean up legacy tracking columns from users
         Schema::table('users', function (Blueprint $table) {
             $table->dropIndex('idx_users_legacy_midwife_id');
             $table->dropIndex('idx_users_legacy_bhw_id');
             $table->dropColumn(['legacy_midwife_id', 'legacy_bhw_id']);
         });
 
-        // Step 9: Fix bhw_monthly_reports.bhw_id CASCADE to RESTRICT
+        // Step 8: Fix bhw_monthly_reports.bhw_id CASCADE to RESTRICT
         $this->fixBhwMonthlyReportsCascade();
     }
 
@@ -86,19 +87,13 @@ return new class extends Migration
      */
     protected function dropCheckupMidwifeFK(): void
     {
-        // Check if FK exists
-        $fkExists = DB::select("
-            SELECT CONSTRAINT_NAME 
-            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-            WHERE TABLE_SCHEMA = DATABASE()
-            AND TABLE_NAME = 'checkups'
-            AND COLUMN_NAME = 'midwife_id'
-            AND REFERENCED_TABLE_NAME IS NOT NULL
-        ");
+        $foreignKey = collect(Schema::getForeignKeys('checkups'))
+            ->first(fn (array $fk) => in_array('midwife_id', $fk['columns']));
 
-        if (count($fkExists) > 0) {
-            $constraintName = $fkExists[0]->CONSTRAINT_NAME;
-            DB::statement("ALTER TABLE checkups DROP FOREIGN KEY {$constraintName}");
+        if ($foreignKey) {
+            Schema::table('checkups', function (Blueprint $table) use ($foreignKey) {
+                $table->dropForeign($foreignKey['name']);
+            });
         }
     }
 
@@ -107,32 +102,23 @@ return new class extends Migration
      */
     protected function fixBhwMonthlyReportsCascade(): void
     {
-        // Check current FK rule
-        $fkRules = DB::select("
-            SELECT rc.DELETE_RULE, kcu.CONSTRAINT_NAME
-            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-            JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS rc 
-                ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
-            WHERE kcu.TABLE_SCHEMA = DATABASE()
-            AND kcu.TABLE_NAME = 'bhw_monthly_reports'
-            AND kcu.COLUMN_NAME = 'bhw_id'
-        ");
+        if (! Schema::hasTable('bhw_monthly_reports')) {
+            return;
+        }
 
-        if (count($fkRules) > 0) {
-            $currentRule = $fkRules[0];
+        $currentRule = collect(Schema::getForeignKeys('bhw_monthly_reports'))
+            ->first(fn (array $fk) => in_array('bhw_id', $fk['columns']));
+
+        if ($currentRule) {
             
             // Only change if it's still CASCADE
-            if ($currentRule->DELETE_RULE === 'CASCADE') {
+            if (strtoupper($currentRule['on_delete']) === 'CASCADE') {
                 // Drop old FK
-                DB::statement("ALTER TABLE bhw_monthly_reports DROP FOREIGN KEY {$currentRule->CONSTRAINT_NAME}");
-                
-                // Add new FK with RESTRICT
-                DB::statement("
-                    ALTER TABLE bhw_monthly_reports
-                    ADD CONSTRAINT fk_bhw_monthly_reports_bhw
-                    FOREIGN KEY (bhw_id) REFERENCES users(id)
-                    ON DELETE RESTRICT
-                ");
+                Schema::table('bhw_monthly_reports', function (Blueprint $table) use ($currentRule) {
+                    $table->dropForeign($currentRule['name']);
+                    $table->foreign('bhw_id', 'fk_bhw_monthly_reports_bhw')
+                        ->references('id')->on('users')->onDelete('restrict');
+                });
                 
                 \Log::info("Changed bhw_monthly_reports.bhw_id FK from CASCADE to RESTRICT");
             }

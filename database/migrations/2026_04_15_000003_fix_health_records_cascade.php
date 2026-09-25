@@ -15,6 +15,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // PostgreSQL will not alter a column while a view depends on it. This
+        // view is recreated below with the same definition after the FK update.
+        $restoreEnrichedView = DB::getDriverName() === 'pgsql'
+            && Schema::hasTable('health_records');
+
+        if ($restoreEnrichedView) {
+            DB::statement('DROP VIEW IF EXISTS health_records_enriched');
+        }
+
         // Check current FK rules to avoid duplicate operations
         // Laravel reads the driver-specific system catalog for us. DATABASE() is
         // MySQL-only and fails on PostgreSQL.
@@ -83,6 +92,15 @@ return new class extends Migration
             } catch (\Exception $e) {
                 // FK might already exist with different name, ignore
             }
+        }
+
+        if ($restoreEnrichedView) {
+            DB::statement("
+                CREATE OR REPLACE VIEW health_records_enriched AS
+                SELECT hr.*, u.role AS recorded_by_role_actual
+                FROM health_records hr
+                INNER JOIN users u ON hr.recorded_by_id = u.id
+            ");
         }
     }
 
