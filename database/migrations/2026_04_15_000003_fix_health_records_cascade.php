@@ -16,23 +16,25 @@ return new class extends Migration
     public function up(): void
     {
         // Check current FK rules to avoid duplicate operations
-        $fkRules = DB::select("
-            SELECT CONSTRAINT_NAME, DELETE_RULE
-            FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
-            WHERE CONSTRAINT_SCHEMA = DATABASE()
-            AND TABLE_NAME = 'health_records'
-            AND CONSTRAINT_NAME IN ('health_records_user_id_foreign', 'fk_health_records_user', 'health_records_recorded_by_id_foreign', 'fk_health_records_recorded_by')
-        ");
+        // Laravel reads the driver-specific system catalog for us. DATABASE() is
+        // MySQL-only and fails on PostgreSQL.
+        $fkRules = collect(Schema::getForeignKeys('health_records'))
+            ->filter(fn (array $fk) => in_array($fk['name'], [
+                'health_records_user_id_foreign',
+                'fk_health_records_user',
+                'health_records_recorded_by_id_foreign',
+                'fk_health_records_recorded_by',
+            ]));
 
-        $userFkExists = collect($fkRules)->contains(fn($fk) => in_array($fk->CONSTRAINT_NAME, ['health_records_user_id_foreign', 'fk_health_records_user']));
-        $recordedByFkExists = collect($fkRules)->contains(fn($fk) => in_array($fk->CONSTRAINT_NAME, ['health_records_recorded_by_id_foreign', 'fk_health_records_recorded_by']));
+        $userFk = $fkRules->first(fn (array $fk) => in_array($fk['name'], ['health_records_user_id_foreign', 'fk_health_records_user']));
+        $recordedByFk = $fkRules->first(fn (array $fk) => in_array($fk['name'], ['health_records_recorded_by_id_foreign', 'fk_health_records_recorded_by']));
+        $userFkExists = $userFk !== null;
+        $recordedByFkExists = $recordedByFk !== null;
 
         // Step 1: Change user_id FK from CASCADE to RESTRICT (if needed)
         if ($userFkExists) {
-            $userFk = collect($fkRules)->first(fn($fk) => in_array($fk->CONSTRAINT_NAME, ['health_records_user_id_foreign', 'fk_health_records_user']));
-            
             // Only change if it's still CASCADE
-            if ($userFk->DELETE_RULE === 'CASCADE') {
+            if (strtoupper($userFk['on_delete']) === 'CASCADE') {
                 Schema::table('health_records', function (Blueprint $table) {
                     $table->dropForeign(['user_id']);
                 });
@@ -47,10 +49,8 @@ return new class extends Migration
 
         // Step 2: Change recorded_by_id FK from CASCADE to SET NULL (if needed)
         if ($recordedByFkExists) {
-            $recordedByFk = collect($fkRules)->first(fn($fk) => in_array($fk->CONSTRAINT_NAME, ['health_records_recorded_by_id_foreign', 'fk_health_records_recorded_by']));
-            
             // Only change if it's still CASCADE
-            if ($recordedByFk->DELETE_RULE === 'CASCADE') {
+            if (strtoupper($recordedByFk['on_delete']) === 'CASCADE') {
                 Schema::table('health_records', function (Blueprint $table) {
                     $table->dropForeign(['recorded_by_id']);
                 });
