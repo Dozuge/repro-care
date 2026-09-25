@@ -31,4 +31,4 @@ RUN composer install --no-dev --optimize-autoloader
 
 # Expose port 80 and start Apache with auto-migration
 EXPOSE 80
-CMD php artisan migrate --force && apache2-foreground
+CMD php artisan config:clear && php artisan migrate --force && apache2-foreground
