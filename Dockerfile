@@ -29,4 +29,6 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 RUN composer install --no-dev --optimize-autoloader
 
+# Expose port 80 and start Apache with auto-migration
 EXPOSE 80
+CMD php artisan migrate --force && apache2-foreground
