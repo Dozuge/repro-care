@@ -11,25 +11,29 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Step 1: Drop foreign key columns from users table if they exist
-        try {
-            Schema::table('users', function (Blueprint $table) {
-                $table->dropForeign(['feeding_method_id']);
-                $table->dropForeign(['family_planning_method_id']);
-                $table->dropForeign(['vitamins_id']);
-            });
-        } catch (\Exception $e) {
-            // Foreign keys don't exist, continue
-        }
+        // PostgreSQL aborts the whole transaction after an invalid ALTER TABLE;
+        // check metadata first instead of relying on try/catch around DDL.
+        if (Schema::hasTable('users')) {
+            $legacyColumns = ['feeding_method_id', 'family_planning_method_id', 'vitamins_id'];
+            $foreignKeys = collect(Schema::getForeignKeys('users'))
+                ->filter(fn (array $foreign) => ! empty(array_intersect($legacyColumns, $foreign['columns'])));
 
-        try {
-            Schema::table('users', function (Blueprint $table) {
-                $table->dropColumn('feeding_method_id');
-                $table->dropColumn('family_planning_method_id');
-                $table->dropColumn('vitamins_id');
-            });
-        } catch (\Exception $e) {
-            // Columns don't exist, continue
+            foreach ($foreignKeys as $foreign) {
+                Schema::table('users', function (Blueprint $table) use ($foreign) {
+                    $table->dropForeign($foreign['name']);
+                });
+            }
+
+            $columnsToDrop = array_values(array_filter(
+                $legacyColumns,
+                fn (string $column) => Schema::hasColumn('users', $column)
+            ));
+
+            if ($columnsToDrop) {
+                Schema::table('users', function (Blueprint $table) use ($columnsToDrop) {
+                    $table->dropColumn($columnsToDrop);
+                });
+            }
         }
 
         // Step 2: Drop unused normalization tables in correct order (respecting foreign keys)
