@@ -14,9 +14,17 @@ return new class extends Migration
     {
         // Helper function to drop foreign key if it exists
         $dropForeignKeyIfExists = function ($table, $foreignKey) {
-            $exists = DB::select("SELECT COUNT(*) as count FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND CONSTRAINT_NAME = ?", [$table, $foreignKey]);
-            if ($exists[0]->count > 0) {
-                DB::statement("ALTER TABLE {$table} DROP FOREIGN KEY {$foreignKey}");
+            if (! Schema::hasTable($table)) {
+                return;
+            }
+
+            $exists = collect(Schema::getForeignKeys($table))
+                ->contains(fn (array $foreign) => $foreign['name'] === $foreignKey);
+
+            if ($exists) {
+                Schema::table($table, function (Blueprint $blueprint) use ($foreignKey) {
+                    $blueprint->dropForeign($foreignKey);
+                });
             }
         };
 
