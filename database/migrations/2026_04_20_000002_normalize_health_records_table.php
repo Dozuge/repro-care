@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -24,7 +25,7 @@ return new class extends Migration
             }
 
             // Get existing foreign keys
-            $foreignKeys = collect(DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'health_records' AND CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_NAME LIKE '%foreign'"))->pluck('CONSTRAINT_NAME')->toArray();
+            $foreignKeys = collect(Schema::getForeignKeys('health_records'))->pluck('name')->toArray();
 
             // Add foreign key constraints only if they don't already exist
             if (Schema::hasColumn('health_records', 'woman_id') && !in_array('health_records_woman_id_foreign', $foreignKeys)) {
@@ -44,28 +45,22 @@ return new class extends Migration
         });
 
         // Migrate data from polymorphic columns to specific columns
-        DB::statement("
-            UPDATE health_records hr
-            SET hr.woman_id = hr.patient_id
-            WHERE hr.patient_type = 'App\\\\Models\\\\Woman' OR hr.patient_type = 'App\\\\Models\\\\Patient'
-        ");
+        DB::table('health_records')
+            ->whereIn('patient_type', ['App\\Models\\Woman', 'App\\Models\\Patient'])
+            ->update(['woman_id' => DB::raw('patient_id')]);
 
-        DB::statement("
-            UPDATE health_records hr
-            SET hr.recorded_by_midwife_id = hr.recorded_by_id
-            WHERE hr.recorded_by_type = 'App\\\\Models\\\\Midwife'
-        ");
+        DB::table('health_records')
+            ->where('recorded_by_type', 'App\\Models\\Midwife')
+            ->update(['recorded_by_midwife_id' => DB::raw('recorded_by_id')]);
 
-        DB::statement("
-            UPDATE health_records hr
-            SET hr.recorded_by_bhw_id = hr.recorded_by_id
-            WHERE hr.recorded_by_type = 'App\\\\Models\\\\Bhw'
-        ");
+        DB::table('health_records')
+            ->where('recorded_by_type', 'App\\Models\\Bhw')
+            ->update(['recorded_by_bhw_id' => DB::raw('recorded_by_id')]);
 
         // Drop polymorphic columns
         Schema::table('health_records', function (Blueprint $table) {
             // Get existing foreign keys
-            $foreignKeys = collect(DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'health_records' AND CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_NAME LIKE '%foreign'"))->pluck('CONSTRAINT_NAME')->toArray();
+            $foreignKeys = collect(Schema::getForeignKeys('health_records'))->pluck('name')->toArray();
             
             if (in_array('health_records_recorded_by_id_foreign', $foreignKeys)) {
                 $table->dropForeign(['recorded_by_id']);
