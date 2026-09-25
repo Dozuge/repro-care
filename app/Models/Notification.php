@@ -18,11 +18,21 @@ class Notification extends Model
         'action_url',
         'is_read',
         'read_at',
+        'category',
+        'event_key',
+        'risk_fingerprint',
+        'subject_user_id',
+        'checkup_id',
+        'parent_notification_id',
+        'last_reminded_at',
+        'resolved_at',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
         'read_at' => 'datetime',
+        'last_reminded_at' => 'datetime',
+        'resolved_at' => 'datetime',
     ];
 
     // Relationships
@@ -46,8 +56,18 @@ class Notification extends Model
     public function markAsRead()
     {
         $this->is_read = true;
-        $this->read_at = now();
+        $this->read_at ??= now();
         $this->save();
+    }
+
+    public function patientAlert()
+    {
+        return $this->belongsTo(self::class, 'parent_notification_id')->withTrashed();
+    }
+
+    public function smsLogs()
+    {
+        return $this->hasMany(SmsLog::class);
     }
 
     public function markAsUnread()

@@ -5,7 +5,7 @@
 @section('bhw-content')
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-file-earmark-text"></i> Patient Menstrual Cycle Report</h1>
+        <h1>Patient Menstrual Cycle Report</h1>
         <div>
             <a href="{{ route('bhw.patient-menstruation', $woman->id) }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Back
@@ -59,7 +59,7 @@
         <div class="col-md-4">
             <div class="card text-center">
                 <div class="card-body">
-                    <h3 style="color: var(--primary-light);">{{ $averageCycle ?? 'N/A' }}</h3>
+                    <h3 style="color:var(--primary-light);">{{ $averageCycle ?? 'N/A' }}</h3>
                     <p class="mb-0">Average Cycle Length (days)</p>
                 </div>
             </div>
@@ -67,7 +67,7 @@
         <div class="col-md-4">
             <div class="card text-center">
                 <div class="card-body">
-                    <h3 style="color: #fca5a5;">{{ $averagePeriod ?? 'N/A' }}</h3>
+                    <h3 style="color:var(--color-danger-text);">{{ $averagePeriod ?? 'N/A' }}</h3>
                     <p class="mb-0">Average Period Duration (days)</p>
                 </div>
             </div>
@@ -75,7 +75,7 @@
         <div class="col-md-4">
             <div class="card text-center">
                 <div class="card-body">
-                    <h3 style="color: #6ee7b7;">{{ $records->count() }}</h3>
+                    <h3 style="color:var(--color-success-text);">{{ $records->count() }}</h3>
                     <p class="mb-0">Total Cycles Logged</p>
                 </div>
             </div>
@@ -105,7 +105,7 @@
                                 <tr>
                                     <td>{{ $record->period_start_date->format('M d, Y') }}</td>
                                     <td>{{ $record->period_end_date ? $record->period_end_date->format('M d, Y') : 'Ongoing' }}</td></td>
-                                    <td>{{ $record->duration }} days</td>
+                                    <td>{{ $record->period_length ?? '-' }} {{ $record->period_length ? ($record->period_length != 1 ? 'days' : 'day') : '' }}</td>
                                     <td>
                                         @isset($predictions[$index]['ovulation'])
                                             {{ $predictions[$index]['ovulation']->format('M d, Y') }}
@@ -128,7 +128,7 @@
                 </div>
             @else
                 <div class="text-center py-5">
-                    <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                    <i class="bi bi-calendar-x text-muted" style="font-size:3rem;"></i>
                     <h5 class="text-muted mt-3">No Menstrual Records Found</h5>
                     <p class="text-muted">This patient has not logged any menstrual cycle data yet.</p>
                 </div>
@@ -196,11 +196,11 @@
 
 <style>
 @media print {
-    .no-print { display: none !important; }
-    .card { border: 1px solid #ddd; page-break-inside: avoid; }
-    .card-header { background-color: #f8f9fa !important; }
-    .btn { display: none !important; }
-    .container-fluid { padding: 0 !important; }
+    .no-print { display:none !important; }
+    .card { border:1px solid var(--color-border); page-break-inside:avoid; }
+    .card-header { background-color:var(--color-surface-soft) !important; }
+    .btn { display:none !important; }
+    .container-fluid { padding:0 !important; }
 }
 </style>
 @endsection

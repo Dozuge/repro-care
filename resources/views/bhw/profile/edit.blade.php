@@ -5,68 +5,68 @@
 @section('bhw-content')
 <style>
     .profile-edit-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 1rem;
-        overflow: hidden;
-        box-shadow: var(--shadow-md);
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:1rem;
+        overflow:hidden;
+        box-shadow:var(--shadow-md);
     }
 
     .profile-edit-header {
-        background: linear-gradient(135deg, #198754, #20c997);
+        background:linear-gradient(135deg, var(--color-success-text), var(--color-success));
     }
 
     .profile-image-panel {
-        background: var(--bg-card2);
-        border: 1px solid var(--border);
-        border-radius: 1rem;
-        padding: 1.5rem;
+        background:var(--bg-card2);
+        border:1px solid var(--border);
+        border-radius:1rem;
+        padding:1.5rem;
     }
 
     .profile-preview-image {
-        width: 160px;
-        height: 160px;
-        object-fit: cover;
-        border: 4px solid var(--bg-card);
-        background: var(--bg-card2);
-        box-shadow: var(--shadow-md);
+        width:160px;
+        height:160px;
+        object-fit:cover;
+        border:4px solid var(--bg-card);
+        background:var(--bg-card2);
+        box-shadow:var(--shadow-md);
     }
 
     .section-title {
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--text);
-        margin-bottom: 1rem;
+        font-size:1rem;
+        font-weight:700;
+        color:var(--text);
+        margin-bottom:1rem;
     }
 
     .profile-edit-card .card-body {
-        background: transparent;
-        color: var(--text);
+        background:transparent;
+        color:var(--text);
     }
 
     .profile-edit-card .form-control,
     .profile-edit-card .form-select {
-        background: var(--bg-input);
-        color: var(--text);
-        border-color: var(--border);
+        background:var(--bg-input);
+        color:var(--text);
+        border-color:var(--border);
     }
 
     .profile-edit-card .form-control::file-selector-button {
-        background: var(--primary-subtle);
-        color: var(--primary-light);
-        border: 0;
-        margin-right: 1rem;
-        padding: 0.55rem 0.85rem;
+        background:var(--primary-subtle);
+        color:var(--primary-light);
+        border:0;
+        margin-right:1rem;
+        padding:0.55rem 0.85rem;
     }
 
     .profile-edit-card .badge.text-bg-light {
-        background: var(--bg-card2) !important;
-        color: var(--text) !important;
-        border-color: var(--border) !important;
+        background:var(--bg-card2) !important;
+        color:var(--text) !important;
+        border-color:var(--border) !important;
     }
 
     .profile-edit-card hr {
-        border-color: var(--border);
+        border-color:var(--border);
     }
 </style>
 <div class="py-4">
@@ -209,16 +209,10 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="purok_id" class="form-label">Purok</label>
-                            <select class="form-select @error('purok_id') is-invalid @enderror" id="purok_id" name="purok_id">
-                                <option value="">Select purok</option>
-                                @foreach($puroks as $purok)
-                                    <option value="{{ $purok->id }}" {{ (string) old('purok_id', $user->purok_id) === (string) $purok->id ? 'selected' : '' }}>
-                                        {{ $purok->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('purok_id')
+                            <label for="purok" class="form-label">Sitio / Street / Purok</label>
+                            <input type="text" class="form-control @error('purok') is-invalid @enderror" id="purok" name="purok"
+                                   value="{{ old('purok', $user->purok?->name ?? '') }}" placeholder="e.g. Sitio Malinis, Purok 3">
+                            @error('purok')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

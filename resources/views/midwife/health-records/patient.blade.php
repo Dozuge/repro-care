@@ -6,7 +6,7 @@
 <div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1><i class="bi bi-clipboard-pulse"></i> Woman Health Records</h1>
+            <h1>Woman Health Records</h1>
             <p class="text-muted mb-0">{{ $woman->name }} ({{ $woman->email }})</p>
         </div>
         <div class="d-flex gap-2">
@@ -64,7 +64,7 @@
 
     <div class="card shadow">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-clipboard-pulse-fill"></i> All Health Records for {{ $woman->name }}</h5>
+            <h5 class="mb-0">All Health Records for {{ $woman->name }}</h5>
         </div>
         <div class="card-body">
             @if($healthRecords->count() > 0)
@@ -150,7 +150,7 @@
                 </div>
             @else
                 <div class="text-center py-5">
-                    <i class="bi bi-clipboard-pulse text-muted" style="font-size: 4rem;"></i>
+                    <i class="bi bi-clipboard-pulse text-muted" style="font-size:4rem;"></i>
                     <h3 class="text-muted mt-3">No Health Records Found</h3>
                     <p class="text-muted">This patient has no health records yet.</p>
                 </div>

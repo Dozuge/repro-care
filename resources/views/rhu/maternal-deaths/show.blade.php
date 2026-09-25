@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-journal-x me-2" style="color:var(--danger);"></i>Maternal Death Details
+            <div class="page-hero-title">Maternal Death Details
             </div>
             <p class="page-hero-subtitle">
                 Maternal Death Surveillance and Response (MDSR) clinical record.
@@ -22,13 +21,7 @@
                 <a href="{{ route('rhu.maternal-deaths.edit', $death->id) }}" class="btn btn-warning btn-sm text-dark fw-600">
                     <i class="bi bi-pencil-fill me-1"></i> Edit Record
                 </a>
-                <form action="{{ route('rhu.maternal-deaths.destroy', $death->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to permanently delete this maternal death surveillance record?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm">
-                        <i class="bi bi-trash-fill me-1"></i> Delete
-                    </button>
-                </form>
+                <x-archive-form :action="route('rhu.maternal-deaths.destroy', $death->id)" label="Archive" title="Archive case (retained for audit)" btnClass="btn btn-warning btn-sm text-white" icon="bi bi-archive-fill" confirmText="Archive this maternal death case? It is legal medical history and will be retained for audit." />
             @endif
         </div>
     </div>
@@ -46,9 +39,7 @@
     <div class="col-lg-8">
         <div class="card fade-in-card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-                    <i class="bi bi-file-earmark-medical me-2" style="color:var(--danger);"></i>
-                    Clinical Surveillance Record
+                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">Clinical Surveillance Record
                 </h5>
                 <span class="badge bg-{{ $death->audit_status === 'closed' ? 'success' : ($death->audit_status === 'reviewed' ? 'info' : 'warning') }} text-white text-xs py-1.5 px-3 rounded-pill">
                     Status: {{ ucfirst($death->audit_status) }}
@@ -59,7 +50,7 @@
                     <div class="col-md-6">
                         <div class="text-muted text-xs mb-1">Patient Name</div>
                         <div class="fw-700 text-lg" style="color:var(--text);">{{ $death->patient_name }}</div>
-                        <div style="font-size:0.75rem; color:var(--text-muted);">{{ $death->user_id ? 'Registered Patient' : 'Walk-in / External Patient' }}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">{{ $death->user_id ? 'Enrolled Patient' : 'Unlinked / External Patient' }}</div>
                     </div>
                     <div class="col-md-6">
                         <div class="text-muted text-xs mb-1">Age at Death</div>
@@ -125,9 +116,7 @@
     <div class="col-lg-4">
         <div class="card fade-in-card h-100">
             <div class="card-header">
-                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-                    <i class="bi bi-shield-check me-2" style="color:var(--success);"></i>
-                    CHO Case Audit Review
+                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">CHO Case Audit Review
                 </h5>
             </div>
             <div class="card-body">

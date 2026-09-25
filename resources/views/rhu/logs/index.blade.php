@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-activity me-2" style="color:var(--primary-light);"></i>System Activity Logs
+            <div class="page-hero-title">System Activity Logs
             </div>
             <p class="page-hero-subtitle">
                 Audit trail of midwife registrations, BHW presidents, supply requests, and clinical morbidity entries.
@@ -100,7 +99,7 @@
             @endif
         @else
             <div class="text-center py-5">
-                <i class="bi bi-activity" style="font-size: 3rem; color: var(--text-muted);"></i>
+                <i class="bi bi-activity" style="font-size:3rem; color:var(--text-muted);"></i>
                 <h5 class="mt-3">No Activity Logs Found</h5>
                 <p class="text-muted text-xs">System logs will populate as staff perform actions.</p>
             </div>

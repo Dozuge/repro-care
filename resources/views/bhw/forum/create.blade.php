@@ -10,8 +10,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-plus-circle-fill me-2"></i>Create New Post
+            <div class="page-hero-title">Create New Post
             </div>
             <p class="page-hero-subtitle">
                 <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
@@ -28,7 +27,7 @@
 
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert"
-         style="background:rgba(25,135,84,0.1); border:1px solid rgba(25,135,84,0.3); color:var(--success); border-radius:10px;">
+         style="background:color-mix(in srgb, var(--color-success-text) 10%, transparent); border:1px solid color-mix(in srgb, var(--color-success-text) 30%, transparent); color:var(--success); border-radius:10px;">
         <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" style="filter:invert(1);"></button>
     </div>
@@ -37,7 +36,7 @@
 {{-- ═══════════════════════════════
      CREATE FORM
 ════════════════════════════════ --}}
-<div class="card fade-in-card" style="border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+<div class="card fade-in-card" style="border:none; border-radius:16px; box-shadow:0 4px 20px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 8%, transparent);">
     <div class="card-body p-4">
         <form method="POST" action="{{ route('forum.store') }}" enctype="multipart/form-data">
             @csrf
@@ -62,13 +61,13 @@
                 @enderror
             </div>
 
-            <div class="mb-4" id="image-preview-container" style="display: none;">
+            <div class="mb-4" id="image-preview-container" style="display:none;">
                 <label class="form-label">Image Preview</label>
                 <img id="post-image-preview"
                      src=""
                      alt="Preview"
                      class="img-fluid rounded"
-                     style="max-height: 300px; border-radius:12px;">
+                     style="max-height:300px; border-radius:12px;">
                 <button type="button"
                         class="btn btn-sm btn-outline-danger mt-2"
                         onclick="removeForumImage()">

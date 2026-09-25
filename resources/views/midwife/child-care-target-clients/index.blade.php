@@ -4,118 +4,123 @@
 
 @push('styles')
 <style>
-    .cctl-shell { display: grid; gap: 1.25rem; }
-    .cctl-header, .cctl-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; box-shadow: var(--shadow-sm); }
-    .cctl-header { padding: 1.4rem 1.6rem; }
-    .cctl-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.45rem; font-weight: 800; color: var(--text); margin: 0; }
-    .cctl-subtitle { color: var(--text-muted); margin: 0.35rem 0 0; }
-    .cctl-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-    .cctl-stat { padding: 1rem 1.1rem; border-radius: 18px; border: 1px solid var(--border); background: linear-gradient(135deg, rgba(34,211,238,0.08), rgba(218,54,255,0.07)); }
-    .cctl-stat-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
-    .cctl-stat-value { font-size: 1.55rem; font-weight: 800; color: var(--text); }
-    .cctl-card { padding: 1.25rem; }
-    .cctl-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .cctl-tabs { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-    .cctl-tab { padding: 0.65rem 1rem; border-radius: 999px; border: 1px solid var(--border); color: var(--text-muted); text-decoration: none; font-weight: 700; font-size: 0.85rem; background: var(--bg-card2); }
-    .cctl-tab.active { background: var(--primary-subtle); color: var(--primary-light); border-color: var(--border-glass); }
+    .cctl-shell { display:grid; gap:1.25rem; }
+    .cctl-header, .cctl-card { background:var(--bg-card); border:1px solid var(--border); border-radius:22px; box-shadow:var(--shadow-sm); }
+    .cctl-header { padding:1.4rem 1.6rem; }
+    .cctl-title { font-family:'Plus Jakarta Sans', sans-serif; font-size:1.45rem; font-weight:800; color:var(--text); margin:0; }
+    .cctl-subtitle { color:var(--text-muted); margin:0.35rem 0 0; }
+    .cctl-stats { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:1rem; }
+    .cctl-stat { padding:1rem 1.1rem; border-radius:18px; border:1px solid var(--border); background:linear-gradient(135deg, color-mix(in srgb, var(--color-info) 8%, transparent), color-mix(in srgb, var(--color-primary) 7%, transparent)); }
+    .cctl-stat-label { font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; }
+    .cctl-stat-value { font-size:1.55rem; font-weight:800; color:var(--text); }
+    .cctl-card { padding:1.25rem; }
+    .cctl-toolbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+    .cctl-tabs { display:flex; gap:0.6rem; flex-wrap:wrap; }
+    .cctl-tab { padding:0.65rem 1rem; border-radius:999px; border:1px solid var(--border); color:var(--text-muted); text-decoration:none; font-weight:700; font-size:0.85rem; background:var(--bg-card2); }
+    .cctl-tab.active { background:var(--primary-subtle); color:var(--primary-light); border-color:var(--border-glass); }
     .cctl-page-title {
-        text-align: center;
-        font-family: Georgia, 'Times New Roman', serif;
-        font-size: 1.05rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        color: var(--text);
-        margin-bottom: 0.85rem;
-        text-transform: uppercase;
+        text-align:center;
+        font-family:Georgia, 'Times New Roman', serif;
+        font-size:1.05rem;
+        font-weight:700;
+        letter-spacing:0.02em;
+        color:var(--text);
+        margin-bottom:0.85rem;
+        text-transform:uppercase;
     }
-    .cctl-table-wrap { width: 100%; max-width: 100%; overflow-x: visible; border-radius: 18px; border: 1px solid var(--border); zoom: 0.75; -moz-transform: scale(0.75); -moz-transform-origin: top left; }
-    @supports not (zoom: 0.75) { .cctl-table-wrap { transform: scale(0.75); transform-origin: top left; width: 133.33%; } }
-    .cctl-card:has(.cctl-table-wrap) { overflow: hidden; }
-    .cctl-table { width: 100%; border-collapse: collapse; background: var(--bg-card); font-size: 0.7rem; }
-    .cctl-table th, .cctl-table td { border: 1px solid var(--border); padding: 0.3rem 0.35rem; vertical-align: middle; color: var(--text); font-size: 0.65rem; line-height: 1.3; white-space: normal; word-wrap: break-word; max-width: 120px; }
-    .cctl-table thead th { background: var(--bg-card2); font-weight: 800; text-align: center; }
-    .cctl-table tbody td { color: var(--text-muted); }
-    .cctl-name { min-width: 100px; max-width: 150px; color: var(--text) !important; font-weight: 700; }
-    .cctl-empty { padding: 2rem; text-align: center; color: var(--text-muted); border: 1px dashed var(--border); border-radius: 18px; }
-    .cctl-empty-row td { padding: 1.25rem 1rem; text-align: center; color: var(--text-muted); }
-    .cctl-table th:first-child, .cctl-table td:first-child { min-width: 50px; text-align: center; }
-    .cctl-table .btn-sm { font-size: 0.6rem; padding: 0.2rem 0.4rem; }
-    @media (max-width: 768px) { .cctl-stats { grid-template-columns: 1fr; } }
+    .cctl-table-wrap { width:100%; max-width:100%; overflow-x:visible; border-radius:18px; border:1px solid var(--border); zoom:0.75; -moz-transform:scale(0.75); -moz-transform-origin:top left; }
+    @supports not (zoom: 0.75) { .cctl-table-wrap { transform:scale(0.75); transform-origin:top left; width:133.33%; } }
+    /* On phones the zoomed table would be clipped with no way to scroll —
+       restore full size + horizontal scroll instead. */
+    @media (max-width: 768px) {
+        .cctl-table-wrap { overflow-x:auto; zoom:1; -moz-transform:none; transform:none; width:100%; }
+    }
+    .cctl-card:has(.cctl-table-wrap) { overflow:hidden; }
+    .cctl-table { width:100%; border-collapse:collapse; background:var(--bg-card); font-size:0.7rem; }
+    .cctl-table th, .cctl-table td { border:1px solid var(--border); padding:0.3rem 0.35rem; vertical-align:middle; color:var(--text); font-size:0.65rem; line-height:1.3; white-space:normal; word-wrap:break-word; max-width:120px; }
+    .cctl-table thead th { background:var(--bg-card2); font-weight:800; text-align:center; }
+    .cctl-table tbody td { color:var(--text-muted); }
+    .cctl-name { min-width:100px; max-width:150px; color:var(--text) !important; font-weight:700; }
+    .cctl-empty { padding:2rem; text-align:center; color:var(--text-muted); border:1px dashed var(--border); border-radius:18px; }
+    .cctl-empty-row td { padding:1.25rem 1rem; text-align:center; color:var(--text-muted); }
+    .cctl-table th:first-child, .cctl-table td:first-child { min-width:50px; text-align:center; }
+    .cctl-table .btn-sm { font-size:0.6rem; padding:0.2rem 0.4rem; }
+    @media (max-width: 768px) { .cctl-stats { grid-template-columns:1fr; } }
 </style>
 @if(!empty($printMode))
 <style>
-    @page { size: landscape; margin: 8mm; }
+    @page { size:landscape; margin:8mm; }
     html, body {
-        background: #fff !important;
-        padding-top: 0 !important;
-        margin: 0 !important;
+        background:var(--color-surface) !important;
+        padding-top:0 !important;
+        margin:0 !important;
     }
-    .navbar, .sidebar, .topbar, .cctl-header, .cctl-toolbar, .pagination { display: none !important; }
+    .navbar, .sidebar, .topbar, .cctl-header, .cctl-toolbar, .pagination { display:none !important; }
     .layout-wrapper, .main-content, .cctl-shell, .cctl-card {
-        display: block !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
+        display:block !important;
+        margin:0 !important;
+        padding:0 !important;
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
     }
     .cctl-card {
-        box-shadow: none !important;
-        border: none !important;
-        border-radius: 0 !important;
-        overflow: visible !important;
-        background: #fff !important;
+        box-shadow:none !important;
+        border:none !important;
+        border-radius:0 !important;
+        overflow:visible !important;
+        background:var(--color-surface) !important;
     }
     .cctl-print-page {
-        width: 100%;
-        break-after: page;
-        page-break-after: always;
+        width:100%;
+        break-after:page;
+        page-break-after:always;
     }
     .cctl-print-page:last-of-type {
-        break-after: auto;
-        page-break-after: auto;
+        break-after:auto;
+        page-break-after:auto;
     }
     .cctl-table-wrap {
-        zoom: 1 !important;
-        transform: none !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow: visible !important;
-        border: none !important;
-        border-radius: 0 !important;
+        zoom:1 !important;
+        transform:none !important;
+        width:100% !important;
+        max-width:100% !important;
+        overflow:visible !important;
+        border:none !important;
+        border-radius:0 !important;
     }
     .cctl-table {
-        width: 100% !important;
-        min-width: 0 !important;
-        table-layout: auto;
+        width:100% !important;
+        min-width:0 !important;
+        table-layout:auto;
     }
     .cctl-table th, .cctl-table td {
-        font-size: 7.5px !important;
-        padding: 3px 2px !important;
-        color: #111 !important;
-        border: 1px solid #333 !important;
-        word-break: break-word;
-        white-space: normal;
-        max-width: none !important;
+        font-size:7.5px !important;
+        padding:3px 2px !important;
+        color:var(--color-text-muted) !important;
+        border:1px solid var(--color-border) !important;
+        word-break:break-word;
+        white-space:normal;
+        max-width:none !important;
     }
     .cctl-table thead th {
-        background: #e0e0e0 !important;
+        background:var(--color-surface-soft) !important;
     }
     .cctl-name {
-        min-width: 0 !important;
-        max-width: none !important;
+        min-width:0 !important;
+        max-width:none !important;
     }
     .cctl-page-title {
-        font-size: 12px !important;
-        margin: 0 0 8px !important;
-        color: #111 !important;
+        font-size:12px !important;
+        margin:0 0 8px !important;
+        color:var(--color-text-muted) !important;
     }
     .cctl-actions {
-        display: none !important;
+        display:none !important;
     }
-    tr { page-break-inside: avoid; }
-    thead { display: table-header-group; }
-    tbody { display: table-row-group; }
+    tr { page-break-inside:avoid; }
+    thead { display:table-header-group; }
+    tbody { display:table-row-group; }
 </style>
 @endif
 @endpush

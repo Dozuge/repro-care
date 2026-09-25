@@ -2,12 +2,41 @@
 
 @section('title', 'Pregnancies - BHW Portal')
 
+@push('styles')
+<style>
+    /* Compact fit-no-scroll pregnancy table. */
+    #bhw-preg-table > :not(caption) > * > * {
+        padding:0.55rem 0.5rem;
+        font-size:0.85rem;
+    }
+    /* Forced equal action buttons: variant padding/borders can't unbalance them. */
+    #bhw-preg-table .tbl-actions .btn {
+        width:38px;
+        height:38px;
+        padding:0;
+        border-radius:12px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+    }
+    #bhw-preg-table .tbl-actions .btn > i { line-height:1; }
+    #bhw-preg-table .pg-nowrap {
+        white-space:nowrap;
+    }
+</style>
+@endpush
+
 @section('bhw-content')
 <div class="py-4">
     <div class="page-hero fade-in-card mb-4">
-        <div style="position:relative;z-index:1;">
-            <div class="page-hero-title"><i class="bi bi-heart-pulse-fill me-2"></i>Pregnancies</div>
-            <p class="page-hero-subtitle">View pregnancies you created, those created by other BHWs, or by the midwife.</p>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
+            <div>
+                <div class="page-hero-title">Pregnancies</div>
+                <p class="page-hero-subtitle mb-0">View pregnancies you created, those created by other BHWs, or by the midwife.</p>
+            </div>
+            <a href="{{ route('bhw.pregnancies.create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i> Report Pregnancy
+            </a>
         </div>
     </div>
 
@@ -25,10 +54,10 @@
                 </div>
                 <div class="col-md-5">
                     <label class="form-label">Search Patient</label>
-                    <input type="text" name="search" class="form-control" placeholder="Search registered or walk-in patient..." value="{{ $search }}">
+                    <input type="text" name="search" class="form-control" placeholder="Search enrolled or unlinked patient..." value="{{ $search }}">
                 </div>
                 <div class="col-md-3 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-search me-1"></i> Apply</button>
+                    <button type="submit" class="btn btn-filter flex-fill"><i class="bi bi-search me-1"></i> Apply</button>
                     <a href="{{ route('bhw.pregnancies.index') }}" class="btn btn-outline-secondary">Reset</a>
                 </div>
             </form>
@@ -37,9 +66,9 @@
 
     <div class="card fade-in-card">
         <div class="card-body p-0">
-            @if($pregnancies->count())
+                            @if($pregnancies->count())
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0" id="bhw-preg-table">
                         <thead>
                             <tr>
                                 <th>Patient</th>
@@ -57,38 +86,32 @@
                                 @php
                                     $isWalkIn = !is_null($pregnancy->walk_in_patient_id);
                                     $patientRoute = $isWalkIn
-                                        ? route('bhw.walk-in-patients.show', $pregnancy->walk_in_patient_id)
+                                        ? route('bhw.walk-in-patients.show', [$pregnancy->walk_in_patient_id, 'from' => 'pregnancies'])
                                         : route('bhw.patient-details', $pregnancy->user_id);
                                 @endphp
                                 <tr>
                                     <td>
                                         <div class="fw-semibold">{{ $pregnancy->patient_name }}</div>
-                                        <small class="text-muted">{{ $isWalkIn ? 'Walk-in patient' : (optional($pregnancy->woman)->email ?? 'Registered patient') }}</small>
+                                        <small class="text-muted">{{ $isWalkIn ? 'Unlinked patient' : (optional($pregnancy->woman)->email ?? 'Enrolled patient') }}</small>
                                     </td>
-                                    <td>{{ $pregnancy->lmp?->format('M d, Y') ?? 'N/A' }}</td>
-                                    <td>{{ $pregnancy->edd?->format('M d, Y') ?? 'N/A' }}</td>
-                                    <td><span class="badge bg-light text-dark border">{{ $pregnancy->formatted_aog ?? 'N/A' }}</span></td>
-                                    <td><span class="badge bg-info text-dark">{{ $pregnancy->trimester_name ?? 'N/A' }}</span></td>
+                                    <td class="pg-nowrap">{{ $pregnancy->lmp?->format('M d, Y') ?? 'N/A' }}</td>
+                                    <td class="pg-nowrap">{{ $pregnancy->edd?->format('M d, Y') ?? 'N/A' }}</td>
+                                    <td><span class="badge bg-light text-dark border text-nowrap">{{ $pregnancy->formatted_aog ?? 'N/A' }}</span></td>
+                                    <td><span class="badge bg-info text-dark text-nowrap">{{ $pregnancy->trimester_name ?? 'N/A' }}</span></td>
                                     <td>
-                                        <span class="badge {{ $pregnancy->is_high_risk ? 'bg-danger' : 'bg-success' }}">
+                                        <span class="badge text-nowrap {{ $pregnancy->is_high_risk ? 'bg-danger' : 'bg-success' }}">
                                             {{ $pregnancy->is_high_risk ? 'High Risk' : 'Normal' }}
                                         </span>
                                     </td>
-                                    <td>{{ $pregnancy->created_by_name ?? 'Unknown' }}</td>
+                                    <td class="pg-nowrap">{{ $pregnancy->created_by_name ?? 'Unknown' }}</td>
                                     <td class="text-center">
-                                        <div class="d-inline-flex gap-1">
-                                            <a href="{{ $patientRoute }}" class="btn btn-sm btn-outline-primary" title="View patient">
+                                        <div class="d-inline-flex align-items-center gap-1 tbl-actions">
+                                            <a href="{{ route('bhw.referrals.report-pregnancy', $pregnancy->id) }}" class="btn btn-sm btn-outline-success" title="Report this pregnancy to a midwife" aria-label="Report this pregnancy to a midwife">
+                                                <i class="bi bi-send-fill"></i>
+                                            </a>
+                                            <a href="{{ $patientRoute }}" class="btn btn-sm btn-outline-primary" title="View patient" aria-label="View patient">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            @if($pregnancy->is_mine && $isWalkIn)
-                                                <a href="{{ route('bhw.walk-in-patients.edit', $pregnancy->walk_in_patient_id) }}" class="btn btn-sm btn-outline-success" title="Edit walk-in patient">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                            @elseif($pregnancy->is_mine && !$isWalkIn)
-                                                <a href="{{ route('bhw.patient-details', $pregnancy->user_id) }}" class="btn btn-sm btn-outline-success" title="Open registered patient">
-                                                    <i class="bi bi-person"></i>
-                                                </a>
-                                            @endif
                                         </div>
                                     </td>
                                 </tr>

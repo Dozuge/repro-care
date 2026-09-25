@@ -19,6 +19,8 @@ class Pregnancy extends Model
         'lmp',
         'edd',
         'aog',
+        'gravida',
+        'para',
         'risk_level',
         'risk_assessment_mode',
         'risk_notes',
@@ -30,6 +32,17 @@ class Pregnancy extends Model
         'bhw_president_reviewed_at',
         'workflow_notes',
         'bhw_president_notes',
+        // 1. Rejection Feedback Loop — correction & resubmission state
+        'revision_count',
+        'rejected_by_id',
+        'rejected_at',
+        'rejection_reason',
+        'resubmitted_at',
+        // 4. Pregnancy→Postpartum auto-transition
+        'outcome',
+        'postpartum_transitioned_at',
+        // Sequential-pregnancy archival lock (delivered = read-only history)
+        'is_locked',
         // Feature C — Facility Delivery Tracking
         'facility_delivery_place',
         'delivery_date',
@@ -59,6 +72,11 @@ class Pregnancy extends Model
         return $this->hasOne(MaternalCareTargetClient::class, 'pregnancy_id');
     }
 
+    public function referrals()
+    {
+        return $this->hasMany(CheckupReferral::class, 'pregnancy_id')->latest();
+    }
+
     // Get the patient model (either user or walk-in)
     public function getPatientModel()
     {
@@ -84,7 +102,36 @@ class Pregnancy extends Model
         'is_high_risk' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'rejected_at' => 'datetime',
+        'resubmitted_at' => 'datetime',
+        'postpartum_transitioned_at' => 'datetime',
     ];
+
+    // ── 1. Rejection Feedback Loop helpers ─────────────────────────────
+    public function scopeNeedsRevision($query)
+    {
+        return $query->whereIn('workflow_status', ['needs_revision', 'bhw_president_rejected']);
+    }
+
+    public function getIsNeedsRevisionAttribute(): bool
+    {
+        return in_array($this->workflow_status, ['needs_revision', 'bhw_president_rejected'], true);
+    }
+
+    public function getReviewerNoteAttribute(): ?string
+    {
+        return $this->rejection_reason ?? $this->workflow_notes;
+    }
+
+    public function rejectedBy()
+    {
+        return $this->belongsTo(User::class, 'rejected_by_id');
+    }
+
+    public function newborns()
+    {
+        return $this->hasMany(Newborn::class, 'pregnancy_id');
+    }
 
     // Alias for backward compatibility
     public function user()
@@ -248,6 +295,22 @@ class Pregnancy extends Model
     {
         if (!$this->edd) return false;
         return Carbon::now()->gt(Carbon::parse($this->edd));
+    }
+
+    /**
+   * Get gravida from maternal care target client (if exists)
+   */
+    public function getGravidaAttribute()
+    {
+        return $this->maternalCareTargetClient?->gravida ?? $this->attributes['gravida'] ?? null;
+    }
+
+    /**
+   * Get para from maternal care target client (if exists)
+   */
+    public function getParaAttribute()
+    {
+        return $this->maternalCareTargetClient?->parity ?? $this->attributes['para'] ?? null;
     }
 
     // Scopes

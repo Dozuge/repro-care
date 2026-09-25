@@ -5,40 +5,40 @@
 @section('bhw-president-content')
 <style>
     .profile-view-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 1rem;
-        overflow: hidden;
-        box-shadow: var(--shadow-md);
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:1rem;
+        overflow:hidden;
+        box-shadow:var(--shadow-md);
     }
     .profile-view-header {
-        background: linear-gradient(135deg, #7c3aed, #a855f7);
+        background:linear-gradient(135deg, var(--color-primary), var(--color-primary));
     }
     .profile-view-avatar {
-        width: 150px;
-        height: 150px;
-        object-fit: cover;
-        border: 5px solid var(--bg-card);
-        box-shadow: var(--shadow-md);
+        width:150px;
+        height:150px;
+        object-fit:cover;
+        border:5px solid var(--bg-card);
+        box-shadow:var(--shadow-md);
     }
     .profile-info-item {
-        border: 1px solid var(--border);
-        border-radius: 0.85rem;
-        padding: 1rem;
-        background: var(--bg-card2);
-        height: 100%;
+        border:1px solid var(--border);
+        border-radius:0.85rem;
+        padding:1rem;
+        background:var(--bg-card2);
+        height:100%;
     }
     .profile-info-label {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-muted);
-        margin-bottom: 0.35rem;
+        font-size:0.8rem;
+        text-transform:uppercase;
+        letter-spacing:0.04em;
+        color:var(--text-muted);
+        margin-bottom:0.35rem;
     }
     .profile-info-value {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text);
+        font-size:1rem;
+        font-weight:600;
+        color:var(--text);
     }
 </style>
 
@@ -52,16 +52,13 @@
                 <div class="card-body">
                     <div class="row align-items-center g-4 mb-4">
                         <div class="col-md-4 text-center">
-                            <img src="{{ $user->profile_image_url }}"
-                                 alt="Profile Picture"
-                                 class="rounded-circle profile-view-avatar"
-                                 onerror="this.onerror=null;this.src='{{ $user->gender === 'male' ? asset('images/avatars/avatar-male.png') : asset('images/avatars/avatar-female.png') }}';">
+                            <x-patient-avatar :patient="$user" :size="150" />
                         </div>
                         <div class="col-md-8">
                             <h3 class="mb-1">{{ $user->name }}</h3>
                             <p class="text-muted mb-3">{{ $user->email }}</p>
                             <div class="d-flex flex-wrap gap-2">
-                                <span class="badge px-3 py-2" style="background:#8b5cf6;">{{ $user->role === 'bhw_president' ? 'BHW President' : ucfirst(str_replace('_', ' ', $user->role ?? 'user')) }}</span>
+                                <span class="badge px-3 py-2" style="background:var(--color-primary);">{{ $user->role === 'bhw_president' ? 'BHW President' : ucfirst(str_replace('_', ' ', $user->role ?? 'user')) }}</span>
                             </div>
                         </div>
                     </div>

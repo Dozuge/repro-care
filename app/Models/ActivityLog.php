@@ -14,9 +14,15 @@ class ActivityLog extends Model
         'model_type',
         'model_id',
         'description',
+        'is_protected',
         'ip_address',
         'user_agent',
     ];
+
+    protected function casts(): array
+    {
+        return ['is_protected' => 'boolean'];
+    }
 
     // ─── Relationships ───────────────────────────────────────────
 
@@ -43,6 +49,28 @@ class ActivityLog extends Model
             'model_type' => $model ? get_class($model) : null,
             'model_id' => $model ? $model->id : null,
             'description' => $description,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+    }
+
+    /**
+     * Log an unalterable system event (excluded from retention pruning).
+     * Used for role handovers and other succession events.
+     */
+    public static function logProtected($action, $description, $model = null)
+    {
+        $user = auth()->user();
+
+        return self::create([
+            'user_id' => $user ? $user->id : null,
+            'user_role' => $user ? $user->role : null,
+            'user_name' => $user ? $user->name : 'System/Guest',
+            'action' => $action,
+            'model_type' => $model ? get_class($model) : null,
+            'model_id' => $model ? $model->id : null,
+            'description' => $description,
+            'is_protected' => true,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
         ]);

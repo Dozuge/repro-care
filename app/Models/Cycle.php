@@ -66,6 +66,15 @@ class Cycle extends Model
         static::saving(function ($cycle) {
             $cycle->cycle_length = $cycle->calculateCycleLength();
         });
+        static::saved(function ($cycle) {
+            $service = new CyclePredictionService();
+            $service->recalculateCycleLengths($cycle->user_id);
+            if ($cycle->wasChanged('user_id') && $cycle->getOriginal('user_id')) {
+                $service->recalculateCycleLengths($cycle->getOriginal('user_id'));
+            }
+        });
+        static::deleted(fn ($cycle) => (new CyclePredictionService())->recalculateCycleLengths($cycle->user_id));
+        static::restored(fn ($cycle) => (new CyclePredictionService())->recalculateCycleLengths($cycle->user_id));
     }
 
     // Methods for prediction - delegate to service

@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-journal-x me-2" style="color:var(--danger);"></i>Record Maternal Death
+            <div class="page-hero-title">Record Maternal Death
             </div>
             <p class="page-hero-subtitle">
                 Enter details for DOH Maternal Death Surveillance and Response (MDSR).
@@ -22,7 +21,7 @@
 
 @if ($errors->any())
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius:12px;">
-        <h6 class="alert-heading fw-bold mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Please resolve the following errors:</h6>
+        <h6 class="alert-heading fw-bold mb-2">Please resolve the following errors:</h6>
         <ul class="mb-0 text-xs">
             @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -37,16 +36,14 @@
         <form method="POST" action="{{ route('rhu.maternal-deaths.store') }}">
             @csrf
 
-            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color:var(--text);">
-                <i class="bi bi-person-fill me-2" style="color:var(--danger);"></i>
-                Patient Information
+            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom:1px solid var(--border); padding-bottom:0.5rem; color:var(--text);">Patient Information
             </h5>
 
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label class="form-label">Link Registered Patient (Optional)</label>
+                    <label class="form-label">Link Enrolled Patient (Optional)</label>
                     <select name="user_id" id="patientSelect" class="form-select">
-                        <option value="" selected>None (Walk-in / External Patient)</option>
+                        <option value="" selected>None (Unlinked / External Patient)</option>
                         @foreach($patients as $patient)
                             <option value="{{ $patient->id }}"
                                     data-name="{{ $patient->name }}"
@@ -74,8 +71,12 @@
                     <label class="form-label required-label">Barangay</label>
                     <select name="barangay" id="barangaySelect" class="form-select" required>
                         <option value="" disabled selected>Select Barangay</option>
-                        <option value="Burgos" {{ old('barangay') === 'Burgos' ? 'selected' : '' }}>Barangay Burgos</option>
-                        <option value="Padlan" {{ old('barangay') === 'Padlan' ? 'selected' : '' }}>Barangay Padlan</option>
+                        @forelse(($barangays ?? collect()) as $brgy)
+                            <option value="{{ $brgy->name }}" {{ old('barangay') === $brgy->name ? 'selected' : '' }}>Barangay {{ $brgy->name }}</option>
+                        @empty
+                            <option value="Burgos" {{ old('barangay') === 'Burgos' ? 'selected' : '' }}>Barangay Burgos</option>
+                            <option value="Padlan" {{ old('barangay') === 'Padlan' ? 'selected' : '' }}>Barangay Padlan</option>
+                        @endforelse
                     </select>
                 </div>
 
@@ -92,9 +93,7 @@
                 </div>
             </div>
 
-            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color:var(--text);">
-                <i class="bi bi-clock-history me-2" style="color:var(--warning);"></i>
-                Event Details
+            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom:1px solid var(--border); padding-bottom:0.5rem; color:var(--text);">Event Details
             </h5>
 
             <div class="row g-3 mb-4">

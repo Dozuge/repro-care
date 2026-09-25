@@ -12,37 +12,33 @@
         $routeRole = $role === 'bhw_president' ? 'bhw-president' : $role;
         if ($role === 'cho') {
             $roleLabel = 'CHO Admin';
-            $roleColor = '#10b981';
+            $roleColor = 'var(--color-primary)'; /* Soft Pink */
         } elseif ($role === 'rhu') {
-            // Display as RHU1 (Rural Health Unit 1) per new role naming
             $roleLabel = 'RHU1 (Rural Health Unit 1)';
-            $roleColor = '#6366f1';
+            $roleColor = 'var(--color-pink)'; /* Brand pink accent */
+            $pendingCount = \App\Models\User::where('role', 'user')->where('status', 'pending')->count();
         } elseif ($role === 'midwife') {
             $roleLabel = 'Midwife';
-            // Ensure readable contrast (avoid using very light CSS variables here)
-            $roleColor = '#7c3aed';
+            $roleColor = 'var(--color-primary)'; /* Soft Pink */
             $unreadMsgs = \App\Models\Message::where('receiver_id', $user->id)
                 ->where('is_read', false)
                 ->count();
-            $pendingCount = \App\Models\User::where('role', 'user')->where('status', 'pending')->count();
         } elseif ($role === 'bhw') {
             $roleLabel = 'BHW';
-            $roleColor = '#22d3ee';
+            $roleColor = 'var(--color-pink)'; /* Brand pink accent */
             $unreadMsgs = \App\Models\Message::where('receiver_id', $user->id)
                 ->where('is_read', false)
                 ->count();
-            $pendingCount = \App\Models\User::where('role', 'user')->where('status', 'pending')->count();
         } elseif ($role === 'bhw_president') {
             $roleLabel = 'BHW President';
-            $roleColor = '#8b5cf6';
+            $roleColor = 'var(--color-primary-text)'; /* Soft Pink Deep */
             $unreadMsgs = \App\Models\Message::where('receiver_id', $user->id)
                 ->where('is_read', false)
                 ->count();
             $pendingCount = \App\Models\User::where('role', 'user')->where('status', 'pending')->count();
         } elseif ($role === 'user') {
             $roleLabel = 'Patient';
-            // readable patient label color
-            $roleColor = '#6366f1';
+            $roleColor = 'var(--color-purple)'; /* Interactive purple */
             $unreadMsgs = \App\Models\Message::where('receiver_id', $user->id)
                 ->where('is_read', false)
                 ->count();
@@ -50,24 +46,15 @@
     }
 @endphp
 
-@if($user)
+@if($user && $role !== 'user')
 <nav class="sidebar" id="sidebar">
-    <div class="sidebar-portal-label">
-        @if($role === 'cho')
-            <i class="bi bi-building-fill me-1"></i> CHO Portal
-        @elseif($role === 'rhu')
-            <i class="bi bi-hospital-fill me-1"></i> RHU Portal
-        @elseif($role === 'user')
-            <i class="bi bi-person-heart me-1"></i> Patient Portal
-        @elseif($role === 'midwife')
-            <i class="bi bi-clipboard2-heart-fill me-1"></i> Midwife Portal
-        @elseif($role === 'bhw_president')
-            <i class="bi bi-person-badge-fill me-1"></i> BHW President Portal
-        @else
-            <i class="bi bi-person-workspace me-1"></i> BHW Portal
-        @endif
-    </div>
-
+    {{-- Floating Overlap Badge — 32px circular toggle anchored to right border --}}
+    <button id="sidebarCollapseBtn" class="sidebar-edge-toggle" aria-label="Collapse sidebar" title="Collapse sidebar" type="button">
+        <svg id="sidebarCollapseIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 18L9 12L15 6"/>
+        </svg>
+    </button>
+    <div class="sidebar-inner">
     @if($role === 'cho')
         <div class="sidebar-section-label">Overview</div>
         <ul class="nav flex-column">
@@ -79,24 +66,17 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('cho.patients*') ? 'active' : '' }}"
-                   href="{{ route('cho.patients.index') }}">
-                    <i class="bi bi-people-fill"></i>
-                    <span>Patients &amp; AI Triage</span>
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('cho.analytics') ? 'active' : '' }}"
                    href="{{ route('cho.analytics') }}">
                     <i class="bi bi-bar-chart-fill"></i>
-                    <span>Analytics &amp; Interventions</span>
+                    <span>Analytics</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('learning.*') ? 'active' : '' }}"
                    href="{{ route('learning.index') }}">
                     <i class="bi bi-camera-video-fill"></i>
-                    <span>Media &amp; Training Library</span>
+                    <span>Learning Materials</span>
                 </a>
             </li>
         </ul>
@@ -128,10 +108,45 @@
                     <span>Maternal Deaths</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('cho.reports*') ? 'active' : '' }}"
+                   href="{{ route('cho.reports.index') }}">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                    <span>City Reports</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('cho.pregnancies*') ? 'active' : '' }}"
+                   href="{{ route('cho.pregnancies.index') }}">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                    <span>Pregnancies</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('cho.handover*') ? 'active' : '' }}"
+                   href="{{ route('cho.handover.index') }}">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Succession Handover</span>
+                </a>
+            </li>
         </ul>
 
         <div class="sidebar-section-label">System</div>
         <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('cho.sms*') ? 'active' : '' }}"
+                   href="{{ route('cho.sms.index') }}">
+                    <i class="bi bi-chat-text-fill"></i>
+                    <span>SMS Monitor</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('cho.database*') ? 'active' : '' }}"
+                   href="{{ route('cho.database.index') }}">
+                    <i class="bi bi-database-fill"></i>
+                    <span>Backup</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('cho.archived*') ? 'active' : '' }}"
                    href="{{ route('cho.archived.index') }}">
@@ -172,10 +187,34 @@
                     <span>FHSIS Reports</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('rhu.analytics*') ? 'active' : '' }}"
+                   href="{{ route('rhu.analytics') }}">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
         </ul>
 
         <div class="sidebar-section-label">Management</div>
         <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('rhu.pending-patients*') ? 'active' : '' }}"
+                   href="{{ route('rhu.pending-patients') }}">
+                    <i class="bi bi-person-check-fill"></i>
+                    <span>Account Verification</span>
+                    @if($pendingCount > 0)
+                        <span style="background:color-mix(in srgb, var(--color-warning) 20%, transparent);color:var(--color-warning-text);font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $pendingCount }}</span>
+                    @endif
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('rhu.patients.create') ? 'active' : '' }}"
+                   href="{{ route('rhu.patients.create') }}">
+                    <i class="bi bi-person-plus-fill"></i>
+                    <span>Register Woman</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('rhu.midwives*') ? 'active' : '' }}"
                    href="{{ route('rhu.midwives.index') }}">
@@ -188,6 +227,13 @@
                    href="{{ route('rhu.bhw-presidents.index') }}">
                     <i class="bi bi-person-badge-fill"></i>
                     <span>BHW Presidents</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('rhu.bhws*') ? 'active' : '' }}"
+                   href="{{ route('rhu.bhws.index') }}">
+                    <i class="bi bi-people-fill"></i>
+                    <span>BHWs</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -226,10 +272,24 @@
                     <span>BHW Monthly Reports</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('workflow.transfers*') ? 'active' : '' }}"
+                   href="{{ route('workflow.transfers.index') }}">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Patient Transfers</span>
+                </a>
+            </li>
         </ul>
 
         <div class="sidebar-section-label">System</div>
         <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('rhu.staff-transitions*') ? 'active' : '' }}"
+                   href="{{ route('rhu.staff-transitions.index') }}">
+                    <i class="bi bi-person-gear"></i>
+                    <span>Staff Handover</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('rhu.database*') ? 'active' : '' }}"
                    href="{{ route('rhu.database.index') }}">
@@ -242,6 +302,13 @@
                    href="{{ route('rhu.logs.index') }}">
                     <i class="bi bi-activity"></i>
                     <span>Activity Logs</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('rhu.sms.*') ? 'active' : '' }}"
+                   href="{{ route('rhu.sms.index') }}">
+                    <i class="bi bi-chat-dots-fill"></i>
+                    <span>SMS Alerts</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -273,7 +340,7 @@
                     <i class="bi bi-calendar-heart-fill"></i>
                     <span>Menstrual Cycle</span>
                     <i class="bi bi-chevron-down ms-auto"
-                       style="font-size: 0.7rem; transition: transform 0.25s ease;"
+                       style="font-size:0.7rem; transition:transform 0.25s ease;"
                        id="menstruChevron"></i>
                 </a>
                 <div class="collapse {{ request()->routeIs('user.menstruation*') ? 'show' : '' }}"
@@ -321,7 +388,7 @@
                     <i class="bi bi-chat-text-fill"></i>
                     <span>Messages</span>
                     @if($unreadMsgs > 0)
-                        <span style="background:rgba(139,92,246,0.2);color:var(--primary-light);font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $unreadMsgs }}</span>
+                        <span style="background:color-mix(in srgb, var(--color-primary) 20%, transparent);color:var(--primary-light);font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $unreadMsgs }}</span>
                     @endif
                 </a>
             </li>
@@ -380,13 +447,8 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('midwife.pending-patients') ? 'active' : '' }}"
-                   href="{{ route('midwife.pending-patients') }}">
-                    <i class="bi bi-person-check-fill"></i>
-                    <span>Account Verification</span>
-                    @if($pendingCount > 0)
-                        <span style="background:rgba(245,158,11,0.2);color:#f59e0b;font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $pendingCount }}</span>
-                    @endif
+                <a class="nav-link {{ request()->routeIs('midwife.decision-support') ? 'active' : '' }}" href="{{ route('midwife.decision-support') }}">
+                    <i class="bi bi-clipboard2-check"></i><span>Decision Support</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -394,6 +456,13 @@
                    href="{{ route('midwife.pregnancies.index') }}">
                     <i class="bi bi-heart-fill"></i>
                     <span>Pregnancies</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('midwife.postpartum*') ? 'active' : '' }}"
+                   href="{{ route('midwife.postpartum.index') }}">
+                    <i class="bi bi-balloon-heart-fill"></i>
+                    <span>Postpartum &amp; Newborn</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -411,21 +480,17 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('midwife.risk-alerts') ? 'active' : '' }}"
+                   href="{{ route('midwife.risk-alerts') }}">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>Risk Alerts</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('midwife.health-records*') ? 'active' : '' }}"
                    href="{{ route('midwife.health-records.index') }}">
                     <i class="bi bi-file-medical-fill"></i>
                     <span>Health Records</span>
-                </a>
-            </li>
-        </ul>
-
-        <div class="sidebar-section-label">BHW Management</div>
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('midwife.bhw-presidents*') ? 'active' : '' }}"
-                   href="{{ route('midwife.bhw-presidents.index') }}">
-                    <i class="bi bi-person-badge-fill"></i>
-                    <span>BHW President</span>
                 </a>
             </li>
         </ul>
@@ -445,7 +510,7 @@
                     <i class="bi bi-chat-text-fill"></i>
                     <span>Messages</span>
                     @if($unreadMsgs > 0)
-                        <span style="background:rgba(139,92,246,0.2);color:var(--primary-light);font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $unreadMsgs }}</span>
+                        <span style="background:color-mix(in srgb, var(--color-primary) 20%, transparent);color:var(--primary-light);font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $unreadMsgs }}</span>
                     @endif
                 </a>
             </li>
@@ -479,13 +544,6 @@
                    href="{{ route('midwife.reports.index') }}">
                     <i class="bi bi-file-earmark-bar-graph-fill"></i>
                     <span>Reports</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('midwife.bhw-reports*') ? 'active' : '' }}"
-                   href="{{ route('midwife.bhw-reports.index') }}">
-                    <i class="bi bi-file-earmark-text-fill"></i>
-                    <span>BHW Monthly Reports</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -536,20 +594,31 @@
         <div class="sidebar-section-label">BHW Management</div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('bhw-president.pending-patients') ? 'active' : '' }}"
-                   href="{{ route('bhw-president.pending-patients') }}">
-                    <i class="bi bi-person-check-fill"></i>
-                    <span>Account Verification</span>
-                    @if($pendingCount > 0)
-                        <span style="background:rgba(245,158,11,0.2);color:#f59e0b;font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $pendingCount }}</span>
-                    @endif
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('bhw-president.bhws*') ? 'active' : '' }}"
                    href="{{ route('bhw-president.bhws.index') }}">
                     <i class="bi bi-people-fill"></i>
                     <span>All BHWs</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('bhw-president.health-records*') ? 'active' : '' }}"
+                   href="{{ route('bhw-president.health-records.index') }}">
+                    <i class="bi bi-clipboard2-check-fill"></i>
+                    <span>Record Review</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('bhw-president.tasks*') ? 'active' : '' }}"
+                   href="{{ route('bhw-president.tasks.index') }}">
+                    <i class="bi bi-list-task"></i>
+                    <span>Tasks</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('bhw-president.pregnancies*') ? 'active' : '' }}"
+                   href="{{ route('bhw-president.pregnancies.index') }}">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                    <span>Pregnancy Review</span>
                 </a>
             </li>
         </ul>
@@ -598,7 +667,7 @@
                     <i class="bi bi-chat-text-fill"></i>
                     <span>Messages</span>
                     @if($unreadMsgs > 0)
-                        <span style="background:rgba(139,92,246,0.2);color:var(--primary-light);font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $unreadMsgs }}</span>
+                        <span style="background:color-mix(in srgb, var(--color-primary) 20%, transparent);color:var(--primary-light);font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $unreadMsgs }}</span>
                     @endif
                 </a>
             </li>
@@ -650,16 +719,6 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('bhw.pending-patients') ? 'active' : '' }}"
-                   href="{{ route('bhw.pending-patients') }}">
-                    <i class="bi bi-person-check-fill"></i>
-                    <span>Account Verification</span>
-                    @if($pendingCount > 0)
-                        <span style="background:rgba(245,158,11,0.2);color:#f59e0b;font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $pendingCount }}</span>
-                    @endif
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('bhw.checkups*') ? 'active' : '' }}"
                    href="{{ route('bhw.checkups.index') }}">
                     <i class="bi bi-clipboard-heart-fill"></i>
@@ -674,6 +733,13 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('bhw.postpartum*') ? 'active' : '' }}"
+                   href="{{ route('bhw.postpartum.index') }}">
+                    <i class="bi bi-balloon-heart-fill"></i>
+                    <span>Postpartum &amp; Newborn</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('bhw.health-records*') ? 'active' : '' }}"
                    href="{{ route('bhw.health-records.index') }}">
                     <i class="bi bi-file-medical-fill"></i>
@@ -685,19 +751,12 @@
         <div class="sidebar-section-label">Content</div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('bhw.sms.*') ? 'active' : '' }}"
-                   href="{{ route('bhw.sms.index') }}">
-                    <i class="bi bi-chat-dots-fill"></i>
-                    <span>SMS Alerts</span>
-                </a>
-            </li>
-            <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('bhw.messages.*') ? 'active' : '' }}"
                    href="{{ route('bhw.messages.index') }}">
                     <i class="bi bi-chat-text-fill"></i>
                     <span>Messages</span>
                     @if($unreadMsgs > 0)
-                        <span style="background:rgba(139,92,246,0.2);color:var(--primary-light);font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $unreadMsgs }}</span>
+                        <span style="background:color-mix(in srgb, var(--color-primary) 20%, transparent);color:var(--primary-light);font-size:0.68rem;font-weight:700;padding:0.1em 0.5em;border-radius:20px;margin-left:auto;">{{ $unreadMsgs }}</span>
                     @endif
                 </a>
             </li>
@@ -727,6 +786,13 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('bhw.tasks*') ? 'active' : '' }}"
+                   href="{{ route('bhw.tasks.index') }}">
+                    <i class="bi bi-list-task"></i>
+                    <span>My Tasks</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('bhw.notifications*') ? 'active' : '' }}"
                    href="{{ route('bhw.notifications.index') }}">
                     <i class="bi bi-bell-fill"></i>
@@ -752,10 +818,33 @@
                  : '/images/avatars/avatar-female.svg' }}';">
         <div class="sidebar-footer-info">
             <div class="sidebar-footer-name">{{ $user->name }}</div>
-            <div class="sidebar-footer-role" style="color: {{ $roleColor }};">
-                <i class="bi bi-circle-fill me-1" style="font-size: 0.45rem; vertical-align: middle;"></i>{{ $roleLabel }}
+            <div class="sidebar-footer-role" style="color:{{ $roleColor }};">
+                <i class="bi bi-circle-fill me-1" style="font-size:0.45rem; vertical-align:middle;"></i>{{ $roleLabel }}
             </div>
         </div>
     </div>
+    </div>{{-- /.sidebar-inner --}}
 </nav>
+
+{{-- Preserve sidebar scroll position across page reloads --}}
+<script>
+(function() {
+    function initSidebarScroll() {
+        var sidebar = document.querySelector('#sidebar .sidebar-inner') || document.getElementById('sidebar');
+        if (!sidebar) return;
+        var saved = localStorage.getItem('reprocare_sidebar_scrollTop');
+        if (saved !== null) {
+            sidebar.scrollTop = parseInt(saved, 10) || 0;
+        }
+        sidebar.addEventListener('scroll', function() {
+            localStorage.setItem('reprocare_sidebar_scrollTop', sidebar.scrollTop);
+        }, { passive: true });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSidebarScroll);
+    } else {
+        initSidebarScroll();
+    }
+})();
+</script>
 @endif

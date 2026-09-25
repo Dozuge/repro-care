@@ -15,7 +15,8 @@ class MidwifeSeeder extends Seeder
     {
         // Create the default midwife account
         User::create([
-            'name' => 'Admin Midwife',
+            'first_name' => 'RHU',
+            'last_name' => 'Midwife',
             'email' => 'midwife@reprocare.com',
             'password' => Hash::make('midwife123'), // Change this in production
             'role' => 'midwife',

@@ -4,7 +4,7 @@
 
 @section('bhw-president-content')
 
-<div class="page-hero fade-in-card" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);">
+<div class="page-hero fade-in-card" style="background:linear-gradient(135deg, var(--color-warning) 0%, var(--color-danger) 100%);">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
             <div class="page-hero-title">High-Risk Pregnancies</div>
@@ -18,7 +18,7 @@
 
 <div class="card fade-in-card">
     <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2" style="color:var(--danger);"></i>High-Risk Cases ({{ $highRiskPregnancies->total() }})</h5>
+        <h5 class="mb-0">High-Risk Cases ({{ $highRiskPregnancies->total() }})</h5>
     </div>
     <div class="card-body">
         @if($highRiskPregnancies->count() > 0)
@@ -39,9 +39,7 @@
                     <tr>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;">
-                                    {{ strtoupper(substr(optional($pregnancy->woman)->name ?? 'U', 0, 1)) }}
-                                </div>
+                                <x-patient-avatar :patient="$pregnancy->woman" :size="32" />
                                 <div>
                                     <div style="font-weight:500;">{{ optional($pregnancy->woman)->name ?? 'Unknown' }}</div>
                                     <small class="text-muted">{{ optional($pregnancy->woman)->barangay ?? 'N/A' }}</small>
@@ -58,9 +56,11 @@
                         </td>
                         <td>{{ optional($pregnancy->checkups->first())->scheduled_date?->format('M j, Y') ?? 'No checkups' }}</td>
                         <td>
-                            <a href="{{ route('midwife.patient-details', $pregnancy->user_id) }}" class="btn btn-sm btn-primary">
+                            @if($pregnancy->woman)
+                            <a href="{{ route('profile.view', $pregnancy->woman->id) }}" class="btn btn-sm btn-primary">
                                 <i class="bi bi-eye"></i> View
                             </a>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

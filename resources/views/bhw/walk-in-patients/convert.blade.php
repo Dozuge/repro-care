@@ -1,16 +1,14 @@
 @extends('bhw.layout')
 
-@section('title', 'Convert Walk-in to Registered User - BHW Portal | ReproCare')
+@section('title', 'Activate Portal Account (Unlinked to Enrolled) - BHW Portal | ReproCare')
 
 @section('bhw-content')
 <div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="page-title">
-                <i class="bi bi-person-check-fill me-2" style="color:var(--primary-light);"></i>
-                Convert Walk-in to Registered User
+            <h1 class="page-title">Activate Portal Account
             </h1>
-            <p class="page-subtitle">Complete registration for walk-in patient</p>
+            <p class="page-subtitle">Upgrade an Unlinked Profile (BHW-Managed · Field Record Only) into an Enrolled Account (Portal-Active · Direct Access Patient)</p>
         </div>
         <a href="{{ route('bhw.walk-in-patients.show', $walkInPatient->id) }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Back to Patient Details
@@ -21,12 +19,14 @@
         <div class="col-md-8">
             <div class="card shadow fade-in-card">
                 <div class="card-header">
-                    <h5 class="mb-0">Complete Registration</h5>
+                    <h5 class="mb-0">Generate Account Credentials</h5>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle me-2"></i>
-                        This will convert the walk-in patient <strong>{{ $walkInPatient->full_name }}</strong> into a registered user account.
+                        This will create a portal login for <strong>{{ $walkInPatient->full_name }}</strong>.
+                        The account is <strong>approved immediately</strong> (verified in person — no approval queue),
+                        and the field record links via <code>user_id</code> with portal access enabled.
                     </div>
 
                     <form method="POST" action="{{ route('bhw.walk-in-patients.store-convert', $walkInPatient->id) }}">
@@ -108,7 +108,7 @@
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{{ route('bhw.walk-in-patients.show', $walkInPatient->id) }}" class="btn btn-outline-secondary">Cancel</a>
                             <button type="submit" class="btn btn-success">
-                                <i class="bi bi-person-check me-1"></i> Convert to Registered User
+                                <i class="bi bi-person-check me-1"></i> Activate Enrolled Account
                             </button>
                         </div>
                     </form>

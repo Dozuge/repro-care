@@ -39,54 +39,55 @@ class ProfileController extends Controller
             'midwife' => 'midwife',
             'bhw' => 'bhw',
             'bhw_president' => 'bhw-president',
+            'cho' => 'cho',
+            'rhu' => 'rhu',
             'user' => 'user',
             default => null,
         };
     }
 
     /**
-     * Show user's profile
+     * Settings route name for the current user's role.
+     * Profile is managed inside Settings (My Profile section) — no standalone profile page.
+     */
+    private function settingsRouteName(): string
+    {
+        return match(auth()->user()?->role) {
+            'cho' => 'cho.settings',
+            'rhu' => 'rhu.settings',
+            'midwife' => 'midwife.settings',
+            'bhw' => 'bhw.settings',
+            'bhw_president' => 'bhw-president.settings',
+            default => 'user.settings',
+        };
+    }
+
+    /**
+     * Show user's profile — retired: profile lives in Settings, redirect there.
      */
     public function show()
     {
         $user = $this->getCurrentUser();
         if (!$user) return redirect()->route('login');
-        
-        $userType = $this->getUserType();
-        
-        // Use role-specific views to keep dashboard visible
-        if ($userType === 'midwife') {
-            return view('midwife.profile.show', compact('user'));
-        } elseif ($userType === 'bhw') {
-            return view('bhw.profile.show', compact('user'));
-        } elseif ($userType === 'bhw-president') {
-            return view('bhw-president.profile.show', compact('user'));
-        } else {
-            return view('user.profile.show', compact('user'));
-        }
+
+        return redirect()->route($this->settingsRouteName());
     }
 
     /**
-     * Show profile edit form
+     * Show profile edit form — retired: profile lives in Settings, redirect there.
      */
     public function edit()
     {
         $user = $this->getCurrentUser();
         if (!$user) return redirect()->route('login');
 
-        $userType = $this->getUserType();
-        $puroks = Purok::orderBy('name')->get();
-        
-        // Use role-specific views to keep dashboard visible
-        if ($userType === 'midwife') {
-            return view('midwife.profile.edit', compact('user', 'puroks'));
-        } elseif ($userType === 'bhw') {
-            return view('bhw.profile.edit', compact('user', 'puroks'));
-        } elseif ($userType === 'bhw-president') {
-            return view('bhw-president.profile.edit', compact('user', 'puroks'));
-        } else {
+        // Patient portal still edits profile via its own view; staff go to Settings.
+        if (($this->getUserType()) === 'user') {
+            $puroks = Purok::orderBy('name')->get();
             return view('user.profile.edit', compact('user', 'puroks'));
         }
+
+        return redirect()->route($this->settingsRouteName());
     }
 
     /**
@@ -107,17 +108,31 @@ class ProfileController extends Controller
             default => 'users',
         };
 
+        $isAddressUpdate = $request->input('_section') === 'address' || (!$request->has('first_name') && ($request->has('barangay') || $request->has('house_number') || $request->has('purok') || $request->has('sitio')));
+        $isHealthUpdate  = $request->input('_section') === 'health' || (!$request->has('first_name') && ($request->has('blood_type') || $request->has('height') || $request->has('weight') || $request->has('medical_history') || $request->has('medical_notes')));
+        $isPasswordUpdate = $request->has('password') && !$request->has('first_name');
+
         $validationRules = [
-            'first_name' => 'required|string|max:255',
+            'first_name' => ($isAddressUpdate || $isHealthUpdate || $isPasswordUpdate) ? 'nullable|string|max:255' : 'required|string|max:255',
             'middle_initial' => 'nullable|string|max:2',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:' . $emailTable . ',email,' . $user->id,
+            'last_name' => ($isAddressUpdate || $isHealthUpdate || $isPasswordUpdate) ? 'nullable|string|max:255' : 'required|string|max:255',
+            'email' => ($isAddressUpdate || $isHealthUpdate || $isPasswordUpdate)
+                ? 'nullable|string|email|max:255'
+                : 'required|string|email|max:255|unique:' . $emailTable . ',email,' . $user->id,
             'contact_number' => 'nullable|string|max:20',
-            'purok_id' => 'nullable|exists:puroks,id',
+            'barangay' => 'nullable|string|max:255',
+            'house_number' => 'nullable|string|max:100',
+            'purok' => 'nullable|string|max:100',
+            'sitio' => 'nullable|string|max:200',
+            'address' => 'nullable|string|max:500',
+            'purok_id' => 'nullable',
             'date_of_birth' => 'nullable|date|before:today',
+            'gender' => 'nullable|string|max:20',
             'partner_name' => 'nullable|string|max:255',
             'partner_contact' => 'nullable|string|max:20',
             'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:5120', // Max 5MB
+            'medical_history' => 'nullable|string|max:2000',
+            'medical_notes' => 'nullable|string|max:2000',
         ];
 
         $request->validate($validationRules);
@@ -133,27 +148,69 @@ class ProfileController extends Controller
             }
         }
 
-        $contactNumber = $request->has('contact_number')
-            ? ($request->filled('contact_number') ? $request->contact_number : null)
-            : $user->contact_number;
+        $updateData = [];
 
-        $dateOfBirth = $request->has('date_of_birth')
-            ? ($request->filled('date_of_birth') ? $request->date_of_birth : null)
-            : $user->date_of_birth;
+        if ($request->filled('first_name')) {
+            $updateData['first_name'] = $request->first_name;
+        }
+        if ($request->has('middle_initial')) {
+            $updateData['middle_initial'] = $request->middle_initial;
+        }
+        if ($request->filled('last_name')) {
+            $updateData['last_name'] = $request->last_name;
+        }
+        if ($request->filled('email')) {
+            $updateData['email'] = $request->email;
+        }
+        if ($request->has('contact_number')) {
+            $updateData['contact_number'] = $request->filled('contact_number') ? $request->contact_number : null;
+        }
+        if ($request->has('date_of_birth')) {
+            $updateData['date_of_birth'] = $request->filled('date_of_birth') ? $request->date_of_birth : null;
+        }
+        if ($request->has('gender')) {
+            $updateData['gender'] = $request->gender ?? $user->gender;
+        }
 
-        $selectedPurok = $request->filled('purok_id') ? Purok::find($request->purok_id) : null;
+        if ($request->filled('barangay')) {
+            $updateData['barangay'] = $request->barangay;
+        } elseif ($request->filled('purok_id')) {
+            $selectedPurok = Purok::find($request->purok_id);
+            if ($selectedPurok) {
+                $updateData['purok_id'] = $selectedPurok->id;
+                $updateData['barangay'] = $selectedPurok->barangay;
+            }
+        }
 
-        $updateData = [
-            'first_name' => $request->first_name,
-            'middle_initial' => $request->middle_initial,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'contact_number' => $contactNumber,
-            'date_of_birth' => $request->date_of_birth,
-            'gender' => $request->gender,
-            'purok_id' => $selectedPurok?->id,
-            'barangay' => $selectedPurok?->barangay,
-        ];
+        // Free-text Sitio / Street / Purok entries join the registry automatically.
+        if ($request->filled('purok') && empty($updateData['purok_id'])) {
+            $resolvedId = \App\Models\Purok::resolveIdFromText(
+                $request->purok,
+                $updateData['barangay'] ?? $user->barangay
+            );
+            if ($resolvedId) {
+                $updateData['purok_id'] = $resolvedId;
+            }
+        }
+
+        // Compose full address if parts provided or accept address directly
+        if ($request->filled('address')) {
+            $updateData['address'] = $request->address;
+        } elseif ($request->filled('house_number') || $request->filled('purok') || $request->filled('sitio') || $request->filled('barangay')) {
+            $targetBarangay = $request->filled('barangay') ? $request->barangay : $user->barangay;
+            $addressParts = array_filter([
+                $request->filled('house_number') ? 'House/Unit ' . $request->house_number : null,
+                $request->filled('purok') ? (str_starts_with(strtolower($request->purok), 'purok') ? $request->purok : 'Purok ' . $request->purok) : null,
+                $request->filled('sitio') ? $request->sitio : null,
+                $targetBarangay,
+                'San Carlos City, Pangasinan'
+            ]);
+            $updateData['address'] = implode(', ', $addressParts);
+        }
+
+        if ($request->has('medical_history') || $request->has('medical_notes')) {
+            $updateData['medical_history'] = $request->input('medical_history', $request->input('medical_notes', $user->medical_history));
+        }
 
         if ($request->has('partner_name')) {
             $updateData['partner_name'] = $request->filled('partner_name') ? $request->partner_name : null;
@@ -175,21 +232,34 @@ class ProfileController extends Controller
             $updateData['profile_image'] = $path;
         }
 
-        // Handle password update if provided
+        // Handle password update if provided — requires current password
+        // verification plus minimum-length confirmation, like staff flows.
         if ($request->filled('password')) {
+            $request->validate([
+                'current_password' => 'required|string',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+            if (!Hash::check($request->input('current_password'), $user->password)) {
+                return back()->withErrors(['current_password' => 'Current password is incorrect.'])->withInput();
+            }
             $updateData['password'] = Hash::make($request->password);
+        }
+
+        // Reminder preferences (patient Notifications card).
+        if ($request->has('pref_checkup_reminders')) {
+            $updateData['pref_checkup_reminders'] = $request->boolean('pref_checkup_reminders');
         }
 
         $user->update($updateData);
 
-        // Redirect to previous page or profile show page
+        // Redirect to previous page or role settings page (profile lives in Settings)
         $redirectTo = $request->input('redirect_to', url()->previous());
-        
-        // If redirect_to is the current edit page, go to profile show instead
-        if ($redirectTo === route('profile.edit') || $redirectTo === url()->current()) {
-            $redirectTo = route('profile.show');
+
+        // If redirect_to is a retired profile page, go to Settings instead
+        if (in_array($redirectTo, [route('profile.edit'), route('profile.show'), url()->current()], true)) {
+            $redirectTo = route($this->settingsRouteName());
         }
-        
+
         return redirect($redirectTo)->with('success', 'Profile updated successfully.');
     }
 
@@ -205,14 +275,14 @@ class ProfileController extends Controller
             $user->update(['profile_image' => null]);
         }
 
-        // Redirect to previous page or profile show page
+        // Redirect to previous page or role settings page (profile lives in Settings)
         $redirectTo = request()->input('redirect_to', url()->previous());
-        
-        // If redirect_to is the current edit page, go to profile show instead
-        if ($redirectTo === route('profile.edit') || $redirectTo === url()->current()) {
-            $redirectTo = route('profile.show');
+
+        // If redirect_to is a retired profile page, go to Settings instead
+        if (in_array($redirectTo, [route('profile.edit'), route('profile.show'), url()->current()], true)) {
+            $redirectTo = route($this->settingsRouteName());
         }
-        
+
         return redirect($redirectTo)->with('success', 'Profile image removed successfully.');
     }
 
@@ -281,6 +351,11 @@ class ProfileController extends Controller
             return view('bhw.profile.view', compact('user'));
         } elseif ($userType === 'bhw-president') {
             return view('bhw-president.profile.view', compact('user'));
+        } elseif ($userType === 'cho' || $userType === 'rhu') {
+            $profileLayout = $userType . '.layout';
+            $profileSection = $userType . '-content';
+
+            return view('profile.view', compact('user', 'profileLayout', 'profileSection'));
         } else {
             return view('user.profile.view', compact('user'));
         }
@@ -363,5 +438,100 @@ class ProfileController extends Controller
         }
 
         return back()->with('success', 'Emergency contacts updated successfully.');
+    }
+
+    /**
+     * Download the authenticated patient's own data (Data Privacy Act
+     * right to access) as a CSV bundle: health records, pregnancies,
+     * checkups, and cycle history.
+     */
+    public function downloadData()
+    {
+        $user = $this->getCurrentUser();
+        if (!$user) return redirect()->route('login');
+
+        $stream = fopen('php://temp', 'r+');
+        fputcsv($stream, ['ReproCare personal data export', $user->name, now()->toDateTimeString()]);
+        fputcsv($stream, []);
+
+        fputcsv($stream, ['HEALTH RECORDS']);
+        fputcsv($stream, ['Date', 'BP', 'Weight (kg)', 'Heart Rate', 'Temperature', 'Risk Level', 'Notes']);
+        foreach ($user->healthRecords()->latest()->get() as $record) {
+            fputcsv($stream, [
+                optional($record->created_at)->toDateString(),
+                $record->bp, $record->weight, $record->heart_rate,
+                $record->temperature, $record->risk_level, $record->notes,
+            ]);
+        }
+        fputcsv($stream, []);
+
+        fputcsv($stream, ['PREGNANCIES']);
+        fputcsv($stream, ['LMP', 'EDD', 'AOG (wks)', 'Risk', 'Ended']);
+        foreach ($user->pregnancies()->latest()->get() as $pregnancy) {
+            fputcsv($stream, [
+                optional($pregnancy->lmp)->toDateString(),
+                optional($pregnancy->edd)->toDateString(),
+                $pregnancy->aog, $pregnancy->risk_level,
+                optional($pregnancy->ended_at)->toDateString(),
+            ]);
+        }
+        fputcsv($stream, []);
+
+        fputcsv($stream, ['CHECKUPS']);
+        fputcsv($stream, ['Scheduled Date', 'Purpose', 'Status']);
+        foreach ($user->checkups()->latest('scheduled_date')->get() as $checkup) {
+            fputcsv($stream, [
+                optional($checkup->scheduled_date)->toDateString(),
+                $checkup->purpose, $checkup->status,
+            ]);
+        }
+        fputcsv($stream, []);
+
+        fputcsv($stream, ['CYCLES']);
+        fputcsv($stream, ['Period Start', 'Period End', 'Cycle Length', 'Notes']);
+        foreach ($user->cycles()->latest('period_start_date')->get() as $cycle) {
+            fputcsv($stream, [
+                optional($cycle->period_start_date)->toDateString(),
+                optional($cycle->period_end_date)->toDateString(),
+                $cycle->cycle_length, $cycle->notes,
+            ]);
+        }
+
+        rewind($stream);
+        $csv = stream_get_contents($stream);
+        fclose($stream);
+
+        \App\Models\ActivityLog::log('export', 'Patient downloaded personal data export');
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="reprocare-my-data-' . $user->id . '-' . now()->format('Ymd') . '.csv"',
+        ]);
+    }
+
+    /**
+     * Patient-initiated account deactivation: password-confirmed archive
+     * (status + soft delete) plus immediate sign-out. Clinical rows stay
+     * for RHU records compliance and the account can be restored by the RHU.
+     */
+    public function destroyAccount(Request $request)
+    {
+        $user = $this->getCurrentUser();
+        if (!$user) return redirect()->route('login');
+
+        $request->validate(['current_password' => 'required|string']);
+        if (!Hash::check($request->input('current_password'), $user->password)) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect. Account was NOT deactivated.']);
+        }
+
+        \App\Models\ActivityLog::log('archive', 'Patient deactivated own portal account (archived, restorable by RHU)', $user);
+
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        $user->update(['status' => 'archived', 'archived_at' => now(), 'archived_reason' => 'Deactivated by account owner via portal']);
+        $user->delete();
+
+        return redirect()->route('home')->with('success', 'Your account has been deactivated and archived. Your clinical history remains with the RHU — contact them to restore access.');
     }
 }

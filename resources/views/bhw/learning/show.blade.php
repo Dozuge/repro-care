@@ -20,7 +20,7 @@
                             <img src="{{ $material->image_url }}"
                                  alt="{{ $material->title }}"
                                  class="img-fluid rounded"
-                                 style="width: 100%; height: 300px; object-fit: cover;"
+                                 style="width:100%; height:300px; object-fit:cover;"
                                  onerror="this.style.display='none'">
                         </div>
                     @endif

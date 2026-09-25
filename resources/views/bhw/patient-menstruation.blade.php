@@ -5,7 +5,7 @@
 @section('bhw-content')
 <div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-calendar-heart"></i> Patient Menstrual Cycle</h1>
+        <h1>Patient Menstrual Cycle</h1>
         <a href="{{ route('bhw.patient-details', $woman->id) }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back
         </a>
@@ -47,7 +47,7 @@
         <div class="col-md-4">
             <div class="card text-center">
                 <div class="card-body">
-                    <h3 style="color: var(--primary-light);">{{ $averageCycle ?? 'N/A' }}</h3>
+                    <h3 style="color:var(--primary-light);">{{ $averageCycle ?? 'N/A' }}</h3>
                     <p class="mb-0">Average Cycle Length (days)</p>
                 </div>
             </div>
@@ -55,7 +55,7 @@
         <div class="col-md-4">
             <div class="card text-center">
                 <div class="card-body">
-                    <h3 style="color: #fca5a5;">{{ $averagePeriod ?? 'N/A' }}</h3>
+                    <h3 style="color:var(--color-danger-text);">{{ $averagePeriod ?? 'N/A' }}</h3>
                     <p class="mb-0">Average Period Duration (days)</p>
                 </div>
             </div>
@@ -63,7 +63,7 @@
         <div class="col-md-4">
             <div class="card text-center">
                 <div class="card-body">
-                    <h3 style="color: #6ee7b7;">{{ $records->count() }}</h3>
+                    <h3 style="color:var(--color-success-text);">{{ $records->count() }}</h3>
                     <p class="mb-0">Total Cycles Logged</p>
                 </div>
             </div>
@@ -106,7 +106,7 @@
                                 <tr>
                                     <td>{{ $record->period_start_date->format('M d, Y') }}</td>
                                     <td>{{ $record->period_end_date ? $record->period_end_date->format('M d, Y') : 'Ongoing' }}</td></td>
-                                    <td>{{ $record->duration }} days</td>
+                                    <td>{{ $record->period_length ?? '-' }} {{ $record->period_length ? ($record->period_length != 1 ? 'days' : 'day') : '' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -114,7 +114,7 @@
                 </div>
             @else
                 <div class="text-center py-5">
-                    <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                    <i class="bi bi-calendar-x text-muted" style="font-size:3rem;"></i>
                     <h5 class="text-muted mt-3">No Menstrual Records Found</h5>
                     <p class="text-muted">This patient has not logged any menstrual cycle data yet.</p>
                 </div>

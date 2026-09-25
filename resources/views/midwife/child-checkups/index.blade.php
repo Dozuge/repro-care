@@ -54,13 +54,7 @@
                                     <a href="{{ route('midwife.child-checkups.edit', [$child->id, $checkup->id]) }}" class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form action="{{ route('midwife.child-checkups.destroy', [$child->id, $checkup->id]) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    <x-archive-form :action="route('midwife.child-checkups.destroy', [$child->id, $checkup->id])" label="" title="Archive checkup (retained for audit)" btnClass="btn btn-sm btn-warning text-white" icon="bi bi-archive" confirmText="Archive this child checkup? Growth and immunization history will be retained for audit." />
                                 </div>
                             </td>
                         </tr>

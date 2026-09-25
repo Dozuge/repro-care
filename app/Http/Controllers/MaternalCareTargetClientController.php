@@ -57,11 +57,7 @@ class MaternalCareTargetClientController extends Controller
                 'profile' => $profile,
                 'pregnancy' => $pregnancy,
                 'age' => $woman->age,
-                'prenatal' => [
-                    'first' => $profile?->prenatal_first_trimester_date ?? $this->findTrimesterCheckupDate($checkups, $pregnancy, 1),
-                    'second' => $profile?->prenatal_second_trimester_date ?? $this->findTrimesterCheckupDate($checkups, $pregnancy, 2),
-                    'third' => $profile?->prenatal_third_trimester_date ?? $this->findTrimesterCheckupDate($checkups, $pregnancy, 3),
-                ],
+                'prenatal' => $this->prenatalVisitGroups($checkups, $pregnancy, $profile),
             ];
         });
 
@@ -123,11 +119,7 @@ class MaternalCareTargetClientController extends Controller
                 'profile' => $profile,
                 'pregnancy' => $pregnancy,
                 'age' => $woman->age,
-                'prenatal' => [
-                    'first' => $profile?->prenatal_first_trimester_date ?? $this->findTrimesterCheckupDate($checkups, $pregnancy, 1),
-                    'second' => $profile?->prenatal_second_trimester_date ?? $this->findTrimesterCheckupDate($checkups, $pregnancy, 2),
-                    'third' => $profile?->prenatal_third_trimester_date ?? $this->findTrimesterCheckupDate($checkups, $pregnancy, 3),
-                ],
+                'prenatal' => $this->prenatalVisitGroups($checkups, $pregnancy, $profile),
             ];
         });
 
@@ -253,10 +245,48 @@ class MaternalCareTargetClientController extends Controller
             ->with('success', 'Maternal care target client record updated successfully.');
     }
 
+    /**
+     * Prenatal visit slots per FHSIS TCL distribution: 1 in the 1st
+     * trimester, 2 in the 2nd, 5 in the 3rd. Slot 1 of each trimester keeps
+     * its manually recorded date when present; the rest (and empty slot 1s)
+     * fall back to actual checkups dated inside that trimester window.
+     *
+     * @return array{first: mixed, second: mixed, third: mixed, visits: array<string, array>}
+     */
+    private function prenatalVisitGroups($checkups, $pregnancy, $profile): array
+    {
+        $auto = [
+            1 => $this->findTrimesterCheckupDates($checkups, $pregnancy, 1, 1),
+            2 => $this->findTrimesterCheckupDates($checkups, $pregnancy, 2, 2),
+            3 => $this->findTrimesterCheckupDates($checkups, $pregnancy, 3, 5),
+        ];
+
+        $first = $profile?->prenatal_first_trimester_date ?? ($auto[1][0] ?? null);
+        $second = $profile?->prenatal_second_trimester_date ?? ($auto[2][0] ?? null);
+        $third = $profile?->prenatal_third_trimester_date ?? ($auto[3][0] ?? null);
+
+        return [
+            'first' => $first,
+            'second' => $second,
+            'third' => $third,
+            'visits' => [
+                'first' => [$first],
+                'second' => [$second, ($auto[2][1] ?? null)],
+                'third' => [$third, ($auto[3][1] ?? null), ($auto[3][2] ?? null), ($auto[3][3] ?? null), ($auto[3][4] ?? null)],
+            ],
+        ];
+    }
+
     private function findTrimesterCheckupDate($checkups, $pregnancy, int $trimester)
     {
+        return $this->findTrimesterCheckupDates($checkups, $pregnancy, $trimester, 1)[0] ?? null;
+    }
+
+    /** All matching checkup dates in a trimester window, oldest first. */
+    private function findTrimesterCheckupDates($checkups, $pregnancy, int $trimester, int $limit): array
+    {
         if (!$pregnancy?->lmp) {
-            return null;
+            return [];
         }
 
         $weeks = match ($trimester) {
@@ -265,16 +295,14 @@ class MaternalCareTargetClientController extends Controller
             default => [28, 45],
         };
 
-        return optional(
-            $checkups->first(function ($checkup) use ($pregnancy, $weeks) {
-                if (!$checkup->scheduled_date) {
-                    return false;
-                }
+        return $checkups->filter(function ($checkup) use ($pregnancy, $weeks) {
+            if (!$checkup->scheduled_date) {
+                return false;
+            }
 
-                $gestationWeeks = $pregnancy->lmp->diffInWeeks($checkup->scheduled_date, false);
-                return $gestationWeeks >= $weeks[0] && $gestationWeeks <= $weeks[1];
-            })
-        )->scheduled_date;
+            $gestationWeeks = $pregnancy->lmp->diffInWeeks($checkup->scheduled_date, false);
+            return $gestationWeeks >= $weeks[0] && $gestationWeeks <= $weeks[1];
+        })->sortBy('scheduled_date')->take($limit)->map->scheduled_date->values()->all();
     }
 
     public function create()

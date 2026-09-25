@@ -4,26 +4,26 @@
 
 @push('styles')
 <style>
-    .mctl-edit-shell { display: grid; gap: 1.25rem; }
+    .mctl-edit-shell { display:grid; gap:1.25rem; }
     .mctl-panel {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 22px;
-        box-shadow: var(--shadow-sm);
-        padding: 1.4rem;
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:22px;
+        box-shadow:var(--shadow-sm);
+        padding:1.4rem;
     }
-    .mctl-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
-    .mctl-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-    .mctl-section-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.05rem; font-weight: 800; color: var(--text); margin-bottom: 1rem; }
-    .mctl-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
-    .mctl-summary-item { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 16px; padding: 1rem; }
-    .mctl-summary-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
-    .mctl-summary-value { margin-top: 0.2rem; color: var(--text); font-weight: 700; }
+    .mctl-grid { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:1rem; }
+    .mctl-grid-3 { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:1rem; }
+    .mctl-section-title { font-family:'Plus Jakarta Sans', sans-serif; font-size:1.05rem; font-weight:800; color:var(--text); margin-bottom:1rem; }
+    .mctl-summary { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:1rem; }
+    .mctl-summary-item { background:var(--bg-card2); border:1px solid var(--border); border-radius:16px; padding:1rem; }
+    .mctl-summary-label { font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; }
+    .mctl-summary-value { margin-top:0.2rem; color:var(--text); font-weight:700; }
     @media (max-width: 992px) {
-        .mctl-grid, .mctl-grid-3, .mctl-summary { grid-template-columns: 1fr 1fr; }
+        .mctl-grid, .mctl-grid-3, .mctl-summary { grid-template-columns:1fr 1fr; }
     }
     @media (max-width: 640px) {
-        .mctl-grid, .mctl-grid-3, .mctl-summary { grid-template-columns: 1fr; }
+        .mctl-grid, .mctl-grid-3, .mctl-summary { grid-template-columns:1fr; }
     }
 </style>
 @endpush

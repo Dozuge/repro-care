@@ -18,10 +18,11 @@
 @endphp
 
 <div class="py-4">
+    @include('midwife.partials.decision-support')
     <div class="page-hero fade-in-card mb-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
             <div>
-                <h1 class="page-hero-title"><i class="bi bi-heart-pulse-fill me-2"></i>Pregnancy Details</h1>
+                <h1 class="page-hero-title">Pregnancy Details</h1>
                 <p class="page-hero-subtitle">Review the active pregnancy record and latest health summary.</p>
             </div>
             <div class="d-flex gap-2">
@@ -38,6 +39,19 @@
     @if(session('success'))
         <div class="alert alert-success fade-in-card">{{ session('success') }}</div>
     @endif
+    @if($errors->any())
+        <div class="alert alert-danger fade-in-card">{{ $errors->first() }}</div>
+    @endif
+    @if($pregnancy->is_locked)
+        <div class="alert alert-secondary fade-in-card d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div><i class="bi bi-lock-fill me-1"></i> <strong>Archived history (read-only).</strong> This delivered pregnancy is locked so the medical timeline stays intact.</div>
+            <form action="{{ route('midwife.pregnancies.reopen', $pregnancy->id) }}" method="POST" class="d-flex gap-2 align-items-center m-0">
+                @csrf
+                <input type="text" name="reason" class="form-control form-control-sm" placeholder="Reopen reason (required)" required style="min-width:220px;">
+                <button type="submit" class="btn btn-sm btn-outline-dark" onclick="return confirm('Reopen this locked pregnancy for correction? The event is audit-logged.')">Reopen</button>
+            </form>
+        </div>
+    @endif
 
     <div class="row g-4">
         <div class="col-lg-4">
@@ -47,7 +61,7 @@
                         <img src="{{ $patientImage }}" alt="{{ $patientName }}" style="width:92px;height:92px;border-radius:24px;object-fit:cover;border:2px solid var(--border);">
                         <h3 class="mt-3 mb-1" style="color:var(--text);">{{ $patientName }}</h3>
                         <p class="mb-2" style="color:var(--text-muted);">{{ $patientSubtitle }}</p>
-                        <span class="badge {{ $isWalkIn ? 'bg-info' : 'bg-primary' }}">{{ $isWalkIn ? 'Walk-in woman' : 'Registered woman' }}</span>
+                        <span class="badge {{ $isWalkIn ? 'bg-info' : 'bg-primary' }}">{{ $isWalkIn ? 'Unlinked woman' : 'Enrolled woman' }}</span>
                     </div>
 
                     <hr>

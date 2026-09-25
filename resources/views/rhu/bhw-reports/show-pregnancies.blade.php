@@ -7,12 +7,11 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-file-earmark-text-fill me-2"></i>{{ $report->title }}
+            <div class="page-hero-title">{{ $report->title }}
             </div>
             <p class="page-hero-subtitle">
                 <span class="badge bg-info text-dark">{{ $report->reportPeriod }}</span>
-                <span class="badge bg-{{ $report->submission_status === 'approved_by_midwife' ? 'success' : ($report->submission_status === 'rejected' ? 'danger' : 'warning') }}">
+                <span class="badge bg-{{ $report->submission_status === 'approved_by_midwife' ? 'success' : (in_array($report->submission_status, ['rejected', 'needs_revision']) ? 'danger' : 'warning') }}">
                     {{ ucwords(str_replace('_', ' ', $report->submission_status)) }}
                 </span>
             </p>
@@ -30,7 +29,7 @@
 
 <div class="card fade-in-card mb-4">
     <div class="card-body">
-        <h6 class="mb-3 fw-700 text-dark"><i class="bi bi-person-badge me-2"></i>BHW &amp; Submission Information</h6>
+        <h6 class="mb-3 fw-700 text-dark">BHW &amp; Submission Information</h6>
         <div class="row g-3">
             <div class="col-md-6">
                 <div class="d-flex justify-content-between mb-2 pb-1 border-bottom text-xs">
@@ -98,7 +97,7 @@
 <!-- Pregnancies Table -->
 <div class="card fade-in-card mb-4">
     <div class="card-header bg-transparent py-3">
-        <h5 class="mb-0 fw-700 text-dark"><i class="bi bi-heart-pulse-fill me-2" style="color:var(--danger);"></i>Pregnancy Registry Entries</h5>
+        <h5 class="mb-0 fw-700 text-dark">Pregnancy Registry Entries</h5>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -141,7 +140,7 @@
                     @empty
                         <tr>
                             <td colspan="7" class="text-center py-4">
-                                <i class="bi bi-inbox" style="font-size:3rem; color:rgba(0,0,0,0.1);"></i>
+                                <i class="bi bi-inbox" style="font-size:3rem; color:color-mix(in srgb, var(--color-text) 10%, transparent);"></i>
                                 <p class="text-muted mt-2">No pregnancy entries found for this report period</p>
                             </td>
                         </tr>
@@ -158,13 +157,7 @@
 </div>
 
 <div class="d-flex justify-content-between mb-4">
-    <form action="{{ route('rhu.bhw-reports.destroy', $report->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this report?');">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="btn btn-outline-danger">
-            <i class="bi bi-trash me-1"></i> Delete Report
-        </button>
-    </form>
+    <x-archive-form :action="route('rhu.bhw-reports.destroy', $report->id)" label="Archive Report" title="Archive report (retained for audit)" btnClass="btn btn-outline-warning" icon="bi bi-archive" confirmText="Archive this report? It will be retained for audit and can be restored." />
     <a href="{{ route('rhu.bhw-reports.print', $report->id) }}" class="btn btn-primary text-white" target="_blank">
         <i class="bi bi-printer-fill me-1"></i> Print Report
     </a>

@@ -9,8 +9,7 @@
             <!-- Page Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h2 mb-1">
-                        <i class="bi bi-plus-circle"></i> Create Notification
+                    <h1 class="h2 mb-1">Create Notification
                     </h1>
                     <p class="text-muted mb-0">Send notifications to users and health workers</p>
                 </div>
@@ -225,29 +224,29 @@ function fillTemplate(type) {
 
 <style>
 .timeline {
-    position: relative;
-    padding-left: 20px;
+    position:relative;
+    padding-left:20px;
 }
 
 .timeline-item {
-    position: relative;
-    margin-bottom: 1.5rem;
+    position:relative;
+    margin-bottom:1.5rem;
 }
 
 .timeline-marker {
-    position: absolute;
-    left: -25px;
-    top: 5px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+    position:absolute;
+    left:-25px;
+    top:5px;
+    width:10px;
+    height:10px;
+    border-radius:50%;
 }
 
 .timeline-content {
-    background: #f8f9fa;
-    padding: 1rem;
-    border-radius: 8px;
-    border-left: 3px solid var(--primary-color);
+    background:var(--color-surface-soft);
+    padding:1rem;
+    border-radius:8px;
+    border-left:3px solid var(--primary-color);
 }
 </style>
         </div>

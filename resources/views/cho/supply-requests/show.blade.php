@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-box-seam-fill me-2" style="color:var(--primary-light);"></i>Supply Request Review
+            <div class="page-hero-title">Supply Request Review
             </div>
             <p class="page-hero-subtitle">
                 Review, approve, or decline supply requests from health centers.
@@ -36,9 +35,7 @@
     <div class="col-lg-6">
         <div class="card fade-in-card h-100">
             <div class="card-header">
-                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-                    <i class="bi bi-info-circle me-2" style="color:var(--primary-light);"></i>
-                    Request Details
+                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">Request Details
                 </h5>
             </div>
             <div class="card-body">
@@ -105,9 +102,7 @@
         <div class="col-lg-6">
             <div class="card fade-in-card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-                        <i class="bi bi-shield-check me-2" style="color:var(--success);"></i>
-                        Review Actions
+                    <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">Review Actions
                     </h5>
                 </div>
                 <div class="card-body">

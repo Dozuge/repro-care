@@ -5,7 +5,7 @@
 @section('midwife-content')
 <div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-heart-pulse"></i> Active Pregnancies</h1>
+        <h1>Active Pregnancies</h1>
         <div class="d-flex gap-2">
             <a href="{{ route('midwife.pregnancies.create') }}" class="btn btn-primary">
                 <i class="bi bi-heart-plus"></i> Add Pregnancy
@@ -67,7 +67,7 @@
 
     <div class="card shadow">
         <div class="card-header bg-success text-white">
-            <h5 class="mb-0"><i class="bi bi-heart-pulse-fill"></i> Active Pregnancies</h5>
+            <h5 class="mb-0">Active Pregnancies</h5>
         </div>
         <div class="card-body">
             @if($pregnancies->count() > 0)
@@ -96,7 +96,7 @@
                                                 @if($pregnancy->user_id && $pregnancy->woman)
                                                     <small class="text-muted">{{ $pregnancy->woman->email }}</small>
                                                 @elseif($pregnancy->walk_in_patient_id)
-                                                    <small class="text-warning">Walk-in Patient</small>
+                                                    <small class="text-warning">Unlinked Patient</small>
                                                 @endif
                                             </div>
                                         @else
@@ -121,13 +121,13 @@
                                     </td>
                                     <td>
                                         <div class="d-flex gap-1">
-                                            <a href="{{ route('midwife.pregnancies.show', $pregnancy->id) }}" class="btn btn-sm btn-primary" title="View Details">
+                                            <a href="{{ route('midwife.pregnancies.show', $pregnancy->id) }}" class="btn btn-sm btn-view" title="View Details">
                                                 <i class="bi bi-eye"></i>
                                             </a>
                                             <a href="{{ route('midwife.pregnancies.edit', $pregnancy->id) }}" class="btn btn-sm btn-outline-warning" title="Edit">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <form action="{{ route('midwife.pregnancies.destroy', $pregnancy->id) }}" method="POST" onsubmit="return confirm('Archive this pregnancy record? It will be hidden from active records but not permanently deleted.')">
+                                            <form action="{{ route('midwife.pregnancies.destroy', $pregnancy->id) }}" method="POST" onsubmit="return confirm('Archive this pregnancy record? It will be hidden from active records but retained for audit.')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-secondary" title="Archive">
@@ -149,7 +149,7 @@
             @else
                 <div class="card shadow">
                     <div class="card-body text-center py-5">
-                        <i class="bi bi-heart-pulse text-muted" style="font-size: 4rem;"></i>
+                        <i class="bi bi-heart-pulse text-muted" style="font-size:4rem;"></i>
                         <h3 class="text-muted mt-3">No Active Pregnancies</h3>
                         <p class="text-muted">
                             No active pregnancy records found.

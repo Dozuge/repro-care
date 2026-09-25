@@ -7,12 +7,9 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-box-seam-fill me-2" style="color:var(--primary-light);"></i>Supply Requests
+            <div class="page-hero-title">Supply Requests
             </div>
-            <p class="page-hero-subtitle">
-                Review and approve supply replenishment requests submitted by Rural Health Units.
-            </p>
+            <p class="page-hero-subtitle" style="font-weight:600;">Review and approve supply replenishment requests submitted by Rural Health Units.</p>
         </div>
     </div>
 </div>
@@ -87,7 +84,7 @@
                                     {{ $req->submitted_at ? $req->submitted_at->format('M j, Y \a\t g:i A') : 'N/A' }}
                                 </td>
                                 <td class="pe-4 text-end">
-                                    <a href="{{ route('cho.supply-requests.show', $req->id) }}" class="btn btn-xs btn-primary text-white py-1 px-3" style="font-size:0.75rem; border-radius:8px;">
+                                    <a href="{{ route('cho.supply-requests.show', $req->id) }}" class="btn btn-xs btn-view text-white py-1 px-3" style="font-size:0.75rem; border-radius:8px;">
                                         Review Request
                                     </a>
                                 </td>
@@ -104,7 +101,7 @@
             @endif
         @else
             <div class="text-center py-5">
-                <i class="bi bi-box-seam" style="font-size: 3rem; color: var(--text-muted);"></i>
+                <i class="bi bi-box-seam" style="font-size:3rem; color:var(--text-muted);"></i>
                 <h5 class="mt-3">No Supply Requests Found</h5>
                 <p class="text-muted text-xs">No supply requests have been registered in the system.</p>
             </div>

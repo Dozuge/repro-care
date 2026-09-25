@@ -135,6 +135,10 @@ See [SETUP_CHECKLIST.md](SETUP_CHECKLIST.md) for complete transfer instructions.
 
 ## Support
 
+CHO Analytics includes free local decision support, pregnancy priorities, and maternal-death trends by month and barangay. See [Analytics and optional local AI setup](docs/ANALYTICS_AI_SETUP.md) for usage, data definitions, and Ollama instructions.
+
+For online AI on a computer with limited memory, use the [Groq setup guide](docs/GROQ_ANALYTICS_SETUP.md). The integration includes an API-key check, a synthetic connection test, grouped outbound statistics, and a local fallback when Groq is unavailable.
+
 For issues or questions, please refer to the documentation in the `docs/` directory.
 
 ## License

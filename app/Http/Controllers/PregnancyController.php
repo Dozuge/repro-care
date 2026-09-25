@@ -34,7 +34,7 @@ class PregnancyController extends Controller
         $trimester = request('trimester', 'all');
         $riskLevel = request('risk_level', 'all');
 
-        $query = Pregnancy::with(['woman', 'walkInPatient'])
+        $query = app(\App\Services\PatientPresentation::class)->originalPatientsFirst(Pregnancy::with(['woman', 'walkInPatient']))
             ->orderByDesc('created_at');
 
         // Apply search if provided
@@ -100,7 +100,14 @@ class PregnancyController extends Controller
 
         $healthConditionOptions = self::HEALTH_CONDITION_OPTIONS;
 
-        return view('midwife.pregnancies.create', compact('women', 'woman', 'walkInPatients', 'healthConditionOptions'));
+        // Sequential-pregnancy carryover: suggest gravida/para from the
+        // latest closed pregnancy so history is never retyped from zero.
+        $suggested = ['gravida' => 1, 'para' => 0];
+        if ($woman) {
+            $suggested = app(\App\Services\WorkflowService::class)->suggestGravidaPara($woman->id);
+        }
+
+        return view('midwife.pregnancies.create', compact('women', 'woman', 'walkInPatients', 'healthConditionOptions', 'suggested'));
     }
 
     // Store
@@ -234,7 +241,9 @@ class PregnancyController extends Controller
         ])->findOrFail($id);
         $healthConditionOptions = self::HEALTH_CONDITION_OPTIONS;
 
-        return view('midwife.pregnancies.show', compact('pregnancy', 'healthConditionOptions'));
+        $patient = $pregnancy->getPatientModel();
+        $decisionSupport = $patient ? app(\App\Services\MaternalAnalyticsService::class)->patientSupport($patient, $pregnancy->id) : collect();
+        return view('midwife.pregnancies.show', compact('pregnancy', 'healthConditionOptions', 'decisionSupport'));
     }
 
     // Edit
@@ -257,6 +266,13 @@ class PregnancyController extends Controller
     public function update(Request $request, $id)
     {
         $pregnancy = Pregnancy::findOrFail($id);
+
+        // Archival lock: delivered pregnancies are read-only history.
+        if ($pregnancy->is_locked) {
+            return back()->withErrors([
+                'locked' => 'This pregnancy is locked as historical record after delivery. Use Reopen with a reason to correct it, or start a new pregnancy for a new conception.',
+            ])->withInput();
+        }
 
         $this->mergeLifestyleInputs($request);
 
@@ -294,9 +310,18 @@ class PregnancyController extends Controller
             'risk_level' => 'nullable|in:Low,Medium,High',
             'risk_notes' => 'nullable|string|max:1000',
             'status' => 'required|in:active,completed',
-            'outcome' => 'nullable|in:delivered,miscarriage,stillbirth,terminated,other',
+            'outcome' => 'nullable|in:delivered,live_birth,miscarriage,stillbirth,terminated,other',
             'outcome_details' => 'nullable|string|max:1000',
             'notes' => 'nullable|string',
+            // 4. Delivery hand-off fields (trigger postpartum auto-transition)
+            'delivery_date' => 'nullable|date|before_or_equal:today',
+            'delivery_time' => 'nullable|string|max:20',
+            'facility_delivery_place' => 'nullable|string|max:255',
+            'delivery_attendant' => 'nullable|string|max:255',
+            'delivery_notes' => 'nullable|string|max:2000',
+            'newborn_name' => 'nullable|string|max:255',
+            'newborn_sex' => 'nullable|in:male,female',
+            'birth_weight_kg' => 'nullable|numeric|min:0.3|max:8',
         ]);
 
         $duplicateActivePregnancy = Pregnancy::active()
@@ -351,6 +376,27 @@ class PregnancyController extends Controller
         $pregnancy->refresh();
         $this->syncPregnancyHealthRecord($pregnancy, $request);
 
+        // 4. Pregnancy→Postpartum auto-transition: delivered / live birth
+        // closes the pregnancy and generates postpartum + newborn schedules.
+        $outcome = strtolower((string) $request->input('outcome', ''));
+        if ($status === 'completed' && in_array($outcome, ['delivered', 'live_birth'], true)) {
+            app(\App\Services\WorkflowService::class)->handleDeliveryOutcome($pregnancy, [
+                'delivery_date' => $request->input('delivery_date', now()->toDateString()),
+                'delivery_time' => $request->input('delivery_time'),
+                'facility_delivery_place' => $request->input('facility_delivery_place'),
+                'delivery_attendant' => $request->input('delivery_attendant'),
+                'delivery_notes' => $request->input('delivery_notes', $request->input('outcome_details')),
+                'outcome' => $outcome,
+                'newborn_name' => $request->input('newborn_name'),
+                'newborn_sex' => $request->input('newborn_sex'),
+                'birth_weight_kg' => $request->input('birth_weight_kg'),
+                'recorded_by_id' => Auth::id(),
+            ]);
+
+            return redirect()->route('midwife.pregnancies.index')
+                ->with('success', 'Delivery logged. Postpartum visits (24h / 1wk / 6wk) + newborn immunizations auto-created.');
+        }
+
         return redirect()->route('midwife.pregnancies.index')
             ->with('success', 'Pregnancy record updated successfully');
     }
@@ -359,10 +405,41 @@ class PregnancyController extends Controller
     public function destroy($id)
     {
         $pregnancy = Pregnancy::findOrFail($id);
+
+        if ($pregnancy->is_locked) {
+            return back()->withErrors([
+                'locked' => 'Locked historical pregnancies cannot be archived. History is preserved permanently.',
+            ]);
+        }
+
         $pregnancy->delete();
 
         return redirect()->route('midwife.pregnancies.index')
             ->with('success', 'Pregnancy record archived successfully');
+    }
+
+    /**
+     * Reopen a locked historical pregnancy for correction.
+     * Reason is mandatory and the event is audit-logged.
+     */
+    public function reopen(Request $request, $id)
+    {
+        $request->validate(['reason' => 'required|string|max:1000']);
+
+        $pregnancy = Pregnancy::findOrFail($id);
+        if (!$pregnancy->is_locked) {
+            return back()->with('success', 'Pregnancy is not locked — no reopen needed.');
+        }
+
+        $pregnancy->update(['is_locked' => false]);
+
+        \App\Models\ActivityLog::log(
+            'update',
+            "Reopened locked pregnancy #{$pregnancy->id} for {$pregnancy->patient_name}. Reason: {$request->input('reason')}",
+            $pregnancy
+        );
+
+        return back()->with('success', 'Pregnancy reopened for correction. It will not re-lock automatically — lock it again after fixing.');
     }
 
     // Active Pregnancies
@@ -556,28 +633,46 @@ class PregnancyController extends Controller
             'bhw_president_notes' => $request->bhw_president_notes,
         ]);
 
+        // 5. Transparency: notify the originating BHW.
+        try {
+            $submitter = $pregnancy->healthRecords()->oldest()->first()?->recorded_by_id
+                ?? $pregnancy->woman?->created_by_bhw_id;
+            if ($submitter) {
+                app(\App\Services\WorkflowService::class)->notifyAction(
+                    (int) $submitter,
+                    '✅ Pregnancy Record Approved',
+                    'Pregnancy record for ' . $pregnancy->patient_name . ' was approved by the BHW President.',
+                    'success',
+                    route('bhw.pregnancies.index')
+                );
+            }
+        } catch (\Throwable $e) {
+        }
+
         return redirect()->route('bhw-president.pregnancies.index')
             ->with('success', 'Pregnancy record approved successfully.');
     }
 
     /**
-     * BHW President reject pregnancy record
+     * BHW President reject pregnancy record → 1. Rejection Feedback Loop
+     * (Needs Revision queue + mandatory note + submitter notification).
      */
     public function bhwPresidentReject(Request $request, $id)
     {
         $pregnancy = Pregnancy::findOrFail($id);
-        
+
         $request->validate([
             'rejection_reason' => 'required|string|max:1000',
         ]);
 
-        $pregnancy->update([
-            'workflow_status' => 'bhw_president_rejected',
-            'bhw_president_reviewed_at' => now(),
-            'workflow_notes' => $request->rejection_reason,
-        ]);
+        app(\App\Services\WorkflowService::class)->sendBackForRevision(
+            'pregnancy',
+            $pregnancy,
+            Auth::id(),
+            $request->input('rejection_reason')
+        );
 
         return redirect()->route('bhw-president.pregnancies.index')
-            ->with('success', 'Pregnancy record rejected and returned to creator.');
+            ->with('success', 'Record sent back to the Needs Revision queue. The submitter was notified with your note.');
     }
 }

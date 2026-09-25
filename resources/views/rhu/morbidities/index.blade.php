@@ -27,8 +27,7 @@
 
 <div class="card fade-in-card">
     <div class="card-header bg-transparent py-3">
-        <h5 class="mb-0 fw-700 text-dark">
-            <i class="bi bi-list-stars me-2" style="color: var(--primary);"></i>Surveillance Records
+        <h5 class="mb-0 fw-700 text-dark">Surveillance Records
         </h5>
     </div>
     <div class="card-body p-0">
@@ -51,7 +50,7 @@
                                 <td class="px-4">
                                     <span class="fw-700 text-dark d-block">{{ $morb->patient_name }}</span>
                                     <span style="font-size:0.75rem; color:var(--text-muted);">
-                                        {{ $morb->barangay }} &bull; {{ $morb->user_id ? 'Registered' : 'Walk-in' }}
+                                        {{ $morb->barangay }} &bull; {{ $morb->user_id ? 'Enrolled' : 'Unlinked' }}
                                     </span>
                                 </td>
                                 <td>
@@ -63,7 +62,7 @@
                                     <span class="d-block fw-600 text-xs" style="color:var(--text);">
                                         {{ $morb->event_date->format('M j, Y') }}
                                     </span>
-                                    <span style="font-size: 0.75rem; color: var(--text-muted);">
+                                    <span style="font-size:0.75rem; color:var(--text-muted);">
                                         {{ str_replace('_', ' ', ucfirst($morb->place_of_event)) }}
                                     </span>
                                 </td>
@@ -86,13 +85,7 @@
                                             <a href="{{ route('rhu.morbidities.edit', $morb->id) }}" class="btn btn-sm btn-icon btn-outline-warning" title="Edit">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <form action="{{ route('rhu.morbidities.destroy', $morb->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to permanently delete this near-miss morbidity case?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-danger" title="Delete">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
+                                            <x-archive-form :action="route('rhu.morbidities.destroy', $morb->id)" label="" title="Archive case (retained for audit)" btnClass="btn btn-sm btn-icon btn-outline-warning" icon="bi bi-archive" confirmText="Archive this near-miss case? It will be retained for audit and can be restored." />
                                         @endif
                                     </div>
                                 </td>
@@ -111,7 +104,7 @@
             </div>
         @else
             <div class="text-center py-5">
-                <i class="bi bi-heart-pulse" style="font-size: 3rem; color: var(--text-muted);"></i>
+                <i class="bi bi-heart-pulse" style="font-size:3rem; color:var(--text-muted);"></i>
                 <h5 class="mt-3 mb-1 fw-700">No Morbidity Cases Logged</h5>
                 <p class="text-muted text-xs px-4">No near-miss complications or severe maternal morbidity events have been logged yet.</p>
             </div>

@@ -9,95 +9,78 @@
     $timeOfDay = $hour < 12 ? 'Morning' : ($hour < 17 ? 'Afternoon' : 'Evening');
 @endphp
 
-{{-- ═══════════════════════════════
-     PAGE HERO
-═══════════════════════════════ --}}
-<div class="page-hero fade-in-card" style="background: linear-gradient(135deg, #0369a1 0%, #06b6d4 50%, #da36ff 100%);">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
-        <div>
-            <div class="page-hero-title">
-                Good {{ $timeOfDay }}, {{ auth()->user()->name }}! 👋
+{{-- PAGE HERO: white card, vertically centered (matches staff portal theme) --}}
+<div class="page-hero">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div>
+                <div class="page-hero-title">
+                    Good {{ $timeOfDay }}, {{ auth()->user()->name }}!
+                </div>
+                <p class="page-hero-subtitle mb-0">
+                    <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
+                </p>
             </div>
-            <p class="page-hero-subtitle">
-                <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
-                &nbsp;·&nbsp; Barangay Health Worker Portal
-            </p>
         </div>
-        <button type="button"
-                class="btn-hero-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#addRecordModal">
-            <i class="bi bi-plus-circle-fill"></i> Add Health Record
-        </button>
-    </div>
-
-    {{-- Today's Summary --}}
-    <div class="d-flex flex-wrap gap-2 mt-3" style="position:relative;z-index:1;">
-        <span class="summary-chip chip-info">
-            <i class="bi bi-people-fill"></i>
-            {{ $totalPatients }} Patients
-        </span>
-        <span class="summary-chip chip-primary">
-            <i class="bi bi-calendar-check"></i>
-            {{ $scheduledCheckups }} Scheduled
-        </span>
-        <span class="summary-chip chip-success">
-            <i class="bi bi-calendar-day"></i>
-            {{ $todayCheckups }} Today
-        </span>
-        <span class="summary-chip chip-primary" style="background:var(--primary-subtle);">
-            <i class="bi bi-clipboard-pulse"></i>
-            {{ $myHealthRecords }} My Records
-        </span>
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            <button type="button"
+                    class="btn-hero-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addRecordModal">
+                <i class="bi bi-plus-circle-fill"></i> Add Health Record
+            </button>
+        </div>
     </div>
 </div>
 
-{{-- ═══════════════════════════════
-     STAT CARDS
-═══════════════════════════════ --}}
+{{-- STAT CARDS: equal height, aligned --}}
 <div class="row g-3 mb-4">
 
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-purple fade-in-card">
-            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+    <div class="col-xl-3 col-md-6 d-flex">
+        <div class="stat-card w-100">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="stat-icon mb-0"><i class="bi bi-people-fill"></i></div>
+                <span class="summary-chip chip-primary" style="font-size:0.72rem;">Care</span>
+            </div>
             <div class="stat-label">Total Patients</div>
             <div class="stat-number" data-count="{{ $totalPatients }}">0</div>
-            <div class="stat-trend up"><i class="bi bi-arrow-up-short"></i> Under your care</div>
-            <canvas id="bhwSparkline1" width="80" height="36"
-                    style="position:absolute;bottom:1rem;right:1rem;opacity:0.5;"></canvas>
+            <div class="stat-trend"><i class="bi bi-arrow-up-short" style="color:var(--color-success-text);"></i> Under your care</div>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-cyan fade-in-card">
-            <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+    <div class="col-xl-3 col-md-6 d-flex">
+        <div class="stat-card w-100">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="stat-icon mb-0"><i class="bi bi-calendar-check-fill"></i></div>
+                <span class="summary-chip chip-primary" style="font-size:0.72rem;">Visits</span>
+            </div>
             <div class="stat-label">Scheduled Checkups</div>
             <div class="stat-number" data-count="{{ $scheduledCheckups }}">0</div>
-            <div class="stat-trend"><i class="bi bi-clock"></i> Upcoming sessions</div>
-            <canvas id="bhwSparkline2" width="80" height="36"
-                    style="position:absolute;bottom:1rem;right:1rem;opacity:0.5;"></canvas>
+            <div class="stat-trend"><i class="bi bi-clock" style="color:var(--color-secondary-text);"></i> Upcoming sessions</div>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-green fade-in-card">
-            <div class="stat-icon"><i class="bi bi-calendar-today-fill"></i></div>
+    <div class="col-xl-3 col-md-6 d-flex">
+        <div class="stat-card w-100">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="stat-icon mb-0" style="background:var(--color-success-soft) !important;color:var(--color-success-text) !important;"><i class="bi bi-calendar-today-fill"></i></div>
+                <span class="summary-chip chip-success" style="font-size:0.72rem;">Today</span>
+            </div>
             <div class="stat-label">Today's Checkups</div>
             <div class="stat-number" data-count="{{ $todayCheckups }}">0</div>
-            <div class="stat-trend up"><i class="bi bi-sun"></i> Scheduled for today</div>
-            <canvas id="bhwSparkline3" width="80" height="36"
-                    style="position:absolute;bottom:1rem;right:1rem;opacity:0.5;"></canvas>
+            <div class="stat-trend"><i class="bi bi-sun" style="color:var(--color-success-text);"></i> Scheduled for today</div>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card stat-violet fade-in-card">
-            <div class="stat-icon"><i class="bi bi-clipboard-pulse-fill"></i></div>
+    <div class="col-xl-3 col-md-6 d-flex">
+        <div class="stat-card w-100">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="stat-icon mb-0"><i class="bi bi-clipboard-pulse-fill"></i></div>
+                <span class="summary-chip chip-primary" style="font-size:0.72rem;">Records</span>
+            </div>
             <div class="stat-label">My Records</div>
             <div class="stat-number" data-count="{{ $myHealthRecords }}">0</div>
-            <div class="stat-trend up"><i class="bi bi-arrow-up-short"></i> Records added</div>
-            <canvas id="bhwSparkline4" width="80" height="36"
-                    style="position:absolute;bottom:1rem;right:1rem;opacity:0.5;"></canvas>
+            <div class="stat-trend"><i class="bi bi-arrow-up-short" style="color:var(--color-success-text);"></i> Records added</div>
         </div>
     </div>
 
@@ -112,9 +95,7 @@
     <div class="col-lg-8">
         <div class="card fade-in-card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    <i class="bi bi-calendar-week me-2" style="color:var(--primary-light);"></i>
-                    Upcoming Checkups
+                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">Upcoming Checkups
                 </h5>
                 <a href="{{ route('bhw.schedules') }}" class="btn btn-sm btn-outline-primary">
                     View All <i class="bi bi-arrow-right ms-1"></i>
@@ -138,7 +119,7 @@
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
-                                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#06b6d4,#0ea5e9);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;flex-shrink:0;">
+                                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--color-info),var(--color-info));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--color-on-solid);flex-shrink:0;">
                                                     {{ strtoupper(substr(optional($checkup->patient)->name ?? 'N/A', 0, 1)) }}
                                                 </div>
                                                 <span style="font-weight:500;">{{ optional($checkup->patient)->name ?? 'Unknown Patient' }}</span>
@@ -178,11 +159,9 @@
         {{-- Today's Checkups Card --}}
         <div class="card fade-in-card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;">
-                    <i class="bi bi-calendar-day me-2" style="color:var(--info);"></i>
-                    Today's Schedule
+                <h5 class="mb-0" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;">Today's Schedule
                 </h5>
-                <span class="badge" style="background:var(--info);color:#fff;padding:0.35em 0.7em;border-radius:8px;">
+                <span class="badge" style="background:var(--info);color:var(--color-on-solid);padding:0.35em 0.7em;border-radius:8px;">
                     {{ $todayCheckups }}
                 </span>
             </div>
@@ -208,34 +187,32 @@
         {{-- Quick Actions --}}
         <div class="card fade-in-card mb-4">
             <div class="card-header">
-                <h5 class="mb-0" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;">
-                    <i class="bi bi-lightning-charge-fill me-2" style="color:var(--warning);"></i>
-                    Quick Actions
+                <h5 class="mb-0" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;">Quick Actions
                 </h5>
             </div>
             <div class="card-body">
                 <div class="row g-2">
                     <div class="col-6">
-                        <a href="{{ route('bhw.patients') }}" class="quick-action-tile">
+                        <a href="{{ route('bhw.patients') }}" class="quick-action-tile qa-blue">
                             <i class="bi bi-people-fill"></i>
                             <span>Patients</span>
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="{{ route('bhw.schedules') }}" class="quick-action-tile">
-                            <i class="bi bi-calendar-check-fill" style="color:var(--info);"></i>
+                        <a href="{{ route('bhw.schedules') }}" class="quick-action-tile qa-teal">
+                            <i class="bi bi-calendar-check-fill"></i>
                             <span>Schedules</span>
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="{{ route('bhw.health-records.index') }}" class="quick-action-tile">
-                            <i class="bi bi-clipboard-pulse-fill" style="color:var(--success);"></i>
+                        <a href="{{ route('bhw.health-records.index') }}" class="quick-action-tile qa-green">
+                            <i class="bi bi-clipboard-pulse-fill"></i>
                             <span>My Records</span>
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="{{ route('forum.index') }}" class="quick-action-tile">
-                            <i class="bi bi-chat-dots-fill" style="color:var(--accent-pink);"></i>
+                        <a href="{{ route('forum.index') }}" class="quick-action-tile qa-violet">
+                            <i class="bi bi-chat-dots-fill"></i>
                             <span>Forum</span>
                         </a>
                     </div>
@@ -246,9 +223,7 @@
         {{-- BHW Role Info - Redesigned --}}
         <div class="card fade-in-card">
             <div class="card-header">
-                <h5 class="mb-0" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;">
-                    <i class="bi bi-person-workspace me-2" style="color:var(--primary-light);"></i>
-                    Your BHW Capabilities
+                <h5 class="mb-0" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;">Your BHW Capabilities
                 </h5>
             </div>
             <div class="card-body p-0">
@@ -283,8 +258,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addRecordModalLabel">
-                    <i class="bi bi-clipboard-plus-fill me-2"></i>Add Health Record
+                <h5 class="modal-title" id="addRecordModalLabel">Add Health Record
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

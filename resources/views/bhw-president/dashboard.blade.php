@@ -16,11 +16,10 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
             <div class="page-hero-title">
-                Good {{ $timeOfDay }}, {{ auth()->user()->name }}! 👋
+                Good {{ $timeOfDay }}, {{ auth()->user()->name }}!
             </div>
             <p class="page-hero-subtitle">
                 <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
-                &nbsp;·&nbsp; BHW President Portal
             </p>
         </div>
     </div>
@@ -36,7 +35,7 @@
             {{ $totalBhws }} BHWs
         </span>
         @if($highRiskPregnanciesCount > 0)
-        <span class="summary-chip" style="background:rgba(239,68,68,0.3);">
+        <span class="summary-chip" style="background:color-mix(in srgb, var(--color-danger) 30%, transparent);">
             <i class="bi bi-exclamation-triangle-fill"></i>
             {{ $highRiskPregnanciesCount }} High Risk
         </span>
@@ -57,7 +56,7 @@
             <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
             <div class="stat-label">Total Patients</div>
             <div class="stat-number" data-count="{{ $totalPatients }}">0</div>
-            <div class="stat-trend up"><i class="bi bi-arrow-up-short"></i> Registered patients</div>
+            <div class="stat-trend up"><i class="bi bi-arrow-up-short"></i> Enrolled patients</div>
         </div>
     </div>
 
@@ -131,9 +130,9 @@
      HIGH RISK ALERTS
 ═══════════════════════════════ --}}
 @if($highRiskPregnancies->count() > 0)
-<div class="card mb-4 fade-in-card" style="border-left: 4px solid var(--warning);">
+<div class="card mb-4 fade-in-card" style="border-left:4px solid var(--warning);">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2" style="color:var(--warning);"></i>High-Risk Pregnancies Requiring Attention</h5>
+        <h5 class="mb-0">High-Risk Pregnancies Requiring Attention</h5>
         <a href="{{ route('bhw-president.high-risk') }}" class="btn btn-sm btn-outline-warning">View All</a>
     </div>
     <div class="card-body">
@@ -153,7 +152,7 @@
                     <tr>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--warning),var(--danger));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;">
+                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--warning),var(--danger));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--color-on-solid);">
                                     {{ strtoupper(substr(optional($pregnancy->woman)->name ?? 'U', 0, 1)) }}
                                 </div>
                                 <span style="font-weight:500;">{{ optional($pregnancy->woman)->name ?? 'Unknown' }}</span>
@@ -163,7 +162,7 @@
                         <td><span class="badge bg-danger">High Risk</span></td>
                         <td>{{ optional($pregnancy->checkups->first())->scheduled_date?->format('M j, Y') ?? 'No checkups' }}</td>
                         <td>
-                            <a href="{{ route('midwife.patient-details', $pregnancy->user_id) }}" class="btn btn-sm btn-primary">View Details</a>
+                            <a href="{{ route('midwife.patient-details', $pregnancy->user_id) }}" class="btn btn-sm btn-view">View Details</a>
                         </td>
                     </tr>
                     @endforeach
@@ -181,7 +180,7 @@
     <div class="col-lg-6">
         <div class="card fade-in-card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-calendar-heart me-2" style="color:var(--primary-light);"></i>Recent Checkups</h5>
+                <h5 class="mb-0">Recent Checkups</h5>
                 <a href="{{ route('midwife.checkups.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
             </div>
             <div class="card-body p-0">
@@ -200,7 +199,7 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent-violet));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;">
+                                        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent-violet));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--color-on-solid);">
                                             {{ strtoupper(substr(optional($checkup->woman)->name ?? 'U', 0, 1)) }}
                                         </div>
                                         <span style="font-weight:500;">{{ optional($checkup->woman)->name ?? 'Unknown' }}</span>
@@ -230,7 +229,7 @@
     <div class="col-lg-6">
         <div class="card fade-in-card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-file-medical me-2" style="color:var(--success);"></i>Recent Health Records</h5>
+                <h5 class="mb-0">Recent Health Records</h5>
                 <a href="{{ route('midwife.health-records.index') }}" class="btn btn-sm btn-outline-success">View All</a>
             </div>
             <div class="card-body p-0">
@@ -249,7 +248,7 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--success),#34d399);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;">
+                                        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--success),var(--color-success));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--color-on-solid);">
                                             {{ strtoupper(substr(optional($record->woman)->name ?? 'U', 0, 1)) }}
                                         </div>
                                         <span style="font-weight:500;">{{ optional($record->woman)->name ?? 'Unknown' }}</span>

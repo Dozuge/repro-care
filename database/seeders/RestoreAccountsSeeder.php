@@ -36,11 +36,11 @@ class RestoreAccountsSeeder extends Seeder
                 'profile_image' => null,
             ],
             [
-                'first_name' => 'Admin',
+                'first_name' => 'RHU',
                 'middle_initial' => null,
                 'last_name' => 'Midwife',
                 'email' => 'midwife@reprocare.com',
-                'password' => '$2y$12$dGPi4Qp5MeM9/EVgdWRO9u1ZQ/QHe8GcGR2srenUK5.hylRGp8tIO',
+                'password' => bcrypt('password123'),
                 'role' => 'midwife',
                 'status' => 'approved',
                 'address' => 'Rural Health Unit',

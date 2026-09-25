@@ -2,10 +2,10 @@
 
 @section('bhw-content')
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <h2 class="page-title">Checkup Referrals</h2>
         <a href="{{ route('bhw.referrals.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> New Referral
+            <i class="bi bi-plus-lg"></i> New Referral
         </a>
     </div>
 
@@ -63,7 +63,7 @@
                                     <td>{{ $referral->created_at->format('M d, Y') }}</td>
                                     <td>
                                         <a href="{{ route('bhw.referrals.show', $referral->id) }}" class="btn btn-sm btn-info">
-                                            <i class="fas fa-eye"></i> View
+                                            <i class="bi bi-eye"></i> View
                                         </a>
                                     </td>
                                 </tr>
@@ -74,7 +74,7 @@
                 {{ $referrals->links() }}
             @else
                 <div class="text-center py-5">
-                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                    <i class="bi bi-clipboard-data fs-1 text-muted mb-3"></i>
                     <p class="text-muted">No referrals found.</p>
                     <a href="{{ route('bhw.referrals.create') }}" class="btn btn-primary">
                         Create Your First Referral

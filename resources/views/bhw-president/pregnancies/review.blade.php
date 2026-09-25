@@ -16,13 +16,17 @@
         <div class="col-lg-8">
             <div class="card fade-in-card mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-baby me-2"></i>Pregnancy Record Details</h5>
+                    <h5 class="mb-0">Pregnancy Record Details</h5>
                 </div>
                 <div class="card-body">
                     <!-- Patient Information -->
                     <div class="mb-4">
                         <h6 class="text-primary fw-bold mb-3">Patient Information</h6>
                         @if($pregnancy->woman)
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <x-patient-avatar :patient="$pregnancy->woman" :size="56" />
+                            <a href="{{ route('profile.view', $pregnancy->woman->id) }}">View patient profile</a>
+                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <strong>Name:</strong> {{ $pregnancy->woman->first_name }} {{ $pregnancy->woman->middle_initial }} {{ $pregnancy->woman->last_name }}
@@ -200,7 +204,7 @@
             @if($pregnancy->healthRecords->count() > 0)
             <div class="card fade-in-card mb-4">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-file-medical-alt me-2"></i>Associated Health Records ({{ $pregnancy->healthRecords->count() }})</h5>
+                    <h5 class="mb-0">Associated Health Records ({{ $pregnancy->healthRecords->count() }})</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -240,7 +244,7 @@
             <!-- Pregnancy Status -->
             <div class="card fade-in-card mb-4">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Pregnancy Status</h5>
+                    <h5 class="mb-0">Pregnancy Status</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-2">
@@ -273,7 +277,7 @@
             <!-- Milestones -->
             <div class="card fade-in-card mb-4">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Pregnancy Milestones</h5>
+                    <h5 class="mb-0">Pregnancy Milestones</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -306,7 +310,7 @@
             <!-- Review Actions -->
             <div class="card fade-in-card">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Review Actions</h5>
+                    <h5 class="mb-0">Review Actions</h5>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('bhw-president.pregnancies.approve', $pregnancy->id) }}" method="POST">

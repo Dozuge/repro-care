@@ -8,48 +8,51 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #fff;
-            color: #000;
-            padding: 20px;
+            font-family:'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color:var(--color-surface);
+            color:var(--color-text);
+            padding:20px;
         }
         .report-header {
-            border-bottom: 3px double #000;
-            padding-bottom: 15px;
-            margin-bottom: 30px;
+            border-bottom:3px double var(--color-border);
+            padding-bottom:15px;
+            margin-bottom:30px;
         }
         .report-title {
-            font-size: 24px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size:24px;
+            font-weight:800;
+            text-transform:uppercase;
+            letter-spacing:1px;
         }
         .table th {
-            background-color: #f8f9fa !important;
-            color: #000 !important;
-            border-bottom: 2px solid #000 !important;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 11px;
+            background-color:var(--color-surface-soft) !important;
+            color:var(--color-text) !important;
+            border-bottom:2px solid var(--color-border) !important;
+            font-weight:700;
+            text-transform:uppercase;
+            font-size:11px;
         }
         .table td {
-            font-size: 13px;
-            border-bottom: 1px solid #dee2e6;
+            font-size:13px;
+            border-bottom:1px solid var(--color-border);
         }
         .timestamp {
-            font-size: 11px;
-            color: #555;
-            text-align: right;
+            font-size:11px;
+            color:var(--color-text-muted);
+            text-align:right;
         }
         @media print {
             body {
-                padding: 0;
+                padding:0;
             }
             .no-print {
-                display: none;
+                display:none;
             }
             .page-break {
-                page-break-after: always;
+                page-break-after:always;
+            }
+            .table-responsive {
+                overflow:visible;
             }
         }
     </style>
@@ -60,7 +63,7 @@
         <!-- Print Header -->
         <div class="report-header d-flex justify-content-between align-items-center">
             <div>
-                <h5 class="mb-0 fw-800 text-uppercase" style="letter-spacing: 0.5px;">Republic of the Philippines</h5>
+                <h5 class="mb-0 fw-800 text-uppercase" style="letter-spacing:0.5px;">Republic of the Philippines</h5>
                 <h6 class="mb-1 text-muted text-uppercase" style="font-size:12px;">City Health Office - Rural Health Unit</h6>
                 <div class="report-title">MNCHN Maternal Registry</div>
             </div>
@@ -74,15 +77,16 @@
         </div>
 
         <!-- Registry Table -->
+        <div class="table-responsive">
         <table class="table table-bordered table-striped align-middle">
             <thead>
                 <tr>
-                    <th style="width: 25%;">Patient Name</th>
-                    <th style="width: 10%;">Age</th>
-                    <th style="width: 15%;">Contact</th>
-                    <th style="width: 20%;">Barangay</th>
-                    <th style="width: 15%;">Pregnancy Status</th>
-                    <th style="width: 15%;">Registered At</th>
+                    <th style="width:25%;">Patient Name</th>
+                    <th style="width:10%;">Age</th>
+                    <th style="width:15%;">Contact</th>
+                    <th style="width:20%;">Barangay</th>
+                    <th style="width:15%;">Pregnancy Status</th>
+                    <th style="width:15%;">Enrolled At</th>
                 </tr>
             </thead>
             <tbody>
@@ -102,19 +106,20 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
 
         <!-- Footer signature lines -->
         <div class="row mt-5 pt-4">
-            <div class="col-6">
-                <div style="border-top: 1px solid #000; width: 220px; margin-top: 40px; text-align: center;">
+            <div class="col-12 col-sm-6 mb-4 mb-sm-0">
+                <div style="border-top:1px solid var(--color-border); width:220px; max-width:100%; margin-top:40px; text-align:center;">
                     <strong style="font-size:13px;">RHU Health Officer</strong>
-                    <div style="font-size:11px; color:#555;">Signature over Printed Name</div>
+                    <div style="font-size:11px; color:var(--color-text-muted);">Signature over Printed Name</div>
                 </div>
             </div>
-            <div class="col-6 d-flex justify-content-end">
-                <div style="border-top: 1px solid #000; width: 220px; margin-top: 40px; text-align: center;">
+            <div class="col-12 col-sm-6 d-flex justify-content-sm-end">
+                <div style="border-top:1px solid var(--color-border); width:220px; max-width:100%; margin-top:40px; text-align:center;">
                     <strong style="font-size:13px;">Data Clerk / Audited By</strong>
-                    <div style="font-size:11px; color:#555;">Signature over Printed Name</div>
+                    <div style="font-size:11px; color:var(--color-text-muted);">Signature over Printed Name</div>
                 </div>
             </div>
         </div>

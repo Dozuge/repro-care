@@ -7,16 +7,20 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-people-fill me-2" style="color:var(--primary-light);"></i>Midwife Management
+            <div class="page-hero-title">Midwife Management
             </div>
             <p class="page-hero-subtitle">
                 Manage registered midwife accounts for Rural Health Unit clinics.
             </p>
         </div>
-        <a href="{{ route('rhu.midwives.create') }}" class="btn btn-primary">
-            <i class="bi bi-person-plus-fill me-1"></i> Register Midwife
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('rhu.staff-transitions.index', ['type' => 'midwife_replace']) }}" class="btn btn-filter">
+                <i class="bi bi-arrow-left-right me-1"></i> Replace Midwife
+            </a>
+            <a href="{{ route('rhu.midwives.create') }}" class="btn btn-primary">
+                <i class="bi bi-person-plus-fill me-1"></i> Register Midwife
+            </a>
+        </div>
     </div>
 </div>
 
@@ -50,7 +54,7 @@
                                         <img src="{{ $m->profile_image_url }}"
                                              alt="{{ $m->name }}"
                                              class="rounded-circle"
-                                             style="width: 38px; height: 38px; object-fit: cover;"
+                                             style="width:38px; height:38px; object-fit:cover;"
                                              onerror="this.onerror=null;this.src='{{ $m->gender === 'male' ? '/images/avatars/avatar-male.svg' : '/images/avatars/avatar-female.svg' }}';">
                                         <div>
                                             <span class="fw-700" style="color:var(--text);">{{ $m->name }}</span>
@@ -80,13 +84,7 @@
                                         <a href="{{ route('rhu.midwives.edit', $m->id) }}" class="btn btn-xs btn-outline-warning" style="font-size:0.75rem;">
                                             <i class="bi bi-pencil"></i> Edit
                                         </a>
-                                        <form method="POST" action="{{ route('rhu.midwives.destroy', $m->id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this midwife account?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-xs btn-outline-danger" style="font-size:0.75rem;">
-                                                <i class="bi bi-trash"></i> Delete
-                                            </button>
-                                        </form>
+                                        <x-archive-form :action="route('rhu.midwives.destroy', $m->id)" label="Archive" title="Archive midwife (retained for audit)" btnClass="btn btn-xs btn-outline-warning" icon="bi bi-archive" :confirmText="'Archive midwife ' . $m->name . '? Sessions are revoked and history is retained.'" />
                                     </div>
                                 </td>
                             </tr>
@@ -102,7 +100,7 @@
             @endif
         @else
             <div class="text-center py-5">
-                <i class="bi bi-people" style="font-size: 3rem; color: var(--text-muted);"></i>
+                <i class="bi bi-people" style="font-size:3rem; color:var(--text-muted);"></i>
                 <h5 class="mt-3">No Midwives Registered</h5>
                 <p class="text-muted text-xs">Register new midwife accounts to deploy them to health centers.</p>
             </div>

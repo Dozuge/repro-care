@@ -66,7 +66,7 @@
 
 <div class="card fade-in-card">
     <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-heart-pulse-fill me-2"></i>Active Pregnancies</h5>
+        <h5 class="mb-0">Active Pregnancies</h5>
     </div>
     <div class="card-body">
         @if($pregnancies->count() > 0)

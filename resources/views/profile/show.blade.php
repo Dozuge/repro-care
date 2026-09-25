@@ -6,130 +6,131 @@
 <style>
     /* ── Profile Hero ── */
     .profile-hero {
-        position: relative;
-        border-radius: 20px 20px 0 0;
-        overflow: hidden;
-        min-height: 160px;
-        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--accent-pink) 100%);
+        position:relative;
+        border-radius:20px 20px 0 0;
+        overflow:hidden;
+        min-height:160px;
+        background:linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--accent-pink) 100%);
     }
     .profile-hero-orb {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.06);
-        pointer-events: none;
+        position:absolute;
+        border-radius:50%;
+        background:color-mix(in srgb, var(--color-surface) 6%, transparent);
+        pointer-events:none;
     }
     .profile-hero-inner {
-        position: relative;
-        z-index: 1;
-        padding: 1.75rem 2rem 5rem;
+        position:relative;
+        z-index:1;
+        padding:1.75rem 2rem 5rem;
     }
     .profile-hero-title {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-size: 1.3rem;
-        font-weight: 800;
-        color: #fff;
-        margin: 0;
+        font-family:'Plus Jakarta Sans', sans-serif;
+        font-size:1.3rem;
+        font-weight:800;
+        color:var(--color-on-solid);
+        margin:0;
     }
     .profile-hero-sub {
-        font-size: 0.82rem;
-        color: rgba(255,255,255,0.7);
-        margin: 0.2rem 0 0;
+        font-size:0.82rem;
+        color:color-mix(in srgb, var(--color-on-solid) 70%, transparent);
+        margin:0.2rem 0 0;
     }
 
     /* ── Avatar wrap ── */
     .profile-avatar-wrap {
-        position: relative;
-        display: inline-block;
-        margin-top: -60px;
-        margin-left: 2rem;
-        z-index: 10;
+        position:relative;
+        display:inline-block;
+        margin-top:-60px;
+        margin-left:2rem;
+        z-index:10;
     }
     .profile-avatar {
-        width: 120px; height: 120px;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 4px solid var(--bg-card);
-        box-shadow: 0 0 0 4px var(--primary), 0 8px 32px var(--primary-glow);
-        display: block;
-        background: linear-gradient(135deg, var(--primary), var(--accent-violet));
+        width:120px; height:120px;
+        object-fit:cover;
+        border-radius:50%;
+        border:4px solid var(--bg-card);
+        box-shadow:0 0 0 4px var(--primary), 0 8px 32px var(--primary-glow);
+        display:block;
+        background:linear-gradient(135deg, var(--primary), var(--accent-violet));
     }
     .profile-avatar-init {
-        width: 120px; height: 120px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary), var(--accent-violet));
-        display: flex; align-items: center; justify-content: center;
-        font-size: 2.5rem; font-weight: 800; color: #fff;
-        border: 4px solid var(--bg-card);
-        box-shadow: 0 0 0 4px var(--primary), 0 8px 32px var(--primary-glow);
+        width:120px; height:120px;
+        border-radius:50%;
+        background:linear-gradient(135deg, var(--primary), var(--accent-violet));
+        display:flex; align-items:center; justify-content:center;
+        font-size:2.5rem; font-weight:800; color:var(--color-on-solid);
+        border:4px solid var(--bg-card);
+        box-shadow:0 0 0 4px var(--primary), 0 8px 32px var(--primary-glow);
     }
     .avatar-online-ring {
-        position: absolute;
-        bottom: 6px; right: 6px;
-        width: 18px; height: 18px;
-        background: var(--success);
-        border-radius: 50%;
-        border: 3px solid var(--bg-card);
+        position:absolute;
+        bottom:6px; right:6px;
+        width:18px; height:18px;
+        background:var(--success);
+        border-radius:50%;
+        border:3px solid var(--bg-card);
     }
 
     /* ── Profile card ── */
     .profile-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
-        transition: background 0.4s ease;
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:20px;
+        overflow:hidden;
+        box-shadow:var(--shadow-sm);
+        transition:background 0.4s ease;
     }
     .profile-meta-row {
-        padding: 1rem 2rem 1.5rem;
-        border-bottom: 1px solid var(--border);
+        padding:1rem 2rem 1.5rem;
+        border-bottom:1px solid var(--border);
     }
     .profile-name {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-size: 1.4rem;
-        font-weight: 800;
-        color: var(--text);
-        margin-bottom: 0.25rem;
+        font-family:'Plus Jakarta Sans', sans-serif;
+        font-size:1.4rem;
+        font-weight:800;
+        color:var(--text);
+        margin-bottom:0.25rem;
     }
-    .profile-email { font-size: 0.875rem; color: var(--text-muted); }
+    .profile-email { font-size:0.875rem; color:var(--text-muted); }
 
     /* Role badge */
     .profile-role-badge {
-        display: inline-flex; align-items: center; gap: 0.4rem;
-        padding: 0.35em 0.85em;
-        border-radius: 20px;
-        font-size: 0.78rem; font-weight: 700;
-        margin-top: 0.75rem;
+        display:inline-flex; align-items:center; gap:0.4rem;
+        padding:0.35em 0.85em;
+        border-radius:20px;
+        font-size:0.78rem; font-weight:700;
+        margin-top:0.75rem;
     }
-    .badge-midwife { background: linear-gradient(135deg, var(--primary), var(--accent-violet)); color: #fff; box-shadow: 0 2px 10px var(--primary-glow); }
-    .badge-bhw     { background: linear-gradient(135deg, #06b6d4, #0ea5e9); color: #fff; box-shadow: 0 2px 10px rgba(6,182,212,0.3); }
-    .badge-user    { background: linear-gradient(135deg, var(--secondary), #be185d); color: #fff; box-shadow: 0 2px 10px rgba(244,63,142,0.3); }
+    .badge-midwife { background:linear-gradient(135deg, var(--primary), var(--accent-violet)); color:var(--color-on-solid); box-shadow:0 2px 10px var(--primary-glow); }
+    .badge-bhw     { background:linear-gradient(135deg, var(--color-info), var(--color-info)); color:var(--color-on-solid); box-shadow:0 2px 10px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 30%, transparent); }
+    .badge-user    { background:linear-gradient(135deg, var(--secondary), var(--color-secondary-text)); color:var(--color-on-solid); box-shadow:0 2px 10px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 30%, transparent); }
+    .badge-staff   { background:linear-gradient(135deg, var(--color-surface-strong), var(--color-surface-strong)); color:var(--color-on-solid); box-shadow:0 2px 10px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 30%, transparent); }
 
     /* Info grid */
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; padding: 1.5rem 2rem; }
+    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; padding:1.5rem 2rem; }
     .info-item {
-        background: var(--bg-card2);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 1rem;
-        transition: all 0.2s ease;
+        background:var(--bg-card2);
+        border:1px solid var(--border);
+        border-radius:14px;
+        padding:1rem;
+        transition:all 0.2s ease;
     }
-    .info-item:hover { border-color: var(--primary); transform: translateY(-1px); }
+    .info-item:hover { border-color:var(--primary); transform:translateY(-1px); }
     .info-label {
-        font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
-        color: var(--text-muted); font-weight: 700; margin-bottom: 0.3rem;
-        display: flex; align-items: center; gap: 0.4rem;
+        font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;
+        color:var(--text-muted); font-weight:700; margin-bottom:0.3rem;
+        display:flex; align-items:center; gap:0.4rem;
     }
-    .info-label i { color: var(--primary-light); }
-    .info-value { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .info-label i { color:var(--primary-light); }
+    .info-value { font-size:0.95rem; font-weight:600; color:var(--text); }
 
     /* Action bar */
-    .profile-actions { padding: 1.25rem 2rem; border-top: 1px solid var(--border); display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .profile-actions { padding:1.25rem 2rem; border-top:1px solid var(--border); display:flex; gap:0.75rem; flex-wrap:wrap; }
 
     @media (max-width: 600px) {
-        .info-grid { grid-template-columns: 1fr; }
-        .profile-avatar-wrap { margin-left: 1.25rem; }
-        .profile-meta-row, .info-grid, .profile-actions { padding-left: 1.25rem; padding-right: 1.25rem; }
+        .info-grid { grid-template-columns:1fr; }
+        .profile-avatar-wrap { margin-left:1.25rem; }
+        .profile-meta-row, .info-grid, .profile-actions { padding-left:1.25rem; padding-right:1.25rem; }
     }
 </style>
 @endpush
@@ -178,10 +179,36 @@
                         <i class="bi bi-envelope me-1"></i>{{ $user->email }}
                     </div>
                     <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
-                        <span class="profile-role-badge
-                            {{ $user->role === 'midwife' ? 'badge-midwife' : ($user->role === 'bhw' ? 'badge-bhw' : 'badge-user') }}">
-                            <i class="bi {{ $user->role === 'midwife' ? 'bi-heart-pulse-fill' : ($user->role === 'bhw' ? 'bi-person-badge-fill' : 'bi-person-heart-fill') }}"></i>
-                            {{ $user->role === 'midwife' ? 'Midwife' : ($user->role === 'bhw' ? 'Barangay Health Worker' : 'Woman') }}
+                        @php
+                            $roleLabels = [
+                                'midwife' => 'Midwife',
+                                'bhw' => 'Barangay Health Worker',
+                                'bhw_president' => 'BHW President',
+                                'cho' => 'CHO Administrator',
+                                'rhu' => 'RHU Staff',
+                                'user' => 'Woman',
+                            ];
+                            $roleBadgeClasses = [
+                                'midwife' => 'badge-midwife',
+                                'bhw' => 'badge-bhw',
+                                'bhw_president' => 'badge-bhw',
+                                'cho' => 'badge-staff',
+                                'rhu' => 'badge-staff',
+                                'user' => 'badge-user',
+                            ];
+                            $roleIcons = [
+                                'midwife' => 'bi-heart-pulse-fill',
+                                'bhw' => 'bi-person-badge-fill',
+                                'bhw_president' => 'bi-person-badge-fill',
+                                'cho' => 'bi-building-fill',
+                                'rhu' => 'bi-hospital-fill',
+                                'user' => 'bi-person-heart-fill',
+                            ];
+                            $r = $user->role ?? 'user';
+                        @endphp
+                        <span class="profile-role-badge {{ $roleBadgeClasses[$r] ?? 'badge-staff' }}">
+                            <i class="bi {{ $roleIcons[$r] ?? 'bi-person-fill' }}"></i>
+                            {{ $roleLabels[$r] ?? ucfirst(str_replace('_', ' ', $r)) }}
                         </span>
                         @if($user->age)
                         <span style="background:var(--bg-card2);border:1px solid var(--border);border-radius:12px;padding:0.25em 0.75em;font-size:0.78rem;color:var(--text-muted);font-weight:600;">
@@ -223,7 +250,17 @@
                     <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">
                         <i class="bi bi-house me-1"></i> Dashboard
                     </a>
-                    <a href="{{ route('user.settings') }}" class="btn btn-outline-secondary">
+                    @php
+                        $settingsRoute = match(auth()->user()?->role) {
+                            'cho' => route('cho.settings'),
+                            'midwife' => route('midwife.settings'),
+                            'rhu' => route('rhu.settings'),
+                            'bhw' => route('bhw.settings'),
+                            'bhw_president' => route('bhw-president.settings'),
+                            default => route('user.settings'),
+                        };
+                    @endphp
+                    <a href="{{ $settingsRoute }}" class="btn btn-outline-secondary">
                         <i class="bi bi-gear me-1"></i> Settings
                     </a>
                 </div>

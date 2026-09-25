@@ -13,24 +13,23 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
             <div class="page-hero-title">
-                Good {{ $timeOfDay }}, {{ auth()->user()->name }}! 👋
+                Good {{ $timeOfDay }}, {{ auth()->user()->name }}!
             </div>
             <p class="page-hero-subtitle">
                 <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
-                &nbsp;·&nbsp; Rural Health Unit (RHU) Admin Portal
             </p>
         </div>
     </div>
 
     <div class="d-flex flex-wrap gap-2 mt-3" style="position:relative;z-index:1;">
-        <span class="summary-chip chip-primary" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+        <span class="summary-chip chip-primary" style="padding:0.35rem 0.75rem; border-radius:20px; font-size:0.8rem; font-weight:600;">
             <i class="bi bi-shield-check me-1"></i> ANC Coverage: {{ $ancCoverageRate }}%
         </span>
-        <span class="summary-chip chip-success" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+        <span class="summary-chip chip-success" style="padding:0.35rem 0.75rem; border-radius:20px; font-size:0.8rem; font-weight:600;">
             <i class="bi bi-people-fill me-1"></i> {{ $totalPatients }} Patients
         </span>
         @if($highRiskPatients > 0)
-        <span class="summary-chip chip-danger" style="background: rgba(239,68,68,0.25); border: 1px solid rgba(239,68,68,0.4); color: #fecaca; padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+        <span class="summary-chip chip-danger" style="background:color-mix(in srgb, var(--color-danger) 25%, transparent); border:1px solid color-mix(in srgb, var(--color-danger) 40%, transparent); color:var(--color-danger-text); padding:0.35rem 0.75rem; border-radius:20px; font-size:0.8rem; font-weight:600;">
             <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ $highRiskPatients }} High-Risk Pregnancies
         </span>
         @endif
@@ -89,9 +88,7 @@
         {{-- Supply Requests --}}
         <div class="card fade-in-card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    <i class="bi bi-box-seam me-2" style="color:var(--primary-light);"></i>
-                    Recent Supply Requests
+                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">Recent Supply Requests
                 </h5>
                 <div class="d-flex gap-2">
                     <a href="{{ route('rhu.supply-requests.create') }}" class="btn btn-sm btn-primary">
@@ -143,7 +140,7 @@
                     </div>
                 @else
                     <div class="text-center py-5">
-                        <i class="bi bi-box-seam" style="font-size: 2rem; color: var(--text-muted);"></i>
+                        <i class="bi bi-box-seam" style="font-size:2rem; color:var(--text-muted);"></i>
                         <h6 class="mt-2">No Supply Requests</h6>
                         <p class="text-muted text-xs">You have not submitted any supply requests yet.</p>
                     </div>
@@ -154,9 +151,7 @@
         {{-- Morbidities / Near-Miss events --}}
         <div class="card fade-in-card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    <i class="bi bi-heart-pulse-fill me-2" style="color:var(--danger);"></i>
-                    Recent Near-Miss / Morbidities
+                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">Recent Near-Miss / Morbidities
                 </h5>
                 <a href="{{ route('rhu.morbidities.index') }}" class="btn btn-sm btn-outline-primary">
                     View All
@@ -199,7 +194,7 @@
                     </div>
                 @else
                     <div class="text-center py-5">
-                        <i class="bi bi-heart-pulse" style="font-size: 2rem; color: var(--text-muted);"></i>
+                        <i class="bi bi-heart-pulse" style="font-size:2rem; color:var(--text-muted);"></i>
                         <h6 class="mt-2">No Near-Miss Cases</h6>
                         <p class="text-muted text-xs">No maternal morbidity events have been logged.</p>
                     </div>
@@ -213,9 +208,7 @@
         {{-- Quick Links --}}
         <div class="card fade-in-card mb-4">
             <div class="card-header">
-                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    <i class="bi bi-lightning-charge-fill me-2" style="color:var(--warning);"></i>
-                    Quick Actions
+                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">Quick Actions
                 </h5>
             </div>
             <div class="card-body">
@@ -242,16 +235,14 @@
         {{-- Recent Maternal Deaths --}}
         <div class="card fade-in-card">
             <div class="card-header">
-                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    <i class="bi bi-journal-x me-2" style="color:var(--danger);"></i>
-                    Maternal Deaths
+                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">Maternal Deaths
                 </h5>
             </div>
             <div class="card-body p-0">
                 @if($recentDeaths->count() > 0)
                     <ul class="list-group list-group-flush mb-0">
                         @foreach($recentDeaths as $death)
-                            <li class="list-group-item bg-transparent" style="border-color: var(--border); padding: 0.85rem 1.25rem;">
+                            <li class="list-group-item bg-transparent" style="border-color:var(--border); padding:0.85rem 1.25rem;">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <div style="font-weight:600; font-size:0.875rem;">
@@ -270,7 +261,7 @@
                     </ul>
                 @else
                     <div class="text-center py-4">
-                        <i class="bi bi-shield-check" style="font-size: 2rem; color: var(--success);"></i>
+                        <i class="bi bi-shield-check" style="font-size:2rem; color:var(--success);"></i>
                         <p class="text-muted text-xs mt-2 mb-0">No maternal deaths recorded.</p>
                     </div>
                 @endif

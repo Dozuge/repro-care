@@ -2,23 +2,47 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barangay;
 use App\Models\Purok;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
-    // Show registration form
+    /**
+     * Legacy city-wide 86-barangay list. Kept for reference only —
+     * user-facing forms must use Barangay::catchmentNames('RHU 1')
+     * (16 barangays) since this deployment serves RHU 1 alone.
+     */
+    public static function getSanCarlosBarangays(): array
+    {
+        return [
+            'Abanon', 'Agdao', 'Anando', 'Ano', 'Antipangol', 'Aponit', 'Bacnar', 'Balaya', 'Balayong', 'Baldog',
+            'Balite Sur', 'Balococ', 'Bani', 'Bega', 'Bocboc', 'Bogaoan', 'Bolingit', 'Bolosan', 'Bonifacio (Poblacion)',
+            'Buenglat', 'Bugallon-Posadas Street (Poblacion)', 'Burgos Padlan (Poblacion)', 'Cacaritan', 'Caingal',
+            'Calobaoan', 'Calomboyan', 'Caoayan-Kiling', 'Capataan', 'Cobol', 'Coliling', 'Cruz', 'Doyong', 'Gamata',
+            'Guelew', 'Ilang', 'Inerangan', 'Isla', 'Libas', 'Lilimasan', 'Longos', 'Lucban (Poblacion)', 'M. Soriano',
+            'Mabalbalino', 'Mabini (Poblacion)', 'Magtaking', 'Malacañang', 'Maliwara', 'Mamarlao', 'Manzon',
+            'Matagdem', 'Mestizo Norte', 'Naguilayan', 'Nilentap', 'Padilla-Gomez', 'Pagal', 'Paitan-Panoypoy',
+            'Palaming', 'Palaris (Poblacion)', 'Palospos', 'Pangalangan', 'Pangoloan', 'Pangpang', 'Parayao',
+            'Payapa', 'Payar', 'Perez Boulevard (Poblacion)', 'PNR Station Site', 'Polo', 'Quezon Boulevard (Poblacion)',
+            'Quintong', 'Rizal (Poblacion)', 'Roxas Boulevard (Poblacion)', 'Salinap', 'San Juan', 'San Pedro-Taloy',
+            'Sapinit', 'Supo', 'Talang', 'Tamayo', 'Tandang Sora', 'Tandoc', 'Tarece', 'Tarectec', 'Tayambani', 'Tebag', 'Turac'
+        ];
+    }
+
+    // Show registration form — RHU 1 serves 16 catchment barangays only.
     public function showRegisterForm()
     {
-        $barangay = 'Barangay Burgos Padlan, San Carlos City, Pangasinan';
-        $puroks = Purok::where('barangay', $barangay)->orderBy('name')->get();
+        $barangays = Barangay::allNames();
 
-        return view('auth.register', compact('barangay', 'puroks'));
+        return view('auth.register', compact('barangays'));
     }
 
     // Handle registration
@@ -32,8 +56,14 @@ class AuthController extends Controller
             'gender' => 'nullable|in:male,female',
             'contact_number' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
-            'barangay' => 'nullable|string|max:255',
+            'house_number' => 'nullable|string|max:100',
+            'purok' => 'nullable|string|max:100',
+            'sitio' => 'nullable|string|max:200',
+            'barangay' => ['required', 'string', 'max:255', Rule::in(Barangay::allNames())],
             'purok_id' => 'nullable|exists:puroks,id',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'address_label' => 'nullable|string|max:500',
             'email' => 'required|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'id_image_data_front' => 'required|string',
@@ -62,16 +92,17 @@ class AuthController extends Controller
             'emergency_address_3' => 'nullable|string|max:500',
         ]);
 
-        $barangay = 'Barangay Burgos Padlan, San Carlos City, Pangasinan';
-        $purok = Purok::where('id', $request->purok_id)
-            ->where('barangay', $barangay)
-            ->first();
+        $barangay = $validated['barangay'];
 
-        if (! $purok) {
-            return redirect()->back()
-                ->withErrors(['purok_id' => 'Please select a valid purok.'])
-                ->withInput();
-        }
+        // Compose full address from components if address field is empty
+        $addressParts = array_filter([
+            $request->filled('house_number') ? 'House/Unit ' . $request->house_number : null,
+            $request->filled('purok') ? (str_starts_with(strtolower($request->purok), 'purok') ? $request->purok : 'Purok ' . $request->purok) : null,
+            $request->filled('sitio') ? $request->sitio : null,
+            $barangay,
+            'San Carlos City, Pangasinan'
+        ]);
+        $resolvedAddress = !empty($validated['address']) ? $validated['address'] : (!empty($addressParts) ? implode(', ', $addressParts) : null);
 
         // Process ID images (front and back)
         $idImageFrontPath = null;
@@ -87,6 +118,8 @@ class AuthController extends Controller
             $idImageBackPath = $this->processIdImage($request->id_image_data_back, 'back');
         }
 
+        $resolvedPurokId = $validated['purok_id']
+            ?? Purok::resolveIdFromText($request->input('purok'), $barangay);
         $user = User::create([
             'first_name' => $validated['first_name'],
             'middle_initial' => $validated['middle_initial'] ?? null,
@@ -94,9 +127,12 @@ class AuthController extends Controller
             'date_of_birth' => $validated['date_of_birth'] ?? null,
             'gender' => $validated['gender'] ?? null,
             'contact_number' => $validated['contact_number'] ?? null,
-            'address' => $validated['address'] ?? null,
+            'address' => trim(($resolvedAddress ?? '').($request->filled('address_label') ? ' ('.$request->address_label.')' : '')) ?: null,
             'barangay' => $barangay,
-            'purok_id' => $validated['purok_id'] ?? null,
+            'purok_id' => $resolvedPurokId,
+            'latitude' => $validated['latitude'] ?? null,
+            'longitude' => $validated['longitude'] ?? null,
+            'address_label' => $validated['address_label'] ?? null,
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
             'role' => 'user',
@@ -180,16 +216,17 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email'    => 'required|email',
             'password' => 'required',
+            'remember' => 'nullable|boolean',
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']], $request->boolean('remember'))) {
             $user = Auth::user();
 
             // Block pending users from logging in
             if ($user->status === 'pending') {
                 Auth::logout();
                 return back()->withErrors([
-                    'email' => 'Your account is pending approval by your Barangay Health Worker. Please wait.',
+                    'email' => 'Your account is pending RHU verification. You will receive an SMS once approved.',
                 ])->onlyInput('email');
             }
 
@@ -198,6 +235,15 @@ class AuthController extends Controller
                 Auth::logout();
                 return back()->withErrors([
                     'email' => 'Your account has been suspended. Please contact the administrator.',
+                ])->onlyInput('email');
+            }
+
+            // Block deactivated / archived accounts (e.g. former admins after a role handover).
+            // Only approved accounts may hold an active session.
+            if (($user->status ?? 'approved') !== 'approved') {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Your account is no longer active. Please contact the City Health Office.',
                 ])->onlyInput('email');
             }
 
@@ -218,6 +264,39 @@ class AuthController extends Controller
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ])->onlyInput('email');
+    }
+
+    public function showForgotForm()
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+        $status = Password::sendResetLink($request->only('email'));
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('status', 'If that email exists, a reset link was sent.')
+            : back()->withErrors(['email' => 'Unable to send reset link. Try again later.'])->onlyInput('email');
+    }
+
+    public function showResetForm(string $token)
+    {
+        return view('auth.reset-password', ['token' => $token, 'email' => request('email')]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required', 'email' => 'required|email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+        $status = Password::reset($request->only('email', 'password', 'password_confirmation', 'token'), function (User $user, string $password) {
+            $user->forceFill(['password' => Hash::make($password)])->save();
+        });
+        return $status === Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('status', 'Password reset. Please log in.')
+            : back()->withErrors(['email' => 'This reset link is invalid or expired.'])->onlyInput('email');
     }
 
     // Handle logout

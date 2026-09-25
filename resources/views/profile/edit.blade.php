@@ -5,93 +5,93 @@
 @push('styles')
 <style>
     /* ── Layout ── */
-    .edit-profile-wrap { max-width: 780px; margin: 0 auto; }
+    .edit-profile-wrap { max-width:780px; margin:0 auto; }
 
     /* ── Section header divider ── */
     .section-divider {
-        display: flex; align-items: center; gap: 0.75rem;
-        margin: 1.75rem 0 1.25rem;
+        display:flex; align-items:center; gap:0.75rem;
+        margin:1.75rem 0 1.25rem;
     }
     .section-divider-icon {
-        width: 32px; height: 32px; border-radius: 9px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.85rem; flex-shrink: 0;
+        width:32px; height:32px; border-radius:9px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:0.85rem; flex-shrink:0;
     }
     .section-divider h6 {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-weight: 800; font-size: 0.92rem;
-        color: var(--text); margin: 0;
-        text-transform: uppercase; letter-spacing: 0.7px;
+        font-family:'Plus Jakarta Sans', sans-serif;
+        font-weight:800; font-size:0.92rem;
+        color:var(--text); margin:0;
+        text-transform:uppercase; letter-spacing:0.7px;
     }
     .section-divider-line {
-        flex: 1; height: 1px; background: var(--border);
+        flex:1; height:1px; background:var(--border);
     }
 
     /* ── Avatar upload panel ── */
     .avatar-upload-panel {
-        background: var(--bg-card2);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        transition: background 0.4s ease;
-        flex-wrap: wrap;
+        background:var(--bg-card2);
+        border:1px solid var(--border);
+        border-radius:18px;
+        padding:1.5rem;
+        display:flex;
+        align-items:center;
+        gap:1.5rem;
+        transition:background 0.4s ease;
+        flex-wrap:wrap;
     }
     .avatar-upload-preview {
-        width: 90px; height: 90px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid var(--bg-card);
-        box-shadow: 0 0 0 3px var(--primary), 0 4px 18px var(--primary-glow);
-        flex-shrink: 0;
-        background: linear-gradient(135deg, var(--primary), var(--accent-violet));
-        display: block;
+        width:90px; height:90px;
+        border-radius:50%;
+        object-fit:cover;
+        border:3px solid var(--bg-card);
+        box-shadow:0 0 0 3px var(--primary), 0 4px 18px var(--primary-glow);
+        flex-shrink:0;
+        background:linear-gradient(135deg, var(--primary), var(--accent-violet));
+        display:block;
     }
     .avatar-upload-init {
-        width: 90px; height: 90px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary), var(--accent-violet));
-        display: flex; align-items: center; justify-content: center;
-        font-size: 2rem; font-weight: 800; color: #fff;
-        flex-shrink: 0;
-        border: 3px solid var(--bg-card);
-        box-shadow: 0 0 0 3px var(--primary), 0 4px 18px var(--primary-glow);
+        width:90px; height:90px;
+        border-radius:50%;
+        background:linear-gradient(135deg, var(--primary), var(--accent-violet));
+        display:flex; align-items:center; justify-content:center;
+        font-size:2rem; font-weight:800; color:var(--color-on-solid);
+        flex-shrink:0;
+        border:3px solid var(--bg-card);
+        box-shadow:0 0 0 3px var(--primary), 0 4px 18px var(--primary-glow);
     }
     .avatar-upload-info h6 {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 0.3rem;
+        font-family:'Plus Jakarta Sans', sans-serif;
+        font-size:0.95rem; font-weight:700; color:var(--text); margin-bottom:0.3rem;
     }
-    .avatar-upload-info p { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.85rem; }
+    .avatar-upload-info p { font-size:0.8rem; color:var(--text-muted); margin:0 0 0.85rem; }
     .avatar-file-input {
-        width: 100%; background: var(--bg-input); border: 1.5px solid var(--border);
-        border-radius: 10px; color: var(--text); font-size: 0.875rem;
-        padding: 0.45rem 0.75rem; outline: none; cursor: pointer;
-        transition: border-color 0.2s ease, background 0.3s ease;
+        width:100%; background:var(--bg-input); border:1.5px solid var(--border);
+        border-radius:10px; color:var(--text); font-size:0.875rem;
+        padding:0.45rem 0.75rem; outline:none; cursor:pointer;
+        transition:border-color 0.2s ease, background 0.3s ease;
     }
-    .avatar-file-input:focus { border-color: var(--primary); }
+    .avatar-file-input:focus { border-color:var(--primary); }
     .avatar-file-input::file-selector-button {
-        background: var(--primary-subtle); color: var(--primary-light);
-        border: 1px solid var(--border-glass); border-radius: 7px;
-        padding: 0.3rem 0.75rem; font-size: 0.8rem; font-weight: 600;
-        cursor: pointer; margin-right: 0.75rem;
-        transition: background 0.2s ease;
+        background:var(--primary-subtle); color:var(--primary-light);
+        border:1px solid var(--border-glass); border-radius:7px;
+        padding:0.3rem 0.75rem; font-size:0.8rem; font-weight:600;
+        cursor:pointer; margin-right:0.75rem;
+        transition:background 0.2s ease;
     }
-    .avatar-file-input::file-selector-button:hover { background: var(--primary); color: #fff; }
+    .avatar-file-input::file-selector-button:hover { background:var(--primary); color:var(--color-on-solid); }
 
     /* ── Edit card header ── */
     .edit-profile-header {
-        background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--accent-violet));
-        padding: 1.25rem 1.75rem;
-        border-radius: 20px 20px 0 0;
-        color: #fff;
+        background:linear-gradient(135deg, var(--primary-dark), var(--primary), var(--accent-violet));
+        padding:1.25rem 1.75rem;
+        border-radius:20px 20px 0 0;
+        color:var(--color-on-solid);
     }
     .edit-profile-header h4 {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-weight: 800; font-size: 1.2rem; margin: 0;
+        font-family:'Plus Jakarta Sans', sans-serif;
+        font-weight:800; font-size:1.2rem; margin:0;
     }
-    .edit-profile-header p { font-size: 0.8rem; opacity: 0.75; margin: 0.2rem 0 0; }
+    .edit-profile-header p { font-size:0.8rem; opacity:0.75; margin:0.2rem 0 0; }
 </style>
 @endpush
 
@@ -111,7 +111,7 @@
 
             {{-- Header --}}
             <div class="edit-profile-header">
-                <h4><i class="bi bi-person-gear me-2"></i>Edit Profile</h4>
+                <h4>Edit Profile</h4>
                 <p>Update your personal information and account settings</p>
             </div>
 
@@ -190,23 +190,9 @@
                         </div>
                     </div>
 
-                    @if($user->hasProfileImage())
-                        <div class="mb-3">
-                            <form action="{{ route('profile.remove-image') }}" method="POST" class="d-inline">
-                                @csrf
-                                <input type="hidden" name="redirect_to" value="{{ url()->previous() }}">
-                                <button type="submit"
-                                        class="btn btn-outline-danger btn-sm"
-                                        onclick="return confirm('Remove your profile picture?')">
-                                    <i class="bi bi-trash me-1"></i> Remove Current Picture
-                                </button>
-                            </form>
-                        </div>
-                    @endif
-
                     {{-- ── Section: Personal Info ── --}}
                     <div class="section-divider">
-                        <div class="section-divider-icon" style="background:rgba(6,182,212,0.12);color:var(--info);">
+                        <div class="section-divider-icon" style="background:color-mix(in srgb, var(--color-info) 12%, transparent);color:var(--info);">
                             <i class="bi bi-person-fill"></i>
                         </div>
                         <h6>Personal Information</h6>
@@ -214,13 +200,29 @@
                     </div>
 
                     <div class="row g-3 mb-1">
-                        <div class="col-md-6">
-                            <label for="name" class="form-label">Full Name <span style="color:var(--danger);">*</span></label>
+                        <div class="col-md-5">
+                            <label for="first_name" class="form-label">First Name <span style="color:var(--danger);">*</span></label>
                             <input type="text"
-                                   id="name" name="name"
-                                   class="form-control @error('name') is-invalid @enderror"
-                                   value="{{ old('name', $user->name) }}" required>
-                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                   id="first_name" name="first_name"
+                                   class="form-control @error('first_name') is-invalid @enderror"
+                                   value="{{ old('first_name', $user->first_name) }}" required>
+                            @error('first_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-2">
+                            <label for="middle_initial" class="form-label">M.I.</label>
+                            <input type="text"
+                                   id="middle_initial" name="middle_initial"
+                                   class="form-control @error('middle_initial') is-invalid @enderror"
+                                   value="{{ old('middle_initial', $user->middle_initial) }}" maxlength="2">
+                            @error('middle_initial')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-5">
+                            <label for="last_name" class="form-label">Last Name <span style="color:var(--danger);">*</span></label>
+                            <input type="text"
+                                   id="last_name" name="last_name"
+                                   class="form-control @error('last_name') is-invalid @enderror"
+                                   value="{{ old('last_name', $user->last_name) }}" required>
+                            @error('last_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
                             <label for="email" class="form-label">Email Address <span style="color:var(--danger);">*</span></label>
@@ -263,7 +265,7 @@
 
                     {{-- ── Section: Address ── --}}
                     <div class="section-divider">
-                        <div class="section-divider-icon" style="background:rgba(16,185,129,0.12);color:var(--success);">
+                        <div class="section-divider-icon" style="background:color-mix(in srgb, var(--color-success) 12%, transparent);color:var(--success);">
                             <i class="bi bi-geo-alt-fill"></i>
                         </div>
                         <h6>Address Information</h6>
@@ -284,7 +286,7 @@
 
                     {{-- ── Section: Change Password ── --}}
                     <div class="section-divider">
-                        <div class="section-divider-icon" style="background:rgba(245,158,11,0.12);color:var(--warning);">
+                        <div class="section-divider-icon" style="background:color-mix(in srgb, var(--color-warning) 12%, transparent);color:var(--warning);">
                             <i class="bi bi-key-fill"></i>
                         </div>
                         <h6>Change Password</h6>
@@ -327,6 +329,12 @@
                     </div>
 
                 </form>
+                @if($user->hasProfileImage())
+                    <form id="remove-picture-form" action="{{ route('profile.remove-image') }}" method="POST" class="d-inline">
+                        @csrf
+                        <input type="hidden" name="redirect_to" value="{{ url()->previous() }}">
+                    </form>
+                @endif
             </div>
         </div>
 

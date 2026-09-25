@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ChildCheckup extends Model
 {
-    use HasFactory;
+    // Child checkups feed growth/immunization history: archive only, never hard-delete.
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'child_id',

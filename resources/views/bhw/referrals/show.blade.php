@@ -2,10 +2,10 @@
 
 @section('bhw-content')
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <h2 class="page-title">Referral Details</h2>
         <a href="{{ route('bhw.referrals.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Referrals
+            <i class="bi bi-arrow-left"></i> Back to Referrals
         </a>
     </div>
 
@@ -32,9 +32,9 @@
                             <strong>Patient Type:</strong>
                             <p>
                                 @if($referral->woman)
-                                    Registered User
+                                    Enrolled Patient
                                 @elseif($referral->walkInPatient)
-                                    Walk-in Patient
+                                    Unlinked Patient
                                 @else
                                     Unknown
                                 @endif
@@ -121,8 +121,8 @@
                     </div>
                     <div class="card-body">
                         <p>This referral has been converted to a scheduled checkup.</p>
-                        <a href="{{ route('midwife.checkups.show', $referral->convertedCheckup->id) }}" class="btn btn-success">
-                            <i class="fas fa-calendar-check"></i> View Checkup
+                        <a href="{{ route('bhw.checkups.index') }}" class="btn btn-success">
+                            <i class="bi bi-calendar-check"></i> View in Checkups
                         </a>
                     </div>
                 </div>
@@ -148,7 +148,7 @@
             @elseif($referral->walkInPatient)
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">Walk-in Patient Details</h5>
+                        <h5 class="mb-0">Unlinked Patient Details</h5>
                     </div>
                     <div class="card-body">
                         <p><strong>Name:</strong> {{ $referral->walkInPatient->full_name }}</p>
@@ -158,7 +158,7 @@
                         <p><strong>Barangay:</strong> {{ $referral->walkInPatient->barangay ?? '—' }}</p>
                         <p><strong>Reason for Visit:</strong> {{ $referral->walkInPatient->reason_for_visit ?? '—' }}</p>
                         @if($referral->walkInPatient->converted_to_user_id)
-                            <span class="badge bg-success">Converted to Registered User</span>
+                            <span class="badge bg-success">Converted to Enrolled Account</span>
                         @endif
                     </div>
                 </div>

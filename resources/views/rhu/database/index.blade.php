@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
             <div class="page-hero-title">Database Backup & Restore</div>
-            <p class="page-hero-subtitle">
+            <p class="page-hero-subtitle" style="font-weight:600;">
                 <i class="bi bi-database-fill me-1"></i> Keep system data safe, export backups, and restore snapshots.
             </p>
         </div>
@@ -36,8 +36,7 @@
         <!-- Database Info & Export -->
         <div class="card fade-in-card mb-4">
             <div class="card-header bg-transparent py-3">
-                <h5 class="mb-0 fw-700" style="color: var(--primary);">
-                    <i class="bi bi-info-circle-fill me-2"></i>Database Information
+                <h5 class="mb-0 fw-700" style="color:var(--primary);">Database Information
                 </h5>
             </div>
             <div class="card-body">
@@ -51,7 +50,7 @@
                     <div class="col-sm-6">
                         <div class="p-3 rounded bg-light">
                             <span class="text-xs text-muted d-block uppercase tracking-wider mb-1">Database Name</span>
-                            <span class="fw-700 text-dark" style="word-break: break-all;">
+                            <span class="fw-700 text-dark" style="word-break:break-all;">
                                 @if($dbType === 'sqlite')
                                     database.sqlite
                                 @else
@@ -76,7 +75,7 @@
                     @endif
                 </div>
 
-                <hr class="my-4" style="border-color: var(--border);">
+                <hr class="my-4" style="border-color:var(--border);">
 
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <div>
@@ -96,8 +95,7 @@
         <!-- Existing Backups -->
         <div class="card fade-in-card">
             <div class="card-header bg-transparent py-3">
-                <h5 class="mb-0 fw-700" style="color: var(--cyan);">
-                    <i class="bi bi-archive-fill me-2"></i>Existing Backups ({{ count($backups) }})
+                <h5 class="mb-0 fw-700" style="color:var(--cyan);">Existing Backups ({{ count($backups) }})
                 </h5>
             </div>
             <div class="card-body p-0">
@@ -119,9 +117,9 @@
                                             <i class="bi bi-file-earmark-binary me-2 text-muted"></i>{{ $backup['name'] }}
                                         </td>
                                         <td>{{ $backup['size'] }}</td>
-                                        <td style="font-size: 0.8rem; color: var(--text-muted);">{{ $backup['date'] }}</td>
+                                        <td style="font-size:0.8rem; color:var(--text-muted);">{{ $backup['date'] }}</td>
                                         <td class="text-end px-4">
-                                            <div class="d-flex justify-content-end gap-2">
+                                            <div class="d-flex justify-content-end gap-2 tbl-actions">
                                                 <a href="{{ route('rhu.database.download', $backup['name']) }}" 
                                                    class="btn btn-sm btn-icon btn-primary" title="Download">
                                                     <i class="bi bi-download"></i>
@@ -144,7 +142,7 @@
                     </div>
                 @else
                     <div class="text-center py-5">
-                        <i class="bi bi-server" style="font-size: 2.5rem; color: var(--text-muted);"></i>
+                        <i class="bi bi-server" style="font-size:2.5rem; color:var(--text-muted);"></i>
                         <h6 class="mt-3 mb-1 fw-700">No Backups Found</h6>
                         <p class="text-muted text-xs px-4">There are currently no stored backup files in storage/app/backups. Create one using the download option above.</p>
                     </div>
@@ -156,15 +154,14 @@
     <div class="col-lg-5">
         <!-- Import / Restore -->
         <div class="card border-warning mb-4 fade-in-card">
-            <div class="card-header bg-transparent py-3" style="border-bottom: 1px solid rgba(245,158,11,0.15);">
-                <h5 class="mb-0 fw-700 text-warning">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Import / Restore Database
+            <div class="card-header bg-transparent py-3" style="border-bottom:1px solid color-mix(in srgb, var(--color-warning) 15%, transparent);">
+                <h5 class="mb-0 fw-700 text-warning">Import / Restore Database
                 </h5>
             </div>
             <div class="card-body">
-                <div class="alert alert-danger mb-4" style="background-color: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">
+                <div class="alert alert-danger mb-4" style="background-color:color-mix(in srgb, var(--color-danger) 10%, transparent); border-color:color-mix(in srgb, var(--color-danger) 20%, transparent); color:var(--color-danger-text);">
                     <div class="d-flex">
-                        <i class="bi bi-slash-circle-fill me-2" style="font-size: 1.2rem;"></i>
+                        <i class="bi bi-slash-circle-fill me-2" style="font-size:1.2rem;"></i>
                         <div>
                             <strong class="d-block mb-1">CRITICAL WARNING:</strong>
                             Importing a database will <strong>COMPLETELY OVERWRITE and REPLACE</strong> all tables and information in the current system. This action is instantaneous and cannot be undone!
@@ -179,7 +176,7 @@
                         <input type="file" class="form-control @error('backup_file') is-invalid @enderror" 
                                id="backup_file" name="backup_file" 
                                accept=".sqlite,.sql,.db,.txt" required>
-                        <div class="form-text mt-2" style="font-size: 0.75rem;">
+                        <div class="form-text mt-2" style="font-size:0.75rem;">
                             Accepted formats: {{ $dbType === 'sqlite' ? '.sqlite, .db, .txt' : '.sql' }}. Max size: 50MB.
                         </div>
                         @error('backup_file')
@@ -187,7 +184,7 @@
                         @enderror
                     </div>
 
-                    <div class="form-check mb-4 p-3 rounded" style="background: rgba(245,158,11,0.05); border: 1px dashed rgba(245,158,11,0.25);">
+                    <div class="form-check mb-4 p-3 rounded" style="background:color-mix(in srgb, var(--color-warning) 5%, transparent); border:1px dashed color-mix(in srgb, var(--color-warning) 25%, transparent);">
                         <input class="form-check-input ms-0 me-2" type="checkbox" id="confirm_import" required>
                         <label class="form-check-label text-dark fw-600 text-xs" for="confirm_import">
                             I explicitly understand that all existing system data will be replaced by the imported backup file.
@@ -204,11 +201,10 @@
         <!-- Transfer Instructions -->
         <div class="card fade-in-card">
             <div class="card-header bg-transparent py-3">
-                <h5 class="mb-0 fw-700 text-muted">
-                    <i class="bi bi-info-circle-fill me-2"></i>PC-to-PC Migration Guide
+                <h5 class="mb-0 fw-700 text-muted">PC-to-PC Migration Guide
                 </h5>
             </div>
-            <div class="card-body" style="font-size: 0.85rem;">
+            <div class="card-body" style="font-size:0.85rem;">
                 <h6 class="fw-700 text-dark mb-2">Method 1: Portal Upload / Restore (Recommended)</h6>
                 <ol class="ps-3 mb-4 text-muted">
                     <li class="mb-1">Click <strong>Download Backup</strong> on the source computer.</li>

@@ -7,7 +7,7 @@
     <div class="page-hero fade-in-card">
         <div class="workspace-toolbar" style="position:relative;z-index:1;">
             <div>
-                <div class="page-hero-title"><i class="bi bi-file-earmark-text-fill me-2"></i>BHW Monthly Reports</div>
+                <div class="page-hero-title">BHW Monthly Reports</div>
                 <p class="page-hero-subtitle">Final review queue for reports approved by the BHW president and waiting for RHU Admin action.</p>
             </div>
         </div>
@@ -20,7 +20,7 @@
         </div>
     @endif
 
-    <div class="metric-grid mb-4" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+    <div class="metric-grid mb-4" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
         <div class="card p-3 fade-in-card bg-light border-0">
             <div class="text-muted text-xs uppercase tracking-wider mb-1">Reports in Queue</div>
             <div class="fw-800 text-dark text-2xl">{{ $reports->total() }}</div>
@@ -35,14 +35,13 @@
         </div>
         <div class="card p-3 fade-in-card bg-light border-0">
             <div class="text-muted text-xs uppercase tracking-wider mb-1">Rejected</div>
-            <div class="fw-800 text-dark text-2xl">{{ $reports->getCollection()->where('submission_status', 'rejected')->count() }}</div>
+            <div class="fw-800 text-dark text-2xl">{{ $reports->getCollection()->whereIn('submission_status', ['rejected', 'needs_revision'])->count() }}</div>
         </div>
     </div>
 
     <div class="card fade-in-card mb-4">
         <div class="card-header bg-transparent py-3">
-            <h5 class="mb-0 fw-700 text-dark">
-                <i class="bi bi-funnel-fill me-2" style="color:var(--primary);"></i>Filter Queue
+            <h5 class="mb-0 fw-700 text-dark">Filter Queue
             </h5>
         </div>
         <div class="card-body">
@@ -65,8 +64,7 @@
 
     <div class="card fade-in-card">
         <div class="card-header bg-transparent py-3">
-            <h5 class="mb-0 fw-700 text-dark">
-                <i class="bi bi-table me-2" style="color:var(--cyan);"></i>Review List
+            <h5 class="mb-0 fw-700 text-dark">Review List
             </h5>
         </div>
         <div class="card-body p-0">
@@ -103,12 +101,12 @@
                                         @php
                                             $statusChip = match($report->submission_status) {
                                                 'approved_by_midwife' => 'bg-success',
-                                                'rejected' => 'bg-danger',
+                                                'rejected', 'needs_revision' => 'bg-danger',
                                                 default => 'bg-warning',
                                             };
                                             $statusLabel = match($report->submission_status) {
                                                 'approved_by_midwife' => 'Approved',
-                                                'rejected' => 'Rejected',
+                                                'rejected', 'needs_revision' => 'Needs Revision',
                                                 default => 'Pending Review',
                                             };
                                         @endphp
@@ -135,7 +133,7 @@
                 </div>
             @else
                 <div class="text-center py-5">
-                    <i class="bi bi-file-earmark-x text-muted" style="font-size: 3rem;"></i>
+                    <i class="bi bi-file-earmark-x text-muted" style="font-size:3rem;"></i>
                     <h5 class="mt-3 mb-1 fw-700">No reports found</h5>
                     <p class="text-muted text-xs">Reports approved by the BHW president will appear here when they reach the queue.</p>
                 </div>

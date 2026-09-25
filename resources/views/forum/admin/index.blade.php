@@ -7,7 +7,7 @@
     <div class="page-hero fade-in-card">
         <div class="workspace-toolbar" style="position:relative;z-index:1;">
             <div>
-                <div class="page-hero-title"><i class="bi bi-shield-check me-2"></i>Forum Administration</div>
+                <div class="page-hero-title">Forum Administration</div>
                 <p class="page-hero-subtitle">Moderate forum activity, review engagement, and manage community-facing posts.</p>
             </div>
             <div class="workspace-toolbar-actions">
@@ -55,7 +55,7 @@
         <div class="workspace-panel-header">
             <div class="workspace-toolbar">
                 <div>
-                    <h2 class="workspace-panel-title"><i class="bi bi-table"></i>Forum Posts</h2>
+                    <h2 class="workspace-panel-title">Forum Posts</h2>
                     <p class="workspace-panel-subtitle">Review post content, author activity, and moderation status.</p>
                 </div>
                 <button type="button" class="btn btn-danger btn-sm" id="bulkDeleteBtn" style="display:none;" onclick="bulkDelete()">
@@ -109,7 +109,7 @@
                                         </td>
                                         <td>{{ $post->created_at->format('M j, Y') }}</td>
                                         <td class="text-end">
-                                            <div class="table-actions">
+                                            <div class="table-actions d-inline-flex align-items-center gap-1 tbl-actions">
                                                 <a href="{{ route('midwife.forum.admin.show', $post->id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
                                                 @if($post->user_id === auth()->id() && $post->user_type === 'midwife')
                                                     <a href="{{ route('midwife.forum.admin.edit', $post->id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>

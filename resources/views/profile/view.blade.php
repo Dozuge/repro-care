@@ -1,47 +1,47 @@
-@extends('layouts.app')
+@extends($profileLayout ?? 'layouts.app')
 
 @section('title', $user->name . ' - Profile')
 
-@section('content')
+@section($profileSection ?? 'content')
 <style>
     .profile-view-card {
-        border: 0;
-        border-radius: 1rem;
-        overflow: hidden;
+        border:0;
+        border-radius:1rem;
+        overflow:hidden;
     }
 
     .profile-view-header {
-        background: linear-gradient(135deg, #0d6efd, #5b9dff);
+        background:linear-gradient(135deg, var(--color-info), var(--color-info));
     }
 
     .profile-view-avatar {
-        width: 160px;
-        height: 160px;
-        object-fit: cover;
-        border: 5px solid #fff;
-        box-shadow: 0 0.75rem 2rem rgba(13, 110, 253, 0.2);
+        width:160px;
+        height:160px;
+        object-fit:cover;
+        border:5px solid var(--color-border);
+        box-shadow:0 0.75rem 2rem color-mix(in srgb, rgb(var(--color-shadow-rgb)) 20%, transparent);
     }
 
     .profile-info-item {
-        border: 1px solid #e9ecef;
-        border-radius: 0.85rem;
-        padding: 1rem;
-        height: 100%;
-        background: #fff;
+        border:1px solid var(--color-border);
+        border-radius:0.85rem;
+        padding:1rem;
+        height:100%;
+        background:var(--color-surface);
     }
 
     .profile-info-label {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: #6c757d;
-        margin-bottom: 0.35rem;
+        font-size:0.8rem;
+        text-transform:uppercase;
+        letter-spacing:0.04em;
+        color:var(--color-text-muted);
+        margin-bottom:0.35rem;
     }
 
     .profile-info-value {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #212529;
+        font-size:1rem;
+        font-weight:600;
+        color:var(--color-text-muted);
     }
 </style>
 <div class="py-4">
@@ -59,9 +59,7 @@
                 <div class="card-body">
                     <div class="row align-items-center g-4 mb-4">
                         <div class="col-md-4 text-center">
-                            <img src="{{ $user->profile_image_url }}"
-                                 alt="Profile Picture"
-                                 class="rounded-circle profile-view-avatar">
+                            <x-patient-avatar :patient="$user" :size="160" />
                         </div>
                         <div class="col-md-8">
                             <h3 class="mb-1">{{ $user->name }}</h3>

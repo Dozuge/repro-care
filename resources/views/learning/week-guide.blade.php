@@ -6,9 +6,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4 fade-in-card">
     <div>
-        <h1 class="page-title">
-            <i class="bi bi-calendar-heart-fill me-2" style="color:var(--primary-light);"></i>
-            Week {{ $week }} Pregnancy Guide
+        <h1 class="page-title">Week {{ $week }} Pregnancy Guide
         </h1>
         <p class="page-subtitle">What's happening with you and your baby at week {{ $week }}</p>
     </div>

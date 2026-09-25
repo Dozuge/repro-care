@@ -2,10 +2,15 @@
 
 @section('title', 'BHW President Portal - ReproCare')
 
-@include('includes.sidebar')
+@include('includes.portal-theme')
 
 @section('content')
-<main class="main-content">
-    @yield('bhw-president-content')
-</main>
+<div class="layout-wrapper">
+    @include('includes.sidebar')
+    <main class="main-content">
+        <div class="mw-container">
+            @yield('bhw-president-content')
+        </div>
+    </main>
+</div>
 @endsection

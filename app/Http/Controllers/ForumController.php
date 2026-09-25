@@ -63,23 +63,29 @@ class ForumController extends Controller
             ])
             ->withCount(['likes as likes_count', 'comments as comments_count']);
         
+        // Filter by search query
+        $search = request('search');
+        if ($search) {
+            $query->where('content', 'like', '%' . $search . '%');
+        }
+
         // Filter by user's own posts if requested
         $filter = request('filter');
         if ($filter === 'my-posts') {
             $query->where('user_id', $currentUser->id);
         }
 
-        $posts = $query->latest()->paginate(10);
+        $posts = $query->latest()->paginate(10)->withQueryString();
         $userType = $this->getUserType();
 
         // Use different views based on user role
         if ($userType === 'midwife') {
-            return view('midwife.forum.index', compact('posts', 'filter'));
+            return view('midwife.forum.index', compact('posts', 'filter', 'search'));
         } elseif ($userType === 'bhw' || $userType === 'bhw-president') {
-            return view('bhw.forum.index', compact('posts', 'filter'));
+            return view('bhw.forum.index', compact('posts', 'filter', 'search'));
         }
 
-        return view('forum.index', compact('posts', 'filter'));
+        return view('forum.index', compact('posts', 'filter', 'search'));
     }
 
     // Show single post
@@ -94,6 +100,9 @@ class ForumController extends Controller
                 'likes.user',
             ])
             ->withCount(['likes as likes_count', 'comments as comments_count'])
+            ->where(function ($q) use ($currentUser) {
+                $q->where('status', 'active')->orWhere('user_id', $currentUser->id);
+            })
             ->findOrFail($id);
 
         $userType = $this->getUserType();
@@ -260,12 +269,13 @@ class ForumController extends Controller
         $currentUser = $this->getCurrentUser();
         if (!$currentUser) return redirect()->route('login');
 
+        $post = ForumPost::where('status', 'active')->findOrFail($postId);
         $request->validate([
             'content' => 'required|string|max:1000',
         ]);
 
         $commentData = [
-            'post_id' => $postId,
+            'post_id' => $post->id,
             'content' => $request->content,
             'user_id' => $currentUser->id,
         ];
@@ -282,21 +292,24 @@ class ForumController extends Controller
         $currentUser = $this->getCurrentUser();
         if (!$currentUser) return redirect()->route('login');
 
-        $post = ForumPost::findOrFail($postId);
+        $post = ForumPost::where('status', 'active')->findOrFail($postId);
 
-        // Check if already liked
-        $existingLike = ForumLike::where('post_id', $postId)
+        // Toggle via unique key so races cannot duplicate.
+        $existingLike = ForumLike::where('post_id', $post->id)
             ->where('user_id', $currentUser->id)
             ->first();
 
         if ($existingLike) {
             $existingLike->delete();
         } else {
-            // Like
-            ForumLike::create([
-                'post_id' => $postId,
-                'user_id' => $currentUser->id,
-            ]);
+            try {
+                ForumLike::create([
+                    'post_id' => $post->id,
+                    'user_id' => $currentUser->id,
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Already liked concurrently — treat as liked.
+            }
         }
 
         return redirect()->back();
@@ -357,16 +370,20 @@ class ForumController extends Controller
 
         $post = ForumPost::create($data);
 
-        // Broadcast notification to all users about the new forum post
-        $allUsers = \App\Models\User::where('role', 'user')->get();
-        foreach ($allUsers as $user) {
-            \App\Models\Notification::createNotification(
-                $user->id,
-                'New maternal care education post available in the forum.',
-                'New Forum Post - Maternal Care',
-                'info',
-                route('forum.show', $post->id),
-                'user'
+        // Broadcast notification to all users about the new forum post.
+        // Idempotent per post so retries/double-clicks cannot spam inboxes.
+        $allUsers = \App\Models\User::where('role', 'user')->pluck('id');
+        foreach ($allUsers as $userId) {
+            \App\Models\Notification::firstOrCreate(
+                ['user_id' => $userId, 'event_key' => 'forum:'.$post->id],
+                [
+                    'title' => 'New Forum Post - Maternal Care',
+                    'message' => 'New maternal care education post available in the forum.',
+                    'type' => 'info',
+                    'category' => 'forum',
+                    'action_url' => route('forum.show', $post->id),
+                    'is_read' => false,
+                ]
             );
         }
 

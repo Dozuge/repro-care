@@ -34,6 +34,12 @@ class BhwMonthlyReport extends Model
         'approved_by_midwife',
         'approved_by_midwife_at',
         'midwife_notes',
+        // 1. Rejection Feedback Loop — correction & resubmission state
+        'revision_count',
+        'rejected_by_id',
+        'rejected_at',
+        'rejection_reason',
+        'resubmitted_at',
     ];
 
     protected $casts = [
@@ -43,7 +49,41 @@ class BhwMonthlyReport extends Model
         'approved_by_president_at' => 'datetime',
         'submitted_to_midwife_at' => 'datetime',
         'approved_by_midwife_at' => 'datetime',
+        'rejected_at' => 'datetime',
+        'resubmitted_at' => 'datetime',
     ];
+
+    // ── 1. Rejection Feedback Loop helpers ─────────────────────────────
+    public function scopeNeedsRevision($query)
+    {
+        return $query->whereIn('submission_status', ['needs_revision', 'rejected']);
+    }
+
+    public function getIsNeedsRevisionAttribute(): bool
+    {
+        return in_array($this->submission_status, ['needs_revision', 'rejected'], true);
+    }
+
+    public function getReviewerNoteAttribute(): ?string
+    {
+        return $this->rejection_reason ?? $this->midwife_notes ?? $this->president_notes;
+    }
+
+    public function rejectedBy()
+    {
+        return $this->belongsTo(User::class, 'rejected_by_id');
+    }
+
+    /** BHW fixes the flagged items and puts the report back in queue. */
+    public function resubmit(int $submitterId): void
+    {
+        $this->update([
+            'submission_status' => 'submitted_to_president',
+            'submitted_to_president_by' => $submitterId,
+            'submitted_to_president_at' => now(),
+            'resubmitted_at' => now(),
+        ]);
+    }
 
     public function bhw()
     {
@@ -92,10 +132,14 @@ class BhwMonthlyReport extends Model
     public function rejectByPresident($userId, $notes)
     {
         $this->update([
-            'submission_status' => 'rejected',
+            'submission_status' => 'needs_revision',
             'approved_by_president' => $userId,
             'approved_by_president_at' => now(),
             'president_notes' => $notes,
+            'rejected_by_id' => $userId,
+            'rejected_at' => now(),
+            'rejection_reason' => $notes,
+            'revision_count' => ((int) ($this->revision_count ?? 0)) + 1,
         ]);
     }
 
@@ -121,10 +165,14 @@ class BhwMonthlyReport extends Model
     public function rejectByMidwife($userId, $notes)
     {
         $this->update([
-            'submission_status' => 'rejected',
+            'submission_status' => 'needs_revision',
             'approved_by_midwife' => $userId,
             'approved_by_midwife_at' => now(),
             'midwife_notes' => $notes,
+            'rejected_by_id' => $userId,
+            'rejected_at' => now(),
+            'rejection_reason' => $notes,
+            'revision_count' => ((int) ($this->revision_count ?? 0)) + 1,
         ]);
     }
 

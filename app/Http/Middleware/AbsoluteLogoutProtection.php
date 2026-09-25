@@ -24,13 +24,17 @@ class AbsoluteLogoutProtection
     {
         // Check if user is authenticated
         if (!$this->hasAuthenticatedUser()) {
-            // Set logout flag in session only if not already set
             if (!Session::has('user_logged_out')) {
                 Session::put('user_logged_out', true);
             }
-            
-            // Return login page with no-cache headers
-            return response()->view('auth.login')
+            // Preserve proper 302 semantics so route expectations, caching,
+            // and /dashboard dispatch keep working. JSON callers get 401.
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401)
+                    ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, private')
+                    ->header('Pragma', 'no-cache');
+            }
+            return redirect()->route('login')
                 ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0, private')
                 ->header('Pragma', 'no-cache')
                 ->header('Expires', 'Sat, 26 Jul 1997 05:00:00 GMT')

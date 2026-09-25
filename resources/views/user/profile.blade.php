@@ -5,32 +5,32 @@
 @section('user-content')
 <style>
     .user-profile-card {
-        background: rgba(38, 24, 68, 0.96);
-        border: 1px solid rgba(139, 92, 246, 0.18);
-        border-radius: 1rem;
-        overflow: hidden;
-        box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.18);
+        background:color-mix(in srgb, var(--color-surface-soft) 96%, transparent);
+        border:1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
+        border-radius:1rem;
+        overflow:hidden;
+        box-shadow:0 1rem 2.5rem color-mix(in srgb, rgb(var(--color-shadow-rgb)) 18%, transparent);
     }
 
     .user-profile-header {
-        background: linear-gradient(135deg, #1f7aff, #2563eb);
-        color: #fff;
+        background:linear-gradient(135deg, var(--color-info), var(--color-info-text));
+        color:var(--color-on-solid);
     }
 
     .user-profile-avatar {
-        width: 104px;
-        height: 104px;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 4px solid rgba(255, 255, 255, 0.18);
+        width:104px;
+        height:104px;
+        object-fit:cover;
+        border-radius:50%;
+        border:4px solid color-mix(in srgb, var(--color-border) 18%, transparent);
     }
 
     .user-profile-side {
-        background: rgba(67, 42, 116, 0.35);
-        border: 1px solid rgba(139, 92, 246, 0.14);
-        border-radius: 1rem;
-        padding: 1.25rem;
-        height: 100%;
+        background:color-mix(in srgb, var(--color-primary-text) 35%, transparent);
+        border:1px solid color-mix(in srgb, var(--color-primary) 14%, transparent);
+        border-radius:1rem;
+        padding:1.25rem;
+        height:100%;
     }
 </style>
 
@@ -56,7 +56,7 @@
         <div class="col-xl-8">
             <div class="card shadow user-profile-card">
                 <div class="card-header user-profile-header">
-                    <h5 class="mb-0"><i class="bi bi-person-circle"></i> My Profile</h5>
+                    <h5 class="mb-0">My Profile</h5>
                 </div>
                 <div class="card-body">
                     @if(session('success'))

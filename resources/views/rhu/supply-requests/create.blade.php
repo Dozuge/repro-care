@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-box-seam-fill me-2" style="color:var(--primary-light);"></i>Request Supplies
+            <div class="page-hero-title">Request Supplies
             </div>
             <p class="page-hero-subtitle">
                 Submit a new inventory replenishment request to the City Health Office.
@@ -22,7 +21,7 @@
 
 @if ($errors->any())
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius:12px;">
-        <h6 class="alert-heading fw-bold mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Please resolve the following errors:</h6>
+        <h6 class="alert-heading fw-bold mb-2">Please resolve the following errors:</h6>
         <ul class="mb-0 text-xs">
             @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -37,22 +36,33 @@
         <form method="POST" action="{{ route('rhu.supply-requests.store') }}">
             @csrf
 
+            @php($catalog = config('supply_catalog'))
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label class="form-label required-label">Item / Supply Name</label>
-                    <input type="text" name="supply_name" class="form-control" value="{{ old('supply_name') }}" placeholder="e.g. Iron + Folic Acid tablets" required>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label required-label">Category</label>
-                    <select name="supply_category" class="form-select" required>
-                        <option value="" disabled selected>Select Category</option>
-                        <option value="supplements" {{ old('supply_category') === 'supplements' ? 'selected' : '' }}>Supplements / Micronutrients</option>
-                        <option value="contraceptives" {{ old('supply_category') === 'contraceptives' ? 'selected' : '' }}>Family Planning / Contraceptives</option>
-                        <option value="medical_supplies" {{ old('supply_category') === 'medical_supplies' ? 'selected' : '' }}>Clinical & Medical Supplies</option>
-                        <option value="vaccines" {{ old('supply_category') === 'vaccines' ? 'selected' : '' }}>Maternal Vaccines (Tetanus Toxoid, etc.)</option>
-                        <option value="others" {{ old('supply_category') === 'others' ? 'selected' : '' }}>Others</option>
+                    <label for="supply-category" class="form-label required-label">Category</label>
+                    <select id="supply-category" name="supply_category" class="form-select" required>
+                        <option value="">Select category</option>
+                        @foreach($catalog['categories'] as $key => $category)
+                            <option value="{{ $key }}" @selected(old('supply_category') === $key)>{{ $category['label'] }}</option>
+                        @endforeach
                     </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="supply-name" class="form-label required-label">Item / Supply Name</label>
+                    <select id="supply-name" name="supply_name" class="form-select" required data-selected="{{ old('supply_name') }}">
+                        <option value="">Select an item</option>
+                        @foreach($catalog['categories'] as $category)
+                            <optgroup label="{{ $category['label'] }}">
+                                @foreach($category['items'] as $name => $units)<option value="{{ $name }}" @selected(old('supply_name') === $name)>{{ $name }}</option>@endforeach
+                            </optgroup>
+                        @endforeach
+                        <option value="__other__" @selected(old('supply_name') === '__other__')>Other item (specify)</option>
+                    </select>
+                    <small class="text-muted">Choose a category first to see matching supplies.</small>
+                </div>
+                <div class="col-12" id="other-supply-field">
+                    <label for="supply-name-other" class="form-label">Other item name</label>
+                    <input id="supply-name-other" name="supply_name_other" class="form-control" maxlength="255" value="{{ old('supply_name_other') }}">
                 </div>
             </div>
 
@@ -63,8 +73,11 @@
                 </div>
 
                 <div class="col-md-4">
-                    <label class="form-label required-label">Unit of Measure</label>
-                    <input type="text" name="unit" class="form-control" value="{{ old('unit') }}" placeholder="e.g. tablets, boxes, vials, kits" required>
+                    <label for="supply-unit" class="form-label required-label">Unit of Measure</label>
+                    <select id="supply-unit" name="unit" class="form-select" required data-selected="{{ old('unit') }}">
+                        <option value="">Select unit</option>
+                        @foreach($catalog['units'] as $unit)<option value="{{ $unit }}" @selected(old('unit') === $unit)>{{ ucfirst($unit) }}</option>@endforeach
+                    </select>
                 </div>
 
                 <div class="col-md-4">
@@ -96,3 +109,8 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script type="application/json" id="supply-catalog">{!! \Illuminate\Support\Js::encode($catalog) !!}</script>
+<script src="{{ asset('js/supply-request-form.js') }}?v={{ filemtime(public_path('js/supply-request-form.js')) }}" defer></script>
+@endpush

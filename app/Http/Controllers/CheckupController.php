@@ -149,13 +149,13 @@ class CheckupController extends Controller
         }
 
         $request->validate([
-            'patient_id' => 'exclude_unless:patient_type,registered|required|exists:users,id',
+            'user_id' => 'exclude_unless:patient_type,registered|required|exists:users,id',
             'walk_in_patient_id' => 'exclude_unless:patient_type,walk_in|required|exists:walk_in_patients,id',
             'midwife_id' => 'required|exists:users,id',
             'scheduled_date' => 'required|date|after_or_equal:today',
             'scheduled_time' => 'required',
             'purpose' => 'required|string|max:255',
-            'status' => 'required|in:scheduled,completed,missed,Rescheduled,cancelled',
+            'status' => 'required|in:Scheduled,Completed,Missed,Rescheduled,Cancelled',
         ]);
 
         // Check if date was changed
@@ -164,17 +164,17 @@ class CheckupController extends Controller
         $dateChanged = $oldDate !== $newDate;
 
         // If rescheduling a missed/cancelled checkup, set status to Rescheduled
-        if (in_array($checkup->status, ['Missed', 'Cancelled']) && $request->status === 'scheduled') {
+        if (in_array($checkup->status, ['Missed', 'Cancelled']) && $request->status === 'Scheduled') {
             $request->merge(['status' => 'Rescheduled']);
         }
 
         // If date was changed and status is scheduled, set to Rescheduled
-        if ($dateChanged && $request->status === 'scheduled' && $checkup->status === 'scheduled') {
+        if ($dateChanged && $request->status === 'Scheduled' && $checkup->status === 'Scheduled') {
             $request->merge(['status' => 'Rescheduled']);
         }
 
         $checkup->update([
-            'user_id' => $request->patient_type === 'registered' ? $request->patient_id : null,
+            'user_id' => $request->patient_type === 'registered' ? $request->user_id : null,
             'walk_in_patient_id' => $request->patient_type === 'walk_in' ? $request->walk_in_patient_id : null,
             'midwife_id' => $request->midwife_id,
             'scheduled_date' => $request->scheduled_date,
@@ -185,7 +185,7 @@ class CheckupController extends Controller
         ]);
 
         // Create notification if status changed to completed
-        if ($request->status === 'completed' && $checkup->user_id) {
+        if ($request->status === 'Completed' && $checkup->user_id) {
             Notification::createNotification($checkup->user_id,
                 "Your checkup on {$checkup->scheduled_date->format('F j, Y')} at " . Carbon::createFromFormat('H:i:s', $checkup->scheduled_time)->format('g:i A') . " has been marked as completed"
             );
@@ -258,7 +258,7 @@ class CheckupController extends Controller
     public function markCancelled($id)
     {
         $checkup = Checkup::findOrFail($id);
-        $checkup->status = 'cancelled';
+        $checkup->status = 'Cancelled';
         $checkup->save();
 
         return redirect()->back()

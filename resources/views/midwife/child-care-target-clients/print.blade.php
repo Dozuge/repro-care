@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Print Child Care Client List</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 24px; color: #111827; }
-        h1, p { margin: 0 0 8px; }
-        .meta { margin-bottom: 20px; color: #4b5563; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; vertical-align: top; }
-        th { background: #f3f4f6; }
-        .right { text-align: right; }
-        @media print { .no-print { display: none; } body { margin: 12px; } }
+        body { font-family:Arial, sans-serif; margin:24px; color:var(--color-text); }
+        h1, p { margin:0 0 8px; }
+        .meta { margin-bottom:20px; color:var(--color-text-muted); }
+        table { width:100%; border-collapse:collapse; font-size:12px; }
+        th, td { border:1px solid var(--color-border); padding:8px; text-align:left; vertical-align:top; }
+        th { background:var(--color-surface-soft); }
+        .right { text-align:right; }
+        .print-scroll { overflow-x:auto; }
+        @media print { .no-print { display:none; } body { margin:12px; } .print-scroll { overflow:visible; } }
     </style>
 </head>
 <body>
@@ -23,6 +24,7 @@
     <h1>Child Care Client List</h1>
     <p class="meta">Tab: {{ strtoupper(str_replace('-', ' ', $tab)) }} | Search: {{ $search !== '' ? $search : 'All records' }} | Printed: {{ now()->format('F j, Y g:i A') }}</p>
 
+    <div class="print-scroll">
     <table>
         <thead>
             <tr>
@@ -58,6 +60,7 @@
             @endforelse
         </tbody>
     </table>
+    </div>
 
     <script>
     window.addEventListener('load', function () {

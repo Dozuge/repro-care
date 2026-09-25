@@ -29,7 +29,7 @@ class ProcessScheduledMessages extends Command
         $this->info('Processing scheduled messages...');
 
         // Dispatch the job to send scheduled messages
-        SendScheduledMessages::dispatch();
+        SendScheduledMessages::dispatchSync();
 
         $this->info('Scheduled messages processed successfully!');
 

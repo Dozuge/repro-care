@@ -4,18 +4,18 @@
 
 @push('styles')
 <style>
-    .mctl-create-shell { max-width: 1200px; margin: 0 auto; }
-    .mctl-create-header { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 1.4rem 1.6rem; margin-bottom: 1.25rem; }
-    .mctl-create-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.45rem; font-weight: 800; color: var(--text); margin: 0; }
-    .mctl-create-subtitle { color: var(--text-muted); margin: 0.35rem 0 0; }
-    .mctl-create-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 1.5rem; }
-    .mctl-section-title { font-weight: 700; color: var(--primary-light); margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-    .mctl-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
-    .mctl-form-group { display: flex; flex-direction: column; gap: 0.35rem; }
-    .mctl-form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
-    .mctl-form-group input, .mctl-form-group select { padding: 0.65rem 0.9rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card2); color: var(--text); }
-    .mctl-form-group input:focus, .mctl-form-group select:focus { outline: none; border-color: var(--primary); }
-    .mctl-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+    .mctl-create-shell { max-width:1200px; margin:0 auto; }
+    .mctl-create-header { background:var(--bg-card); border:1px solid var(--border); border-radius:22px; padding:1.4rem 1.6rem; margin-bottom:1.25rem; }
+    .mctl-create-title { font-family:'Plus Jakarta Sans', sans-serif; font-size:1.45rem; font-weight:800; color:var(--text); margin:0; }
+    .mctl-create-subtitle { color:var(--text-muted); margin:0.35rem 0 0; }
+    .mctl-create-card { background:var(--bg-card); border:1px solid var(--border); border-radius:22px; padding:1.5rem; }
+    .mctl-section-title { font-weight:700; color:var(--primary-light); margin-bottom:1rem; font-size:1.1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem; }
+    .mctl-form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1rem; }
+    .mctl-form-group { display:flex; flex-direction:column; gap:0.35rem; }
+    .mctl-form-group label { font-size:0.85rem; font-weight:600; color:var(--text); }
+    .mctl-form-group input, .mctl-form-group select { padding:0.65rem 0.9rem; border-radius:12px; border:1px solid var(--border); background:var(--bg-card2); color:var(--text); }
+    .mctl-form-group input:focus, .mctl-form-group select:focus { outline:none; border-color:var(--primary); }
+    .mctl-actions { display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border); }
 </style>
 @endpush
 

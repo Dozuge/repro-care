@@ -2,6 +2,10 @@
 
 @section('title', 'Analytics - BHW President Portal | ReproCare')
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/cho-analytics.css') }}?v={{ filemtime(public_path('css/cho-analytics.css')) }}">
+@endpush
+
 @section('bhw-president-content')
 
 <div class="page-hero fade-in-card">
@@ -16,7 +20,7 @@
 {{-- Maternal Health Indicators --}}
 <div class="card fade-in-card mb-4">
     <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-heart-pulse me-2" style="color:var(--accent-rose);"></i>Maternal Health Indicators</h5>
+        <h5 class="mb-0">Maternal Health Indicators</h5>
     </div>
     <div class="card-body">
         <div class="row g-4">
@@ -56,7 +60,7 @@
 {{-- Service Utilization --}}
 <div class="card fade-in-card mb-4">
     <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-graph-up me-2" style="color:var(--success);"></i>Service Utilization</h5>
+        <h5 class="mb-0">Service Utilization</h5>
     </div>
     <div class="card-body">
         <div class="row g-4">
@@ -92,35 +96,114 @@
     </div>
 </div>
 
+{{-- Monthly trends chart --}}
+<div class="card fade-in-card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Monthly Trends (Last 6 Months)</h5>
+    </div>
+    <div class="card-body">
+        @include('cho.partials.analytics-chart', [
+            'chartId' => 'monthly',
+            'chartTitle' => 'Monthly pregnancies, checkups and health records',
+            'chartLabels' => array_column($monthlyTrends, 'month'),
+            'emptyDescription' => 'No pregnancies, checkups or records in the last 6 months.',
+            'chartSeries' => [
+                ['label' => 'Pregnancies', 'color' => 'var(--color-secondary)', 'values' => array_column($monthlyTrends, 'pregnancies')],
+                ['label' => 'Checkups', 'color' => 'var(--color-info)', 'values' => array_column($monthlyTrends, 'checkups')],
+                ['label' => 'Health Records', 'color' => 'var(--color-primary)', 'values' => array_column($monthlyTrends, 'healthRecords')],
+            ],
+        ])
+        <details class="mt-3">
+            <summary class="text-muted small">Monthly data table</summary>
+            <div class="table-responsive mt-2">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Pregnancies</th>
+                            <th>Checkups</th>
+                            <th>Health Records</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($monthlyTrends as $trend)
+                        <tr>
+                            <td>{{ $trend['month'] }}</td>
+                            <td>{{ $trend['pregnancies'] }}</td>
+                            <td>{{ $trend['checkups'] }}</td>
+                            <td>{{ $trend['healthRecords'] }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </div>
+</div>
+
 <div class="row g-4">
+    {{-- Risk distribution chart --}}
+    <div class="col-lg-6">
+        <div class="card fade-in-card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Active Pregnancies by Risk Level</h5>
+            </div>
+            <div class="card-body">
+                @include('cho.partials.analytics-chart', [
+                    'chartId' => 'risk',
+                    'chartTitle' => 'Active pregnancies by stored risk level',
+                    'chartLabels' => $riskDistribution['labels'],
+                    'emptyDescription' => 'No active pregnancies right now.',
+                    'chartSeries' => [
+                        ['label' => 'Low', 'color' => 'var(--color-success)', 'values' => [$riskDistribution['values'][0], 0, 0, 0]],
+                        ['label' => 'Medium', 'color' => 'var(--color-warning)', 'values' => [0, $riskDistribution['values'][1], 0, 0]],
+                        ['label' => 'High', 'color' => 'var(--color-danger)', 'values' => [0, 0, $riskDistribution['values'][2], 0]],
+                        ['label' => 'Critical', 'color' => 'var(--color-danger-text)', 'values' => [0, 0, 0, $riskDistribution['values'][3]]],
+                    ],
+                ])
+                <p class="text-muted small mb-0 mt-2">{{ $maternalStats['highRiskPercentage'] }}% of active pregnancies are high-risk.</p>
+            </div>
+        </div>
+    </div>
+    {{-- Checkup outcomes chart --}}
+    <div class="col-lg-6">
+        <div class="card fade-in-card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Checkup Outcomes</h5>
+            </div>
+            <div class="card-body">
+                @include('cho.partials.analytics-chart', [
+                    'chartId' => 'outcomes',
+                    'chartTitle' => 'Checkups by outcome status',
+                    'chartLabels' => $checkupOutcomes['labels'],
+                    'emptyDescription' => 'No checkups recorded yet.',
+                    'chartSeries' => [
+                        ['label' => 'Scheduled', 'color' => 'var(--color-warning)', 'values' => [$checkupOutcomes['values'][0], 0, 0, 0]],
+                        ['label' => 'Completed', 'color' => 'var(--color-success)', 'values' => [0, $checkupOutcomes['values'][1], 0, 0]],
+                        ['label' => 'Missed', 'color' => 'var(--color-danger)', 'values' => [0, 0, $checkupOutcomes['values'][2], 0]],
+                        ['label' => 'Cancelled', 'color' => 'var(--color-text-muted)', 'values' => [0, 0, 0, $checkupOutcomes['values'][3]]],
+                    ],
+                ])
+                <p class="text-muted small mb-0 mt-2">{{ $serviceStats['averageCheckupsPerPatient'] }} completed checkups per patient on average.</p>
+            </div>
+        </div>
+    </div>
+    {{-- BHW workload chart --}}
     <div class="col-12">
         <div class="card fade-in-card h-100">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-calendar-month me-2" style="color:var(--accent-violet);"></i>Monthly Trends (Last 6 Months)</h5>
+                <h5 class="mb-0">BHW Workload — Records Filed (Top 8)</h5>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Month</th>
-                                <th>Pregnancies</th>
-                                <th>Checkups</th>
-                                <th>Health Records</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($monthlyTrends as $trend)
-                            <tr>
-                                <td>{{ $trend['month'] }}</td>
-                                <td>{{ $trend['pregnancies'] }}</td>
-                                <td>{{ $trend['checkups'] }}</td>
-                                <td>{{ $trend['healthRecords'] }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                @include('cho.partials.analytics-chart', [
+                    'chartId' => 'areas',
+                    'chartTitle' => 'Health records filed per BHW, top 8',
+                    'chartLabels' => $bhwWorkload['labels'],
+                    'emptyDescription' => 'No BHW-filed records yet.',
+                    'chartSeries' => [
+                        ['label' => 'Records filed', 'color' => 'var(--color-secondary)', 'values' => $bhwWorkload['values']],
+                    ],
+                ])
             </div>
         </div>
     </div>

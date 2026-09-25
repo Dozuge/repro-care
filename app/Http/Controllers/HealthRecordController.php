@@ -138,6 +138,19 @@ class HealthRecordController extends Controller
             $riskService = new \App\Services\RiskAnalysisService();
             $detectedRisk = $riskService->evaluate($womanId);
         }
+        if ($walkInPatientId && in_array($detectedRisk, ['Medium', 'High', 'Critical'], true)) {
+            $walkIn = WalkInPatient::find($walkInPatientId);
+            if ($walkIn) {
+                try {
+                    app(\App\Services\SmartNotificationService::class)->notifyWalkInRisk(
+                        $walkIn,
+                        "A {$detectedRisk} risk finding was recorded during your visit. Please follow your health worker's advice.",
+                        $detectedRisk
+                    );
+                } catch (\Throwable $e) {
+                }
+            }
+        }
 
         if ($womanId) {
             $this->syncPregnancyFromHealthRecord($womanId, $request->gestational_age, null, now());
@@ -269,17 +282,23 @@ class HealthRecordController extends Controller
             ->with('success', 'Health record archived successfully');
     }
 
-    // Archive
+    // Archive (soft-delete only — snapshot + audit reason are mandatory)
     public function archive(Request $request, $id)
     {
         $healthRecord = HealthRecord::findOrFail($id);
-        $reason = $request->input('archived_reason', 'Archived by midwife');
+        $reason = trim((string) ($request->input('reason') ?? $request->input('archived_reason', '')));
+        if ($reason === '') {
+            $reason = 'Archived by midwife via console';
+        }
 
-        $healthRecord->archive($reason);
-        $healthRecord->delete();
+        try {
+            app(\App\Services\ArchiveService::class)->archiveRecord($healthRecord, $reason, auth()->user());
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['reason' => $e->getMessage()])->withInput();
+        }
 
         return redirect()->route('midwife.health-records.index')
-            ->with('success', 'Health record archived successfully.');
+            ->with('success', 'Health record archived successfully (retained for audit).');
     }
 
     // Archived Records
@@ -311,10 +330,10 @@ class HealthRecordController extends Controller
     {
         $healthRecord = HealthRecord::with(['woman', 'walkInPatient', 'recordedBy', 'bhwPresident'])->findOrFail($id);
 
+        $originalRecorderId = $healthRecord->recorded_by_id;
         $healthRecord->update([
             'workflow_status' => 'accepted_by_midwife',
             'midwife_accepted_at' => now(),
-            'recorded_by_id' => Auth::id(),
         ]);
 
         if ($healthRecord->user_id) {
@@ -336,9 +355,9 @@ class HealthRecordController extends Controller
             );
         }
 
-        if ($healthRecord->recorded_by_id) {
+        if ($originalRecorderId) {
             \App\Models\Notification::createNotification(
-                $healthRecord->recorded_by_id,
+                $originalRecorderId,
                 'Your health record for ' . $healthRecord->patient_name . ' was accepted by the midwife.',
                 'Health Record Accepted',
                 'success',
@@ -499,36 +518,53 @@ class HealthRecordController extends Controller
             'bhw_president_notes' => 'nullable|string|max:1000',
         ]);
 
+        // Approved records join the midwife queue directly: the midwife
+        // review screens filter on `submitted_to_midwife`, while the
+        // approval itself stays recorded in the president metadata.
         $healthRecord->update([
-            'workflow_status' => 'bhw_president_approved',
+            'workflow_status' => 'submitted_to_midwife',
+            'submitted_to_midwife_at' => now(),
             'bhw_president_id' => Auth::id(),
             'bhw_president_reviewed_at' => now(),
             'bhw_president_notes' => $request->bhw_president_notes,
         ]);
+
+        // 5. Transparency: tell the BHW their record moved forward.
+        if ($healthRecord->recorded_by_id) {
+            app(\App\Services\WorkflowService::class)->notifyAction(
+                (int) $healthRecord->recorded_by_id,
+                '✅ Health Record Approved',
+                'Your health record for ' . $healthRecord->patient_name . ' was approved by the BHW President and moved to the midwife queue.',
+                'success',
+                route('bhw.health-records.index')
+            );
+        }
 
         return redirect()->route('bhw-president.health-records.index')
             ->with('success', 'Health record approved successfully.');
     }
 
     /**
-     * BHW President reject health record
+     * BHW President reject health record → 1. Rejection Feedback Loop:
+     * bounces to the BHW "Needs Revision" queue with a mandatory note
+     * + 5. Transparency notification (in-app + SMS).
      */
     public function bhwPresidentReject(Request $request, $id)
     {
         $healthRecord = HealthRecord::findOrFail($id);
-        
+
         $request->validate([
             'rejection_reason' => 'required|string|max:1000',
         ]);
 
-        $healthRecord->update([
-            'workflow_status' => 'bhw_president_rejected',
-            'bhw_president_id' => Auth::id(),
-            'bhw_president_reviewed_at' => now(),
-            'workflow_notes' => $request->rejection_reason,
-        ]);
+        app(\App\Services\WorkflowService::class)->sendBackForRevision(
+            'health_record',
+            $healthRecord,
+            Auth::id(),
+            $request->input('rejection_reason')
+        );
 
         return redirect()->route('bhw-president.health-records.index')
-            ->with('success', 'Health record rejected and returned to creator.');
+            ->with('success', 'Record sent back to the BHW Needs Revision queue. The BHW was notified with your note.');
     }
 }

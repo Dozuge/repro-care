@@ -4,138 +4,41 @@
 
 @push('styles')
 <style>
-    body { padding-top: 70px !important; }
-    .compose-shell {
-        display: grid;
-        grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-        gap: 1.25rem;
-    }
-    .compose-panel {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
-    }
-    .compose-head {
-        padding: 1.2rem 1.35rem;
-        border-bottom: 1px solid var(--border);
-        background: linear-gradient(135deg, rgba(61, 102, 255, 0.12), rgba(17, 24, 39, 0.04));
-    }
-    .compose-title {
-        margin: 0;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: var(--text);
-    }
-    .compose-subtitle {
-        margin-top: 0.3rem;
-        font-size: 0.82rem;
-        color: var(--text-muted);
-    }
-    .contact-search {
-        width: 100%;
-        margin-top: 0.9rem;
-        background: var(--bg-input);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        color: var(--text);
-        padding: 0.85rem 1rem;
-        outline: none;
-    }
-    .contact-search:focus,
-    .chat-input:focus,
-    .chat-textarea:focus,
-    .schedule-field:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px var(--primary-glow);
-    }
-    .contact-list {
-        padding: 0.8rem;
-        max-height: 72vh;
-        overflow-y: auto;
-    }
-    .contact-option {
-        display: flex;
-        align-items: center;
-        gap: 0.85rem;
-        width: 100%;
-        border: 1px solid transparent;
-        background: transparent;
-        border-radius: 18px;
-        text-align: left;
-        padding: 0.9rem;
-        color: var(--text);
-        margin-bottom: 0.6rem;
-        transition: 0.18s ease;
-    }
-    .contact-option:hover,
-    .contact-option.active {
-        background: rgba(61, 102, 255, 0.06);
-        border-color: rgba(61, 102, 255, 0.16);
-    }
-    .contact-avatar {
-        width: 44px;
-        height: 44px;
-        border-radius: 15px;
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        flex-shrink: 0;
-    }
-    .contact-badge {
-        display: inline-flex;
-        margin-top: 0.18rem;
-        font-size: 0.72rem;
-        padding: 0.18rem 0.55rem;
-        border-radius: 999px;
-        color: var(--text-muted);
-        background: var(--bg-card2);
-    }
-    .chat-form {
-        padding: 1.2rem;
-    }
-    .chat-input,
-    .chat-textarea,
-    .schedule-field {
-        width: 100%;
-        background: var(--bg-input);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        color: var(--text);
-        padding: 0.9rem 1rem;
-        outline: none;
-        transition: 0.18s ease;
-    }
-    .chat-textarea {
-        min-height: 260px;
-        resize: vertical;
-    }
-    .selected-contact {
-        display: flex;
-        align-items: center;
-        gap: 0.9rem;
-        padding: 1rem;
-        border-radius: 18px;
-        border: 1px solid var(--border);
-        background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(61, 102, 255, 0.05));
-        margin-bottom: 1rem;
-    }
-    .hidden {
-        display: none !important;
-    }
-    @media (max-width: 991.98px) {
-        .compose-shell {
-            grid-template-columns: 1fr;
-        }
-        .contact-list {
-            max-height: none;
-        }
-    }
+    .rc-compose { max-width:1100px; margin:0 auto; padding-bottom:2rem; }
+    .rc-compose-hero { background:var(--color-surface); border:1px solid var(--color-border); border-radius:18px; padding:1.25rem 1.5rem; margin-bottom:1.25rem; box-shadow:0 2px 12px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 5%, transparent); display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; }
+    .rc-compose-hero h2 { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.25rem; font-weight:800; color:var(--color-text); margin:0; display:flex; align-items:center; gap:.6rem; }
+    .rc-compose-hero h2 .rc-ico { width:40px; height:40px; border-radius:12px; background:var(--color-secondary-soft); border:1px solid var(--color-secondary-soft); color:var(--color-secondary-text); display:inline-flex; align-items:center; justify-content:center; }
+    .rc-compose-hero p { margin:.2rem 0 0; font-size:.85rem; color:var(--color-text-muted); }
+    .rc-compose-grid { display:grid; grid-template-columns:minmax(300px,360px) minmax(0,1fr); gap:1.25rem; align-items:start; }
+    @media (max-width:991px){ .rc-compose-grid{ grid-template-columns:1fr; } }
+    .rc-card { background:var(--color-surface); border:1px solid var(--color-border); border-radius:18px; box-shadow:0 2px 12px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 5%, transparent); overflow:hidden; }
+    .rc-card-head { padding:1.1rem 1.25rem; border-bottom:1px solid var(--color-border); }
+    .rc-card-head h3 { font-size:1rem; font-weight:800; color:var(--color-text); margin:0; font-family:'Plus Jakarta Sans',sans-serif; }
+    .rc-card-head p { font-size:.8rem; color:var(--color-text-muted); margin:.25rem 0 0; }
+    .rc-contact-search { width:100%; margin-top:.85rem; border:1px solid var(--color-border); background:var(--color-bg); border-radius:12px; padding:.7rem 1rem; font-size:.86rem; color:var(--color-text); outline:none; }
+    .rc-contact-search:focus { border-color:var(--color-secondary); background:var(--color-surface); box-shadow:0 0 0 3px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 16%, transparent); }
+    .rc-contact-list { padding:.8rem; max-height:62vh; overflow-y:auto; display:flex; flex-direction:column; gap:.45rem; }
+    .rc-contact-opt { display:flex; align-items:center; gap:.8rem; width:100%; border:1px solid transparent; background:transparent; border-radius:14px; text-align:left; padding:.8rem; transition:.18s; cursor:pointer; }
+    .rc-contact-opt:hover, .rc-contact-opt.active { background:var(--color-secondary-soft); border-color:var(--color-secondary-soft); }
+    .rc-contact-opt .rc-av { width:42px; height:42px; border-radius:50%; background:var(--color-secondary-soft); border:1px solid var(--color-secondary-soft); color:var(--color-secondary-text); display:inline-flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; overflow:hidden; }
+    .rc-contact-opt .rc-av img { width:100%; height:100%; object-fit:cover; }
+    .rc-contact-opt .rc-nm { font-weight:700; font-size:.88rem; color:var(--color-text); }
+    .rc-contact-opt .rc-rl { display:inline-block; margin-top:.15rem; font-size:.7rem; font-weight:700; padding:.12rem .55rem; border-radius:999px; background:var(--color-surface-soft); color:var(--color-text-muted); }
+    .rc-contact-opt.active .rc-rl { background:var(--color-secondary-soft); color:var(--color-secondary-text); }
+    .rc-form { padding:1.25rem; }
+    .rc-selected { display:flex; align-items:center; gap:.85rem; padding:.9rem 1rem; border-radius:14px; border:1px solid var(--color-secondary-soft); background:var(--color-secondary-soft); margin-bottom:1rem; }
+    .rc-selected .rc-av { width:44px; height:44px; border-radius:50%; background:var(--color-secondary); color:var(--color-on-solid); display:inline-flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; overflow:hidden; }
+    .rc-selected .rc-av img { width:100%; height:100%; object-fit:cover; }
+    .rc-label { font-weight:700; font-size:.76rem; text-transform:uppercase; letter-spacing:.05em; color:var(--color-text-muted); margin-bottom:.4rem; display:block; }
+    .rc-input, .rc-textarea { width:100%; background:var(--color-surface); border:1px solid var(--color-border); border-radius:12px; color:var(--color-text); padding:.8rem 1rem; font-size:.88rem; outline:none; transition:.18s; }
+    .rc-input:focus, .rc-textarea:focus { border-color:var(--color-secondary); box-shadow:0 0 0 3px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 16%, transparent); }
+    .rc-textarea { min-height:220px; resize:vertical; line-height:1.6; }
+    .rc-actions { display:flex; justify-content:flex-end; gap:.6rem; margin-top:1rem; }
+    .rc-btn-pink { display:inline-flex; align-items:center; gap:.45rem; background:var(--color-secondary); border:1px solid var(--color-secondary); color:var(--color-on-solid); font-weight:700; font-size:.86rem; padding:.65rem 1.35rem; border-radius:12px; box-shadow:0 6px 18px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 25%, transparent); transition:all .2s; }
+    .rc-btn-pink:hover { background:var(--color-secondary); color:var(--color-on-solid); transform:translateY(-1px); }
+    .rc-btn-ghost { display:inline-flex; align-items:center; gap:.45rem; background:var(--color-surface); border:1px solid var(--color-border); color:var(--color-text); font-weight:700; font-size:.86rem; padding:.65rem 1.2rem; border-radius:12px; text-decoration:none; }
+    .rc-btn-ghost:hover { border-color:var(--color-secondary-soft); color:var(--color-secondary-text); background:var(--color-secondary-soft); }
+    .hidden { display:none !important; }
 </style>
 @endpush
 
@@ -147,163 +50,115 @@
 @endphp
 
 @section($contentSection)
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-    <div>
-        <h2 class="mb-1" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;color:var(--text);">
-            <i class="bi bi-pencil-square me-2"></i>New Chat
-        </h2>
-        <div style="color:var(--text-muted);font-size:0.9rem;">
-            Choose a contact, then send a message like a modern chat app.
-        </div>
-    </div>
-    <a href="{{ route($messagesRouteBase . '.index') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Back to Messages
-    </a>
-</div>
-
-@if ($errors->any())
-    <div class="alert alert-danger mb-4">
-        @foreach ($errors->all() as $error)
-            <div>{{ $error }}</div>
-        @endforeach
-    </div>
-@endif
-
-<div class="compose-shell">
-    <section class="compose-panel">
-        <div class="compose-head">
-            <h3 class="compose-title">Contacts</h3>
-            <div class="compose-subtitle">
-                @if(auth()->user()?->role === 'user')
-                    Patients can message midwives, BHWs, and BHW presidents only.
-                @else
-                    Staff can message any user in the system.
-                @endif
+<div class="rc-compose">
+    <div class="rc-compose-hero">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rc-ico" style="display:inline-flex;"><i class="bi bi-pencil-square"></i></div>
+            <div>
+                <h2>New Chat</h2>
+                <p>Choose a contact, then send a message like a modern chat app.</p>
             </div>
-            <input type="search" id="contactSearch" class="contact-search" placeholder="Search contacts..." value="{{ $search ?? '' }}">
         </div>
+        <a href="{{ route($messagesRouteBase . '.index') }}" class="rc-btn-ghost"><i class="bi bi-arrow-left"></i> Back to Messages</a>
+    </div>
 
-        <div class="contact-list" id="contactList">
-            @forelse($contacts as $contact)
-                @php
-                    $isActive = (string) $selectedReceiverId === (string) $contact->id && $selectedReceiverRole === $contact->role;
-                @endphp
-                <button type="button"
-                        class="contact-option {{ $isActive ? 'active' : '' }}"
-                        data-id="{{ $contact->id }}"
-                        data-role="{{ $contact->role }}"
-                        data-name="{{ $contact->name }}"
-                        data-label="{{ $contact->label }}"
-                        data-search="{{ strtolower($contact->name . ' ' . $contact->label . ' ' . $contact->role) }}">
-                    <div class="contact-avatar">{{ strtoupper(substr($contact->name, 0, 1)) }}</div>
-                    <div>
-                        <div class="fw-semibold">{{ $contact->name }}</div>
-                        <span class="contact-badge">{{ $contact->label }}</span>
+    @if ($errors->any())
+        <div class="alert alert-danger mb-4" style="border-radius:14px;">
+            @foreach ($errors->all() as $error)<div>{{ $error }}</div>@endforeach
+        </div>
+    @endif
+
+    <div class="rc-compose-grid">
+        <section class="rc-card">
+            <div class="rc-card-head">
+                <h3>Contacts</h3>
+                <p>@if(auth()->user()?->role === 'user') Message midwives, BHWs, and BHW presidents only. @else Staff can message anyone in the system. @endif</p>
+                <input type="search" id="contactSearch" class="rc-contact-search" placeholder="Search contacts..." value="{{ $search ?? '' }}">
+            </div>
+            <div class="rc-contact-list" id="contactList">
+                @forelse($contacts as $contact)
+                    @php $isActive = (string) $selectedReceiverId === (string) $contact->id && $selectedReceiverRole === $contact->role; $cUser = \App\Models\User::find($contact->id); $cPhoto = $cUser?->profile_image_url; @endphp
+                    <button type="button" class="rc-contact-opt {{ $isActive ? 'active' : '' }}" data-id="{{ $contact->id }}" data-role="{{ $contact->role }}" data-name="{{ $contact->name }}" data-label="{{ $contact->label }}" data-search="{{ strtolower($contact->name . ' ' . $contact->label . ' ' . $contact->role) }}">
+                        <span class="rc-av">@if($cPhoto)<img src="{{ $cPhoto }}" alt="" onerror="this.remove();">@else{{ strtoupper(substr($contact->name, 0, 1)) }}@endif</span>
+                        <span style="min-width:0;">
+                            <span class="rc-nm d-block text-truncate">{{ $contact->name }}</span>
+                            <span class="rc-rl">{{ $contact->label }}</span>
+                        </span>
+                        <i class="bi bi-chevron-right ms-auto" style="color:var(--color-secondary-text);"></i>
+                    </button>
+                @empty
+                    <div class="p-4 text-center text-muted">No contacts available.</div>
+                @endforelse
+            </div>
+        </section>
+
+        <section class="rc-card">
+            <div class="rc-card-head">
+                <h3>Message Composer</h3>
+                <p>Start a direct conversation.</p>
+            </div>
+            <form action="{{ route($messagesRouteBase . '.send') }}" method="POST" class="rc-form">
+                @csrf
+                <input type="hidden" name="receiver_role" id="receiver_role" value="{{ $selectedReceiverRole }}">
+                <input type="hidden" name="receiver_id" id="receiver_id" value="{{ $selectedReceiverId }}">
+                <div class="rc-selected" id="selectedContactCard">
+                    <span class="rc-av" id="selectedContactAvatar">{{ $receiver ? strtoupper(substr($receiver->name, 0, 1)) : '?' }}</span>
+                    <div style="min-width:0;">
+                        <div class="fw-bold" id="selectedContactName" style="color:var(--color-text);font-size:.92rem;">{{ $receiver?->name ?? 'No contact selected' }}</div>
+                        <small id="selectedContactLabel" style="color:var(--color-secondary-text);font-weight:600;">{{ $receiver ? ucfirst(str_replace('_', ' ', $receiver->role)) : 'Choose a contact from the left' }}</small>
                     </div>
-                </button>
-            @empty
-                <div class="p-4 text-center text-muted">
-                    No contacts available.
+                    <i class="bi bi-chat-heart-fill ms-auto" style="color:var(--color-secondary-text);font-size:1.2rem;"></i>
                 </div>
-            @endforelse
-        </div>
-    </section>
-
-    <section class="compose-panel">
-        <div class="compose-head">
-            <h3 class="compose-title">Message Composer</h3>
-            <div class="compose-subtitle">Start a direct conversation.</div>
-        </div>
-
-        <form action="{{ route($messagesRouteBase . '.send') }}" method="POST" class="chat-form">
-            @csrf
-            <input type="hidden" name="receiver_role" id="receiver_role" value="{{ $selectedReceiverRole }}">
-            <input type="hidden" name="receiver_id" id="receiver_id" value="{{ $selectedReceiverId }}">
-
-            <div class="selected-contact" id="selectedContactCard">
-                <div class="contact-avatar" id="selectedContactAvatar">
-                    {{ $receiver ? strtoupper(substr($receiver->name, 0, 1)) : '?' }}
+                <div class="mb-3">
+                    <label class="rc-label">Subject (optional)</label>
+                    <input type="text" name="subject" class="rc-input" placeholder="Optional subject..." value="{{ old('subject') }}">
                 </div>
-                <div>
-                    <div class="fw-semibold" id="selectedContactName">{{ $receiver?->name ?? 'No contact selected' }}</div>
-                    <span class="contact-badge" id="selectedContactLabel">{{ $receiver ? ucfirst(str_replace('_', ' ', $receiver->role)) : 'Choose a contact from the left' }}</span>
+                <div class="mb-3">
+                    <label class="rc-label">Message</label>
+                    <textarea name="body" class="rc-textarea" placeholder="Type your message..." required>{{ old('body') }}</textarea>
                 </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label small text-uppercase fw-semibold text-muted">Subject</label>
-                <input type="text" name="subject" class="chat-input" placeholder="Optional subject..." value="{{ old('subject') }}">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label small text-uppercase fw-semibold text-muted">Message</label>
-                <textarea name="body" class="chat-textarea" placeholder="Type your message..." required>{{ old('body') }}</textarea>
-            </div>
-
-
-            <div class="d-flex justify-content-end gap-2">
-                <a href="{{ route($messagesRouteBase . '.index') }}" class="btn btn-outline-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-send-fill me-1"></i> Send Message
-                </button>
-            </div>
-        </form>
-    </section>
+                <div class="rc-actions">
+                    <a href="{{ route($messagesRouteBase . '.index') }}" class="rc-btn-ghost">Cancel</a>
+                    <button type="submit" class="rc-btn-pink"><i class="bi bi-send-fill"></i> Send Message</button>
+                </div>
+            </form>
+        </section>
+    </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const contactButtons = Array.from(document.querySelectorAll('.contact-option'));
+    const contactButtons = Array.from(document.querySelectorAll('.rc-contact-opt'));
     const contactSearch = document.getElementById('contactSearch');
     const receiverIdInput = document.getElementById('receiver_id');
     const receiverRoleInput = document.getElementById('receiver_role');
-    const selectedContactAvatar = document.getElementById('selectedContactAvatar');
-    const selectedContactName = document.getElementById('selectedContactName');
-    const selectedContactLabel = document.getElementById('selectedContactLabel');
-    function setActiveContact(button) {
-        contactButtons.forEach(function (item) {
-            item.classList.remove('active');
-        });
-
+    const avatar = document.getElementById('selectedContactAvatar');
+    const nameEl = document.getElementById('selectedContactName');
+    const labelEl = document.getElementById('selectedContactLabel');
+    function setActive(button) {
+        contactButtons.forEach(function (i) { i.classList.remove('active'); });
         if (!button) {
-            receiverIdInput.value = '';
-            receiverRoleInput.value = '';
-            selectedContactAvatar.textContent = '?';
-            selectedContactName.textContent = 'No contact selected';
-            selectedContactLabel.textContent = 'Choose a contact from the left';
+            receiverIdInput.value = ''; receiverRoleInput.value = '';
+            avatar.textContent = '?'; nameEl.textContent = 'No contact selected'; labelEl.textContent = 'Choose a contact from the left';
             return;
         }
-
         button.classList.add('active');
-        receiverIdInput.value = button.dataset.id;
-        receiverRoleInput.value = button.dataset.role;
-        selectedContactAvatar.textContent = (button.dataset.name || '?').charAt(0).toUpperCase();
-        selectedContactName.textContent = button.dataset.name || 'Unknown User';
-        selectedContactLabel.textContent = button.dataset.label || button.dataset.role || '';
+        receiverIdInput.value = button.dataset.id; receiverRoleInput.value = button.dataset.role;
+        avatar.textContent = (button.dataset.name || '?').charAt(0).toUpperCase();
+        nameEl.textContent = button.dataset.name || 'Unknown User';
+        labelEl.textContent = button.dataset.label || button.dataset.role || '';
     }
-
-    contactButtons.forEach(function (button) {
-        button.addEventListener('click', function () {
-            setActiveContact(button);
-        });
-    });
-
+    contactButtons.forEach(function (b) { b.addEventListener('click', function () { setActive(b); }); });
     if (contactSearch) {
         contactSearch.addEventListener('input', function () {
             const needle = this.value.toLowerCase().trim();
-
-            contactButtons.forEach(function (button) {
-                const haystack = button.dataset.search || '';
-                button.classList.toggle('hidden', needle !== '' && !haystack.includes(needle));
+            contactButtons.forEach(function (b) {
+                const hay = b.dataset.search || '';
+                b.classList.toggle('hidden', needle !== '' && !hay.includes(needle));
             });
         });
     }
-
-    const activeButton = contactButtons.find(function (button) {
-        return button.classList.contains('active');
-    });
-
-    setActiveContact(activeButton || null);
+    setActive(contactButtons.find(function (b) { return b.classList.contains('active'); }) || null);
 });
 </script>
 @endsection

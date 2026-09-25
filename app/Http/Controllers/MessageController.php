@@ -72,8 +72,14 @@ class MessageController extends Controller
                 $query->where(function ($messageQuery) use ($search) {
                     $messageQuery->where('subject', 'like', '%' . $search . '%')
                         ->orWhere('body', 'like', '%' . $search . '%')
-                        ->orWhereHas('sender', fn ($q) => $q->where('name', 'like', '%' . $search . '%'))
-                        ->orWhereHas('receiver', fn ($q) => $q->where('name', 'like', '%' . $search . '%'));
+                        ->orWhereHas('sender', fn ($q) => $q->where(function ($sq) use ($search) {
+                            $sq->where('first_name', 'like', '%' . $search . '%')
+                               ->orWhere('last_name', 'like', '%' . $search . '%');
+                        }))
+                        ->orWhereHas('receiver', fn ($q) => $q->where(function ($sq) use ($search) {
+                            $sq->where('first_name', 'like', '%' . $search . '%')
+                               ->orWhere('last_name', 'like', '%' . $search . '%');
+                        }));
                 });
             })
             ->orderByRaw('COALESCE(replies_max_created_at, created_at) DESC')
@@ -109,7 +115,9 @@ class MessageController extends Controller
     {
         $currentUser = $this->getCurrentUser();
         if (!$currentUser) {
-            return redirect()->route('login');
+            return $request->wantsJson()
+                ? response()->json(['success' => false], 401)
+                : redirect()->route('login');
         }
 
         $request->validate([
@@ -118,10 +126,14 @@ class MessageController extends Controller
             'subject' => 'nullable|string|max:255',
             'body' => 'required|string|max:2000',
             'reply_to_id' => 'nullable|exists:messages,id',
+            'client_uuid' => 'nullable|string|max:64',
         ]);
 
         $receiver = $this->findUserByRoleAndId($request->receiver_role, (int) $request->receiver_id);
         if (!$receiver) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Invalid recipient.'], 422);
+            }
             return back()->withErrors(['receiver_id' => 'The selected recipient is invalid.'])->withInput();
         }
 
@@ -131,12 +143,28 @@ class MessageController extends Controller
             ]);
         }
 
+        // Idempotency: double-tap / retry with the same client_uuid returns the original row.
+        $clientUuid = $request->input('client_uuid');
+        if ($clientUuid) {
+            $existing = Message::withTrashed()->where('client_uuid', $clientUuid)
+                ->where('sender_id', $currentUser->id)->first();
+            if ($existing) {
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => true, 'message' => $this->messagePayload($existing), 'deduped' => true]);
+                }
+                $prefix = $this->getRoutePrefix();
+                $threadId = $existing->reply_to_id ?: $existing->id;
+                return redirect()->route($prefix.'.messages.thread', $threadId)->with('success', 'Message sent successfully.');
+            }
+        }
+
         $message = Message::create([
             'sender_id' => $currentUser->id,
             'receiver_id' => (int) $request->receiver_id,
             'subject' => $request->subject,
             'body' => $request->body,
             'reply_to_id' => $request->reply_to_id,
+            'client_uuid' => $clientUuid,
         ]);
 
         \App\Models\Notification::createNotification(
@@ -148,8 +176,28 @@ class MessageController extends Controller
             $request->receiver_role === 'woman' ? 'user' : $request->receiver_role
         );
 
+        // SMS nudge for NEW threads only (replies skip SMS to avoid spamming
+        // long conversations). Never breaks messaging if SMS fails.
+        if (!$request->reply_to_id) {
+            try {
+                if ($receiver->hasSmsEnabled()) {
+                    (new \App\Services\SmsService())->sendCustom(
+                        $receiver,
+                        'Hi ' . ($receiver->first_name ?? 'there') . ', you have a new ReproCare message from ' . $currentUser->name . ': ' . \Illuminate\Support\Str::limit($request->subject ?: $request->body, 100),
+                        'Kumusta ' . ($receiver->first_name ?? '') . ', may bago kang mensahe sa ReproCare mula kay ' . $currentUser->name . '. Pakibuksan ang iyong account.'
+                    );
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Message SMS nudge failed: ' . $e->getMessage());
+            }
+        }
+
         $successMsg = 'Message sent successfully.';
         $prefix = $this->getRoutePrefix();
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => $this->messagePayload($message->fresh())]);
+        }
 
         if ($request->reply_to_id) {
             $successMsg = 'Reply sent.';
@@ -159,6 +207,56 @@ class MessageController extends Controller
 
         return redirect()->route($prefix . '.messages.thread', $message->id)
             ->with('success', $successMsg);
+    }
+
+    /**
+     * Instagram-style live updates: new replies + read state since last seen.
+     * GET /{role}/messages/{id}/updates?after_id=0
+     */
+    public function updates(Request $request, int $id)
+    {
+        $userId = $this->getCurrentUserId();
+        if (!$userId) {
+            return response()->json(['success' => false], 401);
+        }
+        $root = Message::withTrashed()->findOrFail($id);
+        if ($root->sender_id !== $userId && $root->receiver_id !== $userId) {
+            abort(403);
+        }
+        $afterId = (int) $request->query('after_id', 0);
+        $replies = Message::with('sender')
+            ->where('reply_to_id', $root->id)
+            ->when($afterId > 0, fn ($q) => $q->where('id', '>', $afterId))
+            ->orderBy('id')->limit(50)->get()
+            ->map(fn ($m) => $this->messagePayload($m));
+        // Mark peer messages as seen on poll (same as opening the thread).
+        Message::where('reply_to_id', $root->id)
+            ->where('receiver_id', $userId)->where('is_read', false)
+            ->update(['is_read' => true, 'read_at' => now()]);
+        if ($root->receiver_id === $userId && !$root->is_read) {
+            $root->markRead();
+        }
+        $root->refresh();
+        return response()->json([
+            'success' => true,
+            'messages' => $replies,
+            'root_read' => (bool) $root->is_read,
+            'root_read_at' => optional($root->read_at)?->toIso8601String(),
+            'last_id' => $replies->max('id') ?? $afterId,
+        ]);
+    }
+
+    private function messagePayload(Message $m): array
+    {
+        return [
+            'id' => $m->id,
+            'body' => $m->body,
+            'sender_id' => $m->sender_id,
+            'sender_name' => $m->sender?->name,
+            'created_at' => $m->created_at?->toIso8601String(),
+            'time' => $m->created_at?->format('g:i A'),
+            'is_read' => (bool) $m->is_read,
+        ];
     }
 
     public function thread(int $id)
@@ -217,12 +315,14 @@ class MessageController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function destroy(int $id)
+    public function destroy(Request $request, int $id)
     {
         $userId = $this->getCurrentUserId();
         $userType = $this->getCurrentUserType();
         if (!$userId || !$userType) {
-            return redirect()->route('login');
+            return $request->wantsJson()
+                ? response()->json(['success' => false], 401)
+                : redirect()->route('login');
         }
 
         $message = Message::findOrFail($id);
@@ -234,10 +334,60 @@ class MessageController extends Controller
             abort(403);
         }
 
-        $message->delete();
+        // Soft-delete only: deleting a thread root moves the whole conversation
+        // to trash together so Restore brings everything back. Replies delete solo.
+        \Illuminate\Support\Facades\DB::transaction(function () use ($message) {
+            if ($message->reply_to_id === null) {
+                Message::where('reply_to_id', $message->id)->delete();
+            }
+            $message->delete();
+        });
 
-        return redirect()->route($this->getRoutePrefix() . '.messages.index')
-            ->with('success', 'Message deleted.');
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'restore_id' => $message->id]);
+        }
+
+        return redirect()->route($this->getRoutePrefix().'.messages.index')
+            ->with('success', 'Conversation moved to trash. You can restore it from Trash.')
+            ->with('restore_id', $message->id);
+    }
+
+    public function trash()
+    {
+        $userId = $this->getCurrentUserId();
+        if (!$userId) {
+            return redirect()->route('login');
+        }
+        $messages = Message::onlyTrashed()->with(['sender', 'receiver'])
+            ->where(fn ($q) => $q->where('sender_id', $userId)->orWhere('receiver_id', $userId))
+            ->thread()->latest()->paginate(15);
+        $contacts = $this->getContacts();
+        return view('messages.trash', compact('messages', 'contacts'));
+    }
+
+    public function restore(Request $request, int $id)
+    {
+        $userId = $this->getCurrentUserId();
+        if (!$userId) {
+            return $request->wantsJson()
+                ? response()->json(['success' => false], 401)
+                : redirect()->route('login');
+        }
+        $message = Message::onlyTrashed()->findOrFail($id);
+        if ($message->sender_id !== $userId && $message->receiver_id !== $userId) {
+            abort(403);
+        }
+        \Illuminate\Support\Facades\DB::transaction(function () use ($message) {
+            $message->restore();
+            if ($message->reply_to_id === null) {
+                Message::onlyTrashed()->where('reply_to_id', $message->id)->restore();
+            }
+        });
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+        return redirect()->route($this->getRoutePrefix().'.messages.thread', $message->id)
+            ->with('success', 'Conversation restored.');
     }
 
     private function getContacts(?string $search = null): Collection

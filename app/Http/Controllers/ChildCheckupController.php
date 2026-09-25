@@ -101,13 +101,22 @@ class ChildCheckupController extends Controller
             ->with('success', 'Child checkup updated successfully');
     }
 
-    public function destroy($childId, $id)
+    public function destroy(\Illuminate\Http\Request $request, $childId, $id)
     {
         $child = ChildRecord::findOrFail($childId);
         $checkup = $child->checkups()->findOrFail($id);
-        $checkup->delete();
+        $reason = trim((string) $request->input('reason', ''));
+        if ($reason === '') {
+            $reason = 'Child checkup archived via console';
+        }
+
+        try {
+            app(\App\Services\ArchiveService::class)->archiveRecord($checkup, $reason, auth()->user());
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['reason' => $e->getMessage()])->withInput();
+        }
 
         return redirect()->route('midwife.child-checkups.index', $childId)
-            ->with('success', 'Child checkup deleted successfully');
+            ->with('success', 'Child checkup archived successfully (retained for audit).');
     }
 }

@@ -6,11 +6,12 @@
 <div class="py-4">
     <div class="page-hero fade-in-card mb-4">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3" style="position:relative;z-index:1;">
-            <div>
-                <div class="page-hero-title">
-                    <i class="bi bi-person-vcard-fill me-2"></i>{{ $woman->name }}
+            <div class="d-flex align-items-center gap-3">
+                <x-patient-avatar :patient="$woman" :size="64" />
+                <div>
+                    <div class="page-hero-title">{{ $woman->name }}</div>
+                    <p class="page-hero-subtitle">{{ $woman->email }} | {{ $woman->barangay ?? 'Barangay not set' }}</p>
                 </div>
-                <p class="page-hero-subtitle">{{ $woman->email }} | {{ $woman->barangay ?? 'Barangay not set' }}</p>
             </div>
             <div class="d-flex gap-2 flex-wrap">
                 <a href="{{ route('bhw.checkups.create', $woman->id) }}" class="btn btn-light">
@@ -19,7 +20,7 @@
                 <a href="{{ route('bhw.health-records.create', [$woman->id]) }}" class="btn btn-light">
                     <i class="bi bi-clipboard2-pulse me-1"></i> Add Health Record
                 </a>
-                <a href="{{ route('bhw.patients') }}" class="btn btn-outline-light">
+                <a href="{{ route('bhw.patients') }}" class="btn-hero-secondary">
                     <i class="bi bi-arrow-left me-1"></i> Back to Women
                 </a>
             </div>
@@ -33,6 +34,8 @@
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
         </div>
     @endif
+
+    @include('includes.risk-alert-status')
 
     <div class="row g-4 mb-4">
         <div class="col-md-4">
@@ -60,7 +63,7 @@
 
     <div class="card fade-in-card mb-4">
         <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Profile Summary</h5>
+            <h5 class="mb-0">Profile Summary</h5>
         </div>
         <div class="card-body">
             <div class="row g-3">
@@ -77,7 +80,7 @@
     @if($woman->partner_name || $woman->partner_contact)
     <div class="card fade-in-card mb-4">
         <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-person-hearts me-2" style="color: var(--info);"></i>Partner / Spouse Information</h5>
+            <h5 class="mb-0">Partner / Spouse Information</h5>
         </div>
         <div class="card-body">
             <div class="row g-3">
@@ -91,41 +94,40 @@
     {{-- Emergency Contacts --}}
     <div class="card fade-in-card mb-4">
         <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-people-fill me-2" style="color: var(--accent-pink);"></i>Emergency Contact Information</h5>
+            <h5 class="mb-0">Emergency Contact Information</h5>
         </div>
         <div class="card-body">
             <div class="row g-3">
                 {{-- Primary Contact --}}
                 <div class="col-md-6">
-                    <div class="p-3 h-100" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); border-radius: 12px;">
-                        <h6 class="mb-3 fw-700 text-primary">
-                            <i class="bi bi-1-circle-fill me-1"></i> Primary Contact
+                    <div class="p-3 h-100" style="background:color-mix(in srgb, var(--color-surface) 1%, transparent); border:1px solid var(--border); border-radius:12px;">
+                        <h6 class="mb-3 fw-700 text-primary">Primary Contact
                         </h6>
                         @if($woman->primaryEmergencyContact)
-                            <div class="d-flex flex-column gap-2" style="font-size: 0.9rem;">
+                            <div class="d-flex flex-column gap-2" style="font-size:0.9rem;">
                                 <div>
-                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Name</small>
+                                    <small class="text-muted d-block" style="font-size:0.75rem;">Name</small>
                                     <span class="fw-600">{{ $woman->primaryEmergencyContact->name }}</span>
                                 </div>
                                 <div>
-                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Relationship</small>
+                                    <small class="text-muted d-block" style="font-size:0.75rem;">Relationship</small>
                                     <span>{{ $woman->primaryEmergencyContact->relationship }}</span>
                                 </div>
                                 <div>
-                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Contact Number</small>
+                                    <small class="text-muted d-block" style="font-size:0.75rem;">Contact Number</small>
                                     <a href="tel:{{ $woman->primaryEmergencyContact->contact_number }}" class="fw-500 text-decoration-none">
-                                        <i class="bi bi-telephone-fill me-1" style="font-size: 0.8rem;"></i>{{ $woman->primaryEmergencyContact->contact_number }}
+                                        <i class="bi bi-telephone-fill me-1" style="font-size:0.8rem;"></i>{{ $woman->primaryEmergencyContact->contact_number }}
                                     </a>
                                 </div>
                                 @if($woman->primaryEmergencyContact->address)
                                 <div>
-                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Address</small>
+                                    <small class="text-muted d-block" style="font-size:0.75rem;">Address</small>
                                     <span class="text-muted">{{ $woman->primaryEmergencyContact->address }}</span>
                                 </div>
                                 @endif
                             </div>
                         @else
-                            <div class="text-muted py-2" style="font-size: 0.875rem;">
+                            <div class="text-muted py-2" style="font-size:0.875rem;">
                                 <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> No primary emergency contact recorded.
                             </div>
                         @endif
@@ -134,35 +136,34 @@
 
                 {{-- Secondary Contact --}}
                 <div class="col-md-6">
-                    <div class="p-3 h-100" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); border-radius: 12px;">
-                        <h6 class="mb-3 fw-700 text-muted">
-                            <i class="bi bi-2-circle-fill me-1"></i> Secondary Contact (Optional)
+                    <div class="p-3 h-100" style="background:color-mix(in srgb, var(--color-surface) 1%, transparent); border:1px solid var(--border); border-radius:12px;">
+                        <h6 class="mb-3 fw-700 text-muted">Secondary Contact (Optional)
                         </h6>
                         @if($woman->secondaryEmergencyContact)
-                            <div class="d-flex flex-column gap-2" style="font-size: 0.9rem;">
+                            <div class="d-flex flex-column gap-2" style="font-size:0.9rem;">
                                 <div>
-                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Name</small>
+                                    <small class="text-muted d-block" style="font-size:0.75rem;">Name</small>
                                     <span class="fw-600">{{ $woman->secondaryEmergencyContact->name }}</span>
                                 </div>
                                 <div>
-                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Relationship</small>
+                                    <small class="text-muted d-block" style="font-size:0.75rem;">Relationship</small>
                                     <span>{{ $woman->secondaryEmergencyContact->relationship }}</span>
                                 </div>
                                 <div>
-                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Contact Number</small>
+                                    <small class="text-muted d-block" style="font-size:0.75rem;">Contact Number</small>
                                     <a href="tel:{{ $woman->secondaryEmergencyContact->contact_number }}" class="fw-500 text-decoration-none text-muted">
-                                        <i class="bi bi-telephone-fill me-1" style="font-size: 0.8rem;"></i>{{ $woman->secondaryEmergencyContact->contact_number }}
+                                        <i class="bi bi-telephone-fill me-1" style="font-size:0.8rem;"></i>{{ $woman->secondaryEmergencyContact->contact_number }}
                                     </a>
                                 </div>
                                 @if($woman->secondaryEmergencyContact->address)
                                 <div>
-                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Address</small>
+                                    <small class="text-muted d-block" style="font-size:0.75rem;">Address</small>
                                     <span class="text-muted">{{ $woman->secondaryEmergencyContact->address }}</span>
                                 </div>
                                 @endif
                             </div>
                         @else
-                            <div class="text-muted py-2" style="font-size: 0.875rem;">
+                            <div class="text-muted py-2" style="font-size:0.875rem;">
                                 <i class="bi bi-info-circle me-1"></i> No secondary emergency contact recorded.
                             </div>
                         @endif
@@ -171,8 +172,8 @@
             </div>
 
             <div class="col-md-6">
-                <div class="card p-3 mb-4 border-0" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border); border-radius: 12px;">
-                    <h5 class="mb-0"><i class="bi bi-3-circle-fill me-2"></i>Tertiary Emergency Contact (Optional)</h5>
+                <div class="card p-3 mb-4 border-0" style="background:color-mix(in srgb, var(--color-surface) 1%, transparent); border:1px solid var(--border); border-radius:12px;">
+                    <h5 class="mb-0">Tertiary Emergency Contact (Optional)</h5>
                     <div class="card-body">
                         @if($woman->tertiaryEmergencyContact)
                             <div class="d-flex flex-column gap-2" style="font-size:0.9rem;">
@@ -187,7 +188,7 @@
                                 <div>
                                     <small class="text-muted d-block" style="font-size:0.75rem;">Contact Number</small>
                                     <a href="tel:{{ $woman->tertiaryEmergencyContact->contact_number }}" class="fw-500 text-decoration-none text-muted">
-                                        <i class="bi bi-telephone-fill me-1" style="font-size: 0.8rem;"></i>{{ $woman->tertiaryEmergencyContact->contact_number }}
+                                        <i class="bi bi-telephone-fill me-1" style="font-size:0.8rem;"></i>{{ $woman->tertiaryEmergencyContact->contact_number }}
                                     </a>
                                 </div>
                                 @if($woman->tertiaryEmergencyContact->address)
@@ -213,7 +214,7 @@
 
     <div class="card fade-in-card mb-4">
         <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-clipboard2-pulse-fill me-2"></i>Health Records</h5>
+            <h5 class="mb-0">Health Records</h5>
         </div>
         <div class="card-body p-0">
             @if($healthRecords->count())
@@ -261,7 +262,7 @@
 
     <div class="card fade-in-card">
         <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-calendar2-heart-fill me-2"></i>Checkups</h5>
+            <h5 class="mb-0">Checkups</h5>
         </div>
         <div class="card-body p-0">
             @if($checkups->count())

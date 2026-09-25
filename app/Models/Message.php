@@ -18,11 +18,16 @@ class Message extends Model
         'is_read',
         'read_at',
         'reply_to_id',
+        'is_sent',
+        'scheduled_at',
+        'client_uuid',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
         'read_at' => 'datetime',
+        'is_sent' => 'boolean',
+        'scheduled_at' => 'datetime',
     ];
 
     // Relationships

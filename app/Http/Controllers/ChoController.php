@@ -28,6 +28,21 @@ class ChoController extends Controller
         $ancCoverageRate = $this->ancCoverageRate();
         $recentRequests = SupplyRequest::with('requestedBy')->latest()->limit(5)->get();
         $recentDeaths = MaternalDeath::latest('death_date')->limit(5)->get();
+        $me = auth()->user()->fresh();
+        $signatureReady = $me && $me->signature_image && $me->license_number && $me->employee_id;
+        $onboardingMissing = $me ? array_values(array_filter([
+            !$me->employee_id ? 'Plantilla ID' : null,
+            !$me->license_number ? 'Medical license' : null,
+            !$me->signature_image ? 'Digital signature' : null,
+            !$me->pref_2fa_enabled ? 'Two-factor authentication' : null,
+        ])) : [];
+        $dashboardRiskReport = app(\App\Services\MaternalAnalyticsService::class)->report([
+            'from' => now()->subMonthsNoOverflow(11)->startOfMonth()->toDateString(),
+            'to' => today()->toDateString(),
+            'barangay' => null,
+            'rhu' => null,
+        ]);
+        $dashboardMapData = app(\App\Services\AnalyticsMap::class)->build($dashboardRiskReport);
 
         return view('cho.dashboard', compact(
             'totalUsers',
@@ -39,13 +54,219 @@ class ChoController extends Controller
             'totalNearMiss',
             'ancCoverageRate',
             'recentRequests',
-            'recentDeaths'
+            'recentDeaths',
+            'signatureReady',
+            'onboardingMissing',
+            'dashboardMapData'
         ));
     }
 
     public function settings()
     {
         return view('cho.settings');
+    }
+
+    /**
+     * Official city-wide documents require the sitting CHO's
+     * signature asset, medical license, and plantilla ID on file.
+     */
+    public static function signatureReadyFor(?User $user): bool
+    {
+        return (bool) ($user && $user->signature_image && $user->license_number && $user->employee_id);
+    }
+
+    protected function redirectIfSignatureNotReady()
+    {
+        if (!self::signatureReadyFor(auth()->user()?->fresh())) {
+            return redirect()->route('cho.settings')
+                ->with('error', 'Official documents are locked until the sitting CHO completes My Profile: digital signature, medical license number, and plantilla ID.');
+        }
+        return null;
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $section = $request->input('section', 'thresholds');
+
+        if ($section === 'appearance') {
+            $data = $request->validate([
+                'mode' => 'required|in:light,dark',
+            ]);
+            // Keep the city-wide brand palette consistent. Only its default
+            // light/dark mode remains an administrator preference.
+            $data = array_merge(config('appearance.defaults'), $data);
+            $data['revision'] = (string) \Illuminate\Support\Str::uuid();
+            \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
+                \App\Models\Setting::updateOrCreate(['key' => 'appearance.theme'], [
+                    'value' => json_encode($data), 'group' => 'appearance',
+                    'label' => 'City-wide ReproCare appearance', 'updated_by_id' => auth()->id(),
+                ]);
+                // updateOrCreate bypasses Setting::set(), so clear the read cache explicitly.
+                \App\Models\Setting::flushCache('appearance.theme');
+                ActivityLog::log('update', 'CHO updated the city-wide default appearance mode');
+            });
+            return redirect()->to(route('cho.settings').'#appearance')
+                ->with('success', 'Appearance saved for all ReproCare users.');
+        }
+
+        if ($section === 'thresholds') {
+            $data = $request->validate([
+                'bp_systolic_high' => 'required|numeric|min:90|max:220',
+                'bp_diastolic_high' => 'required|numeric|min:50|max:140',
+                'hemoglobin_low' => 'required|numeric|min:5|max:15',
+                'gestational_age_max' => 'required|integer|min:37|max:45',
+            ]);
+            foreach ($data as $field => $value) {
+                \App\Models\Setting::set('threshold.' . $field, $value, auth()->id());
+            }
+            \App\Models\ActivityLog::log('update', 'CHO updated city-wide clinical risk thresholds');
+            return back()->with('success', 'Clinical risk thresholds updated city-wide.');
+        }
+
+        if ($section === 'office') {
+            $data = $request->validate([
+                'office_name' => 'required|string|max:255',
+                'contact_number' => 'nullable|string|max:30',
+                'director_name' => 'nullable|string|max:255',
+            ]);
+            foreach ($data as $field => $value) {
+                \App\Models\Setting::set('cho.' . $field, $value ?? '', auth()->id());
+            }
+            \App\Models\ActivityLog::log('update', 'CHO updated office profile');
+            return back()->with('success', 'CHO office profile updated.');
+        }
+
+        if ($section === 'maintenance') {
+            $request->validate(['maintenance_mode' => 'required|in:on,off']);
+            try {
+                if ($request->maintenance_mode === 'on') {
+                    \Illuminate\Support\Facades\Artisan::call('down', ['--secret' => 'reprocare-admin']);
+                } else {
+                    \Illuminate\Support\Facades\Artisan::call('up');
+                }
+            } catch (\Throwable $e) {
+                return back()->with('error', 'Could not toggle maintenance mode: ' . $e->getMessage());
+            }
+            \App\Models\ActivityLog::log('update', 'CHO toggled maintenance mode ' . $request->maintenance_mode);
+            return back()->with('success', 'Maintenance mode ' . ($request->maintenance_mode === 'on' ? 'enabled.' : 'disabled.'));
+        }
+
+        if ($section === 'audit') {
+            $data = $request->validate(['retention_days' => 'required|integer|min:30|max:3650']);
+            \App\Models\Setting::set('audit.retention_days', $data['retention_days'], auth()->id());
+            if ($request->boolean('prune_now')) {
+                $cutoff = now()->subDays($data['retention_days']);
+                $count = \App\Models\ActivityLog::where('created_at', '<', $cutoff)->where('is_protected', false)->delete();
+                \App\Models\ActivityLog::log('delete', "CHO pruned {$count} activity log(s) per retention policy");
+                return back()->with('success', "Retention saved. Pruned {$count} old log(s).");
+            }
+            \App\Models\ActivityLog::log('update', 'CHO updated audit log retention policy');
+            return back()->with('success', 'Audit retention policy saved.');
+        }
+
+        if ($section === 'sms') {
+            $data = $request->validate([
+                'provider' => 'required|in:movider,textbee',
+                'mock' => 'required|in:0,1',
+                'textbee_api_key' => 'nullable|string|max:255',
+                'textbee_device_id' => 'nullable|string|max:255',
+            ]);
+            foreach ($data as $field => $value) {
+                \App\Models\Setting::set('sms.' . $field, $value ?? '', auth()->id());
+            }
+            \App\Models\ActivityLog::log('update', 'CHO updated SMS gateway configuration');
+            return back()->with('success', 'SMS gateway configuration saved.');
+        }
+
+        if ($section === 'password') {
+            $request->validate([
+                'current_password' => 'required|string',
+                'new_password' => 'required|string|min:8',
+                'confirm_password' => 'required|string|same:new_password',
+            ]);
+            $user = auth()->user();
+            if (!\Illuminate\Support\Facades\Hash::check($request->input('current_password'), $user->password)) {
+                return back()->withErrors(['current_password' => 'Current password is incorrect.'])->withInput();
+            }
+            $user->password = \Illuminate\Support\Facades\Hash::make($request->input('new_password'));
+            $user->save();
+            return back()->with('success', 'Password updated successfully.');
+        }
+
+        if ($section === 'myprofile') {
+            $data = $request->validate([
+                'first_name' => 'required|string|max:100',
+                'middle_initial' => 'nullable|string|max:5',
+                'last_name' => 'required|string|max:100',
+                'official_title' => 'nullable|string|max:150',
+                'employee_id' => 'nullable|string|max:60',
+                'license_number' => 'nullable|string|max:60',
+                'license_expiry' => 'nullable|date',
+                'specialization' => 'nullable|string|max:150',
+                'contact_number' => 'nullable|string|max:30',
+                'secondary_email' => 'nullable|email|max:255',
+                'office_extension' => 'nullable|string|max:20',
+                'emergency_mobile' => 'nullable|string|max:30',
+            ]);
+            $user = auth()->user();
+            $user->update($data);
+            \App\Models\ActivityLog::log('update', 'CHO updated My Profile identity and contact details');
+            return back()->with('success', 'My Profile updated.');
+        }
+
+        if ($section === 'signature') {
+            $user = auth()->user();
+            if ($request->boolean('remove_signature')) {
+                if ($user->signature_image) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($user->signature_image);
+                }
+                $user->update(['signature_image' => null]);
+                \App\Models\ActivityLog::log('update', 'CHO removed official digital signature');
+                return back()->with('success', 'Digital signature removed.');
+            }
+            $data = $request->validate([
+                'signature_image' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+            ]);
+            $path = $request->file('signature_image')->store('signatures', 'public');
+            if ($user->signature_image) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->signature_image);
+            }
+            $user->update(['signature_image' => $path]);
+            \App\Models\ActivityLog::log('update', 'CHO uploaded official digital signature');
+            return back()->with('success', 'Digital signature uploaded.');
+        }
+
+        if ($section === 'exec_notifications') {
+            $user = auth()->user();
+            $user->update([
+                'pref_mortality_alerts' => $request->boolean('pref_mortality_alerts'),
+                'pref_audit_warnings' => $request->boolean('pref_audit_warnings'),
+                'pref_compliance_updates' => $request->boolean('pref_compliance_updates'),
+                'pref_escalation_alerts' => $request->boolean('pref_escalation_alerts'),
+            ]);
+            \App\Models\ActivityLog::log('update', 'CHO updated executive notification preferences');
+            return back()->with('success', 'Executive notification preferences saved.');
+        }
+
+        if ($section === 'twofa') {
+            $user = auth()->user();
+            $user->update(['pref_2fa_enabled' => $request->boolean('pref_2fa_enabled')]);
+            \App\Models\ActivityLog::log('update', 'CHO ' . ($user->pref_2fa_enabled ? 'enabled' : 'disabled') . ' two-factor authentication');
+            return back()->with('success', 'Two-factor authentication ' . ($user->pref_2fa_enabled ? 'enabled.' : 'disabled.'));
+        }
+
+        if ($section === 'sessions') {
+            $request->validate(['current_password' => 'required|string']);
+            $user = auth()->user();
+            if (!\Illuminate\Support\Facades\Hash::check($request->input('current_password'), $user->password)) {
+                return back()->withErrors(['current_password' => 'Current password is incorrect.'])->withInput();
+            }
+            \Illuminate\Support\Facades\Auth::logoutOtherDevices($request->input('current_password'));
+            \App\Models\ActivityLog::log('update', 'CHO revoked all other active sessions');
+            return back()->with('success', 'All other devices have been signed out.');
+        }
+
+        return back()->with('error', 'Unknown settings section.');
     }
 
     public function users(Request $request)
@@ -90,6 +311,7 @@ class ChoController extends Controller
             'date_of_birth' => 'required|date|before:today',
             'gender' => 'required|in:male,female',
             'contact_number' => 'required|string|max:20',
+            'address' => 'nullable|string|max:500',
             'rhu_assignment' => 'nullable|string|max:255',
             'cho_office' => 'nullable|string|max:255',
         ]);
@@ -136,6 +358,12 @@ class ChoController extends Controller
     public function deactivateUser($id)
     {
         $user = User::whereIn('role', ['rhu', 'midwife', 'bhw_president', 'bhw'])->findOrFail($id);
+
+        // Offboarding guard: suspension strands work the same as archiving.
+        if ($block = app(\App\Services\WorkflowService::class)->guardOffboarding($user)) {
+            return $block;
+        }
+
         $user->update(['status' => 'suspended']);
         ActivityLog::log('update', "CHO suspended staff account for {$user->name}", $user);
 
@@ -207,143 +435,25 @@ class ChoController extends Controller
         return redirect()->route('cho.supply-requests.index')->with('success', 'Supply request declined.');
     }
 
-    public function patients(Request $request)
-    {
-        $search       = $request->input('search');
-        $barangay     = $request->input('barangay');
-        $status       = $request->input('status', 'approved');
-        $riskLevel    = $request->input('risk_level');
-        $ageGroup     = $request->input('age_group');
-        $trimester    = $request->input('trimester');
-        $showArchived = $request->boolean('show_archived');
-
-        $query = User::where('role', 'user')
-            ->with(['purok', 'pregnancies' => fn($q) => $q->active(), 'healthRecords' => fn($q) => $q->latest()]);
-
-        if ($showArchived) {
-            $query->onlyTrashed();
-        } else {
-            $query->when($status !== 'all', fn ($q) => $q->where('status', $status));
-        }
-
-        // Text Search
-        if ($search) {
-            $cleanSearch = ltrim($search, '#');
-            $query->where(function ($inner) use ($search, $cleanSearch) {
-                $inner->where('id', $cleanSearch)
-                    ->orWhere('first_name', 'like', "%{$search}%")
-                    ->orWhere('middle_initial', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('contact_number', 'like', "%{$search}%")
-                    ->orWhere('barangay', 'like', "%{$search}%")
-                    ->orWhere('medical_history', 'like', "%{$search}%");
-            });
-        }
-
-        // Barangay filter
-        if ($barangay) {
-            $query->where('barangay', 'like', "%{$barangay}%");
-        }
-
-        // Age Group filter (Teenage <19, Adult 19-34, Advanced 35+)
-        if ($ageGroup === 'teen') {
-            $query->whereNotNull('date_of_birth')
-                  ->where('date_of_birth', '>', now()->subYears(19)->toDateString());
-        } elseif ($ageGroup === 'adult') {
-            $query->whereNotNull('date_of_birth')
-                  ->where('date_of_birth', '<=', now()->subYears(19)->toDateString())
-                  ->where('date_of_birth', '>', now()->subYears(35)->toDateString());
-        } elseif ($ageGroup === 'advanced') {
-            $query->whereNotNull('date_of_birth')
-                  ->where('date_of_birth', '<=', now()->subYears(35)->toDateString());
-        }
-
-        // Risk Level filter
-        if ($riskLevel) {
-            if ($riskLevel === 'high_risk_only') {
-                $query->where(function ($q) {
-                    $q->whereHas('pregnancies', fn($p) => $p->active()->whereIn('risk_level', ['High', 'Critical']))
-                      ->orWhereHas('healthRecords', fn($h) => $h->whereIn('risk_level', ['High', 'Critical']));
-                });
-            } else {
-                $query->where(function ($q) use ($riskLevel) {
-                    $q->whereHas('pregnancies', fn($p) => $p->active()->where('risk_level', ucfirst($riskLevel)))
-                      ->orWhereHas('healthRecords', fn($h) => $h->where('risk_level', ucfirst($riskLevel)));
-                });
-            }
-        }
-
-        // Trimester filter (1st: 1-13, 2nd: 14-26, 3rd: 27+)
-        if ($trimester) {
-            $query->whereHas('pregnancies', function ($p) use ($trimester) {
-                $p->active();
-                if ($trimester == '1') {
-                    $p->where('aog_weeks', '<=', 13);
-                } elseif ($trimester == '2') {
-                    $p->whereBetween('aog_weeks', [14, 26]);
-                } elseif ($trimester == '3') {
-                    $p->where('aog_weeks', '>=', 27);
-                }
-            });
-        }
-
-        $patients = $query->latest()->paginate(15)->withQueryString();
-
-        $barangays = User::where('role', 'user')
-            ->whereNotNull('barangay')
-            ->where('barangay', '!=', '')
-            ->distinct()
-            ->pluck('barangay')
-            ->toArray();
-
-        return view('cho.patients.index', compact(
-            'patients',
-            'search',
-            'barangay',
-            'status',
-            'riskLevel',
-            'ageGroup',
-            'trimester',
-            'barangays',
-            'showArchived'
-        ));
-    }
-
-    public function patientDetails($id)
-    {
-        $patient = User::withTrashed()->where('role', 'user')->findOrFail($id);
-        $pregnancies = Pregnancy::where('user_id', $id)->latest()->get();
-        $healthRecords = \App\Models\HealthRecord::where('user_id', $id)->latest()->paginate(10);
-        $availableVideos = \App\Models\LearningMaterial::videos()->latest()->take(6)->get();
-
-        return view('cho.patients.show', compact('patient', 'pregnancies', 'healthRecords', 'availableVideos'));
-    }
-
-    public function archivePatient($id)
-    {
-        $patient = User::where('role', 'user')->findOrFail($id);
-        $name = $patient->name;
-        $patient->delete(); // Soft delete only
-
-        ActivityLog::log('archive', "Archived patient record for {$name}", $patient);
-
-        return back()->with('success', "Patient record for '{$name}' has been moved to archives.");
-    }
-
     public function pregnancies(Request $request)
     {
-        $status = $request->input('status');
-        $riskLevel = $request->input('risk_level');
+        $status = $request->input('status', 'all');
+        $riskLevel = $request->input('risk_level', 'all');
         $search = $request->input('search');
 
-        $pregnancies = Pregnancy::with('user')
-            ->when($status, fn ($query) => $query->where('status', $status))
-            ->when($riskLevel, fn ($query) => $query->where('risk_level', $riskLevel))
+        $pregnancies = app(\App\Services\PatientPresentation::class)->originalPatientsFirst(Pregnancy::with(['woman', 'walkInPatient']))
+            ->when($status === 'active', fn ($query) => $query->whereNull('ended_at'))
+            ->when($status === 'completed', fn ($query) => $query->whereNotNull('ended_at'))
+            ->when($riskLevel !== 'all' && $riskLevel, fn ($query) => $query->where('risk_level', $riskLevel))
             ->when($search, function ($query) use ($search) {
-                $query->whereHas('user', function ($inner) use ($search) {
-                    $inner->where('first_name', 'like', "%{$search}%")
-                        ->orWhere('last_name', 'like', "%{$search}%");
+                $query->where(function ($outer) use ($search) {
+                    $outer->whereHas('woman', function ($inner) use ($search) {
+                        $inner->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    })->orWhereHas('walkInPatient', function ($inner) use ($search) {
+                        $inner->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
                 });
             })
             ->latest()
@@ -355,7 +465,7 @@ class ChoController extends Controller
 
     public function pregnancyDetails($id)
     {
-        $pregnancy = Pregnancy::with('user', 'healthRecords')->findOrFail($id);
+        $pregnancy = Pregnancy::with(['woman', 'walkInPatient', 'healthRecords'])->findOrFail($id);
 
         return view('cho.pregnancies.show', compact('pregnancy'));
     }
@@ -365,15 +475,20 @@ class ChoController extends Controller
         $search = $request->input('search');
         $barangay = $request->input('barangay');
 
-        $records = \App\Models\HealthRecord::where('record_type', 'immunization')
-            ->with('user')
+        $records = \App\Models\HealthRecord::whereNotNull('immunization_status')
+            ->with(['woman', 'walkInPatient', 'recordedBy'])
             ->when($search, function ($query) use ($search) {
-                $query->whereHas('user', function ($inner) use ($search) {
-                    $inner->where('first_name', 'like', "%{$search}%")
-                        ->orWhere('last_name', 'like', "%{$search}%");
+                $query->where(function ($outer) use ($search) {
+                    $outer->whereHas('woman', function ($inner) use ($search) {
+                        $inner->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    })->orWhereHas('walkInPatient', function ($inner) use ($search) {
+                        $inner->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
                 });
             })
-            ->when($barangay, fn ($query) => $query->whereHas('user', fn ($inner) => $inner->where('barangay', $barangay)))
+            ->when($barangay, fn ($query) => $query->whereHas('woman', fn ($inner) => $inner->where('barangay', $barangay)))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -384,12 +499,13 @@ class ChoController extends Controller
     public function reports(Request $request)
     {
         $month = $request->input('month', now()->format('Y-m'));
-        $status = $request->input('status');
+        $status = $request->input('status', 'all');
+        [$year, $mon] = array_map('intval', explode('-', $month) + [date('Y'), date('m')]);
 
-        $reports = BhwMonthlyReport::with('submittedBy')
-            ->whereYear('month', '=', date('Y', strtotime($month)))
-            ->whereMonth('month', '=', date('m', strtotime($month)))
-            ->when($status, fn ($query) => $query->where('status', $status))
+        $reports = BhwMonthlyReport::with('bhw')
+            ->where('report_year', $year)
+            ->where('report_month', $mon)
+            ->when($status !== 'all' && $status, fn ($query) => $query->where('submission_status', $status))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -399,14 +515,17 @@ class ChoController extends Controller
 
     public function exportReportsCsv(Request $request)
     {
+        $pendingSignature = !self::signatureReadyFor(auth()->user()?->fresh());
         $month = $request->input('month', now()->format('Y-m'));
-        $reports = BhwMonthlyReport::whereYear('month', '=', date('Y', strtotime($month)))
-            ->whereMonth('month', '=', date('m', strtotime($month)))
+        [$year, $mon] = array_map('intval', explode('-', $month) + [date('Y'), date('m')]);
+        $reports = BhwMonthlyReport::with('bhw')
+            ->where('report_year', $year)
+            ->where('report_month', $mon)
             ->get();
 
-        $csv = "BHW,Month,Pregnant Women,Checkups,Deliveries\n";
+        $csv = "BHW,Period,Type,Records,Status,Signature\n";
         foreach ($reports as $report) {
-            $csv .= "{$report->submittedBy->name},{$report->month},{$report->pregnant_count},{$report->checkup_count},{$report->delivery_count}\n";
+            $csv .= "\"{$report->bhw?->name}\",\"{$report->report_period}\",\"{$report->report_type}\",\"{$report->total_records}\",\"{$report->submission_status}\",\"".($pendingSignature ? 'PENDING SIGNATURE' : 'SIGNED')."\"\n";
         }
 
         return response($csv)
@@ -417,11 +536,15 @@ class ChoController extends Controller
     public function exportReportsPdf(Request $request)
     {
         $month = $request->input('month', now()->format('Y-m'));
-        $reports = BhwMonthlyReport::with('submittedBy')->whereYear('month', '=', date('Y', strtotime($month)))
-            ->whereMonth('month', '=', date('m', strtotime($month)))
+        [$year, $mon] = array_map('intval', explode('-', $month) + [date('Y'), date('m')]);
+        $reports = BhwMonthlyReport::with('bhw')
+            ->where('report_year', $year)
+            ->where('report_month', $mon)
             ->get();
+        $signatory = auth()->user()->fresh();
+        $pendingSignature = !self::signatureReadyFor($signatory);
 
-        return view('cho.reports.pdf', compact('reports', 'month'));
+        return view('cho.reports.pdf', compact('reports', 'month', 'signatory', 'pendingSignature'));
     }
 
     public function staffIndex(Request $request)
@@ -489,34 +612,6 @@ class ChoController extends Controller
         return view('cho.staff.bhws', compact('bhws', 'search', 'barangay', 'status'));
     }
 
-    public function aiDashboard()
-    {
-        $insights = app(AIInsightService::class)->generateInsights([
-            'totalPregnant' => Pregnancy::active()->count(),
-            'highRiskCount' => Pregnancy::active()->highRisk()->count(),
-            'ancCoverageRate' => $this->ancCoverageRate(),
-            'facilityBirthRate' => $this->facilityBirthRate(),
-            'totalDeaths' => MaternalDeath::count(),
-            'totalNearMiss' => MaternalMorbidity::count(),
-        ]);
-
-        return view('cho.ai-dashboard.index', compact('insights'));
-    }
-
-    public function aiInsights(Request $request)
-    {
-        $data = $request->validate(['question' => 'required|string|max:500']);
-        $answer = app(AIInsightService::class)->chat($data['question'], [
-            'active_pregnancies' => Pregnancy::active()->count(),
-            'high_risk_pregnancies' => Pregnancy::active()->highRisk()->count(),
-            'pending_supply_requests' => SupplyRequest::where('status', 'submitted')->count(),
-            'maternal_deaths' => MaternalDeath::count(),
-            'near_miss_events' => MaternalMorbidity::count(),
-        ]);
-
-        return response()->json(['answer' => $answer]);
-    }
-
     public function maternalDeaths(Request $request)
     {
         $deaths = MaternalDeath::with(['user', 'walkInPatient', 'recordedBy', 'purok'])
@@ -537,6 +632,7 @@ class ChoController extends Controller
 
     public function auditMaternalDeath(Request $request, $id)
     {
+        $pendingSignature = !self::signatureReadyFor(auth()->user()?->fresh());
         $data = $request->validate([
             'audit_status' => 'required|in:reviewed,closed',
             'audit_notes' => 'required|string|max:2000',
@@ -545,13 +641,13 @@ class ChoController extends Controller
         $death = MaternalDeath::findOrFail($id);
         $death->update([
             'audit_status' => $data['audit_status'],
-            'audit_notes' => $data['audit_notes'],
+            'audit_notes' => $data['audit_notes'].($pendingSignature ? ' [PENDING SIGNATURE]' : ''),
             'reviewed_by_id' => auth()->id(),
             'reviewed_at' => now(),
         ]);
-        ActivityLog::log('update', "CHO audited maternal death case for {$death->patient_name}", $death);
+        ActivityLog::log('update', "CHO audited maternal death case for {$death->patient_name}".($pendingSignature ? ' (pending signature)' : ''), $death);
 
-        return back()->with('success', 'Maternal death audit updated.');
+        return back()->with('success', $pendingSignature ? 'Audit saved with PENDING SIGNATURE watermark. Complete My Profile to sign.' : 'Maternal death audit updated.');
     }
 
     public function logs()
@@ -561,123 +657,29 @@ class ChoController extends Controller
         return view('cho.logs.index', compact('logs'));
     }
 
-    public function analytics()
+    public function analytics(\App\Http\Requests\AnalyticsRequest $request)
     {
-        $totalPregnant = Pregnancy::active()->count();
-        $highRiskCount = Pregnancy::active()->highRisk()->count();
-        $totalCompleted = Pregnancy::completed()->count();
-        $ancCoverageRate = $this->ancCoverageRate();
-        $facilityBirthRate = $this->facilityBirthRate();
-        $smsEnabledCount = User::where('role', 'user')->whereNotNull('contact_number')->where('sms_opt_out', false)->count();
+        $analytics = app(\App\Services\MaternalAnalyticsService::class);
+        $report = $analytics->report($request->validated());
+        $suggestions = app(AIInsightService::class)->suggestions($report);
+        $aiStatus = app(AIInsightService::class)->status();
+        $areaOptions = $analytics->areaOptions();
+        $queue = new \Illuminate\Pagination\LengthAwarePaginator(
+            $report['queue']->forPage(max(1, $request->integer('page', 1)), 15)->values(),
+            $report['queue']->count(),
+            15,
+            max(1, $request->integer('page', 1)),
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
-        // ── 1. Monthly Pregnancy Registrations Trend (Last 12 Months) ─────────
-        $monthlyPregnancies = Pregnancy::selectRaw("DATE_FORMAT(created_at, '%b %Y') as period, COUNT(*) as total")
-            ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
-            ->groupBy('period')
-            ->orderByRaw('MIN(created_at)')
-            ->pluck('total', 'period')
-            ->toArray();
-
-        // ── 2. Maternal Mortality & Morbidity Causes ───────────────────────────
-        $causes = MaternalDeath::selectRaw('cause_category, COUNT(*) as total')
-            ->groupBy('cause_category')
-            ->pluck('total', 'cause_category')
-            ->toArray();
-
-        $totalDeaths = array_sum($causes);
-        $totalNearMiss = MaternalMorbidity::count();
-
-        // ── 3. Adolescent / Teenage Pregnancy Analysis (<19 years) ────────────
-        $teenPatientsQuery = User::where('role', 'user')
-            ->whereNotNull('date_of_birth')
-            ->where('date_of_birth', '>', now()->subYears(19)->toDateString())
-            ->whereHas('pregnancies', fn($q) => $q->active());
-
-        $teenPregnancies = $teenPatientsQuery->count();
-
-        $teenByBarangay = User::where('role', 'user')
-            ->whereNotNull('date_of_birth')
-            ->where('date_of_birth', '>', now()->subYears(19)->toDateString())
-            ->whereHas('pregnancies', fn($q) => $q->active())
-            ->whereNotNull('barangay')
-            ->selectRaw('barangay, COUNT(*) as total')
-            ->groupBy('barangay')
-            ->orderByDesc('total')
-            ->pluck('total', 'barangay')
-            ->toArray();
-
-        $teenHotspots = array_keys(array_slice($teenByBarangay, 0, 3, true));
-
-        // ── 4. High-Risk Distribution by Barangay ─────────────────────────────
-        $highRiskByBarangay = Pregnancy::active()->highRisk()
-            ->join('users', 'pregnancies.user_id', '=', 'users.id')
-            ->whereNotNull('users.barangay')
-            ->selectRaw('users.barangay, COUNT(*) as total')
-            ->groupBy('users.barangay')
-            ->orderByDesc('total')
-            ->pluck('total', 'barangay')
-            ->toArray();
-
-        $highRiskHotspots = array_keys(array_slice($highRiskByBarangay, 0, 3, true));
-
-        // ── 5. Dynamic Context-Aware Strategic Interventions Engine ───────────
-        $insightService = app(AIInsightService::class);
-        $analyticsPayload = [
-            'totalPregnant'     => $totalPregnant,
-            'highRiskCount'     => $highRiskCount,
-            'ancCoverageRate'   => $ancCoverageRate,
-            'facilityBirthRate' => $facilityBirthRate,
-            'totalDeaths'       => $totalDeaths,
-            'totalNearMiss'     => $totalNearMiss,
-            'teenPregnancies'   => $teenPregnancies,
-            'teenHotspots'      => $teenHotspots,
-            'highRiskHotspots'  => $highRiskHotspots,
-        ];
-
-        $strategicInterventions = $insightService->generateStrategicInterventions($analyticsPayload);
-        $aiInsights = $insightService->generateInsights($analyticsPayload);
-
-        // ── 6. Prioritized Patients List (Top 10 High-Risk) ───────────────────
-        try {
-            $patientIds = User::where('role', 'user')->where('status', 'approved')->pluck('id')->toArray();
-            $prioritized = app(\App\Services\RiskAnalysisService::class)->prioritize($patientIds)->take(10);
-        } catch (\Throwable $e) {
-            \Log::error('CHO analytics prioritization failed: ' . $e->getMessage());
-            $prioritized = collect();
-        }
-
-        return view('cho.analytics', compact(
-            'totalPregnant',
-            'highRiskCount',
-            'totalCompleted',
-            'ancCoverageRate',
-            'facilityBirthRate',
-            'smsEnabledCount',
-            'monthlyPregnancies',
-            'causes',
-            'totalDeaths',
-            'totalNearMiss',
-            'teenPregnancies',
-            'teenByBarangay',
-            'highRiskByBarangay',
-            'strategicInterventions',
-            'aiInsights',
-            'prioritized'
-        ));
+        return view('cho.analytics', compact('report', 'suggestions', 'areaOptions', 'queue', 'aiStatus'));
     }
 
-    public function analyticsChat(Request $request)
+    public function analyticsChat(\App\Http\Requests\AnalyticsRequest $request)
     {
-        $data = $request->validate(['question' => 'required|string|max:500']);
-        $answer = app(AIInsightService::class)->chat($data['question'], [
-            'active_pregnancies' => Pregnancy::active()->count(),
-            'high_risk_pregnancies' => Pregnancy::active()->highRisk()->count(),
-            'pending_supply_requests' => SupplyRequest::where('status', 'submitted')->count(),
-            'maternal_deaths' => MaternalDeath::count(),
-            'near_miss_events' => MaternalMorbidity::count(),
-        ]);
+        $report = app(\App\Services\MaternalAnalyticsService::class)->report($request->validated());
 
-        return response()->json(['answer' => $answer]);
+        return response()->json(app(AIInsightService::class)->chat($request->validated('question'), $report));
     }
 
     private function ancCoverageRate(): float

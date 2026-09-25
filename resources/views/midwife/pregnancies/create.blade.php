@@ -4,11 +4,11 @@
 
 @push('styles')
 <style>
-    .preg-grid { display: grid; gap: 1.25rem; }
-    .preg-card { border: 1px solid var(--border); border-radius: 18px; background: var(--bg-card); padding: 1.25rem; }
-    .preg-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.8rem; }
-    .preg-avatar { width: 68px; height: 68px; border-radius: 18px; object-fit: cover; border: 2px solid var(--border); }
-    .bmi-chip { display: inline-flex; align-items: center; padding: 0.55rem 0.8rem; border-radius: 12px; background: var(--bg-card2); min-height: 42px; font-weight: 600; }
+    .preg-grid { display:grid; gap:1.25rem; }
+    .preg-card { border:1px solid var(--border); border-radius:18px; background:var(--bg-card); padding:1.25rem; }
+    .preg-label { font-size:0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.8rem; }
+    .preg-avatar { width:68px; height:68px; border-radius:18px; object-fit:cover; border:2px solid var(--border); }
+    .bmi-chip { display:inline-flex; align-items:center; padding:0.55rem 0.8rem; border-radius:12px; background:var(--bg-card2); min-height:42px; font-weight:600; }
 </style>
 @endpush
 
@@ -17,7 +17,7 @@
     <div class="page-hero fade-in-card mb-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
             <div>
-                <h1 class="page-hero-title"><i class="bi bi-heart-pulse-fill me-2"></i>Add Pregnancy</h1>
+                <h1 class="page-hero-title">Add Pregnancy</h1>
                 <p class="page-hero-subtitle">Create a new active pregnancy record.</p>
             </div>
             <a href="{{ route('midwife.pregnancies.index') }}" class="btn-hero-primary">
@@ -60,17 +60,17 @@
                         <label class="form-label">Patient Type</label>
                         <div class="d-flex gap-2 flex-wrap">
                             <input type="radio" class="btn-check" name="patient_type" id="patient_type_registered" value="registered" {{ old('patient_type', 'registered') === 'registered' ? 'checked' : '' }}>
-                            <label class="btn btn-outline-primary" for="patient_type_registered">Registered</label>
+                            <label class="btn btn-outline-primary" for="patient_type_registered">Enrolled</label>
                             <input type="radio" class="btn-check" name="patient_type" id="patient_type_walk_in" value="walk_in" {{ old('patient_type') === 'walk_in' ? 'checked' : '' }}>
-                            <label class="btn btn-outline-primary" for="patient_type_walk_in">Walk-in</label>
+                            <label class="btn btn-outline-primary" for="patient_type_walk_in">Unlinked</label>
                         </div>
                     </div>
                     <div class="col-md-8" id="registeredSearchWrap">
-                        <label for="patientSearch" class="form-label">Search Registered Woman</label>
+                        <label for="patientSearch" class="form-label">Search Enrolled Woman</label>
                         <input type="text" class="form-control" id="patientSearch" placeholder="Search by name or email">
                     </div>
                     <div class="col-md-8" id="registered_patient_section">
-                        <label for="user_id" class="form-label">Registered Woman</label>
+                        <label for="user_id" class="form-label">Enrolled Woman</label>
                         <select class="form-select @error('user_id') is-invalid @enderror" id="user_id" name="user_id">
                             <option value="">Select woman</option>
                             @foreach($women as $listedWoman)
@@ -94,15 +94,15 @@
                             <img src="/images/avatars/avatar-female.svg" id="patient_preview_image" alt="Preview" class="preg-avatar">
                             <div>
                                 <div id="patient_preview_name" class="fw-bold">No woman selected</div>
-                                <div id="patient_preview_subtitle" class="text-muted small">Choose a registered woman</div>
+                                <div id="patient_preview_subtitle" class="text-muted small">Choose an enrolled woman</div>
                                 <div id="patient_preview_age" class="text-muted small"></div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-8 d-none" id="walk_in_patient_section">
-                        <label for="walk_in_patient_id" class="form-label">Walk-in Woman</label>
+                        <label for="walk_in_patient_id" class="form-label">Unlinked Woman</label>
                         <select class="form-select @error('walk_in_patient_id') is-invalid @enderror" id="walk_in_patient_id" name="walk_in_patient_id">
-                            <option value="">Select walk-in woman</option>
+                            <option value="">Select unlinked woman</option>
                             @foreach($walkInPatients as $walkInPatient)
                                 <option value="{{ $walkInPatient->id }}"
                                     data-age="{{ $walkInPatient->age }}"
@@ -122,7 +122,7 @@
                             <img src="/images/avatars/avatar-female.svg" id="walkin_preview_image" alt="Preview" class="preg-avatar">
                             <div>
                                 <div id="walkin_preview_name" class="fw-bold">No walk-in selected</div>
-                                <div id="walkin_preview_subtitle" class="text-muted small">Choose a walk-in woman</div>
+                                <div id="walkin_preview_subtitle" class="text-muted small">Choose an unlinked woman</div>
                                 <div id="walkin_preview_age" class="text-muted small"></div>
                             </div>
                         </div>
@@ -152,11 +152,17 @@
                         </div>
                         <div class="col-md-3">
                             <label for="gravida" class="form-label">Gravida</label>
-                            <input type="number" class="form-control" id="gravida" name="gravida" value="{{ old('gravida') }}" min="1">
+                            <input type="number" class="form-control" id="gravida" name="gravida" value="{{ old('gravida', $suggested['gravida'] ?? null) }}" min="1">
+                            @if(!empty($suggested) && ($suggested['gravida'] ?? 1) > 1)
+                                <small class="form-text text-muted">Carried over from prior pregnancy (G{{ $suggested['gravida'] }})</small>
+                            @endif
                         </div>
                         <div class="col-md-3">
                             <label for="para" class="form-label">Para</label>
-                            <input type="number" class="form-control" id="para" name="para" value="{{ old('para') }}" min="0">
+                            <input type="number" class="form-control" id="para" name="para" value="{{ old('para', $suggested['para'] ?? null) }}" min="0">
+                            @if(!empty($suggested) && ($suggested['para'] ?? 0) > 0)
+                                <small class="form-text text-muted">Carried over from prior birth (P{{ $suggested['para'] }})</small>
+                            @endif
                         </div>
                         <div class="col-md-3">
                             <label for="gtpal_term" class="form-label">Term</label>
@@ -215,6 +221,7 @@
                         <div class="col-md-4">
                             <label for="height" class="form-label">Height (cm)</label>
                             <input type="number" step="0.1" class="form-control" id="height" name="height" value="{{ old('height') }}">
+                            <div class="form-text">Below 122 cm (4 ft) flags short-stature risk.</div>
                         </div>
                         <div class="col-md-4">
                             <label for="bmi_display" class="form-label">BMI</label>
@@ -339,7 +346,7 @@
         if (name) name.textContent = selected.dataset.name || 'No walk-in selected';
         if (subtitle) subtitle.textContent = selected.dataset.subtitle || '';
         if (age) age.textContent = selected.dataset.age ? `Age: ${selected.dataset.age} years old` : '';
-        walkInPatientSelect.setCustomValidity(selected.dataset.active === '1' ? 'This walk-in woman already has an active pregnancy record.' : '');
+        walkInPatientSelect.setCustomValidity(selected.dataset.active === '1' ? 'This unlinked woman already has an active pregnancy record.' : '');
     }
 
     function updateDates() {

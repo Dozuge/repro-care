@@ -8,7 +8,7 @@
         <div class="col-lg-9 mx-auto">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-heart-pulse"></i> Add Pregnancy Record</h5>
+                    <h5 class="mb-0">Add Pregnancy Record</h5>
                 </div>
                 <div class="card-body">
                     @if ($errors->any())
@@ -74,6 +74,7 @@
                             <div class="col-md-4">
                                 <label for="height" class="form-label">Height (cm)</label>
                                 <input type="number" step="0.1" class="form-control" id="height" name="height" value="{{ old('height') }}">
+                                <div class="form-text">Below 122 cm (4 ft) flags short-stature risk.</div>
                             </div>
 
                             <div class="col-md-4">

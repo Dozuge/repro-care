@@ -6,12 +6,42 @@
 <style>
     input[type=number]::-webkit-outer-spin-button,
     input[type=number]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
+        -webkit-appearance:none;
+        margin:0;
     }
     input[type=number] {
-        -moz-appearance: textfield;
-        appearance: textfield;
+        -moz-appearance:textfield;
+        appearance:textfield;
+    }
+    .health-form .form-control,
+    .health-form .form-select {
+        height:42px;
+        border-radius:12px;
+        border:1px solid var(--color-border);
+        background:var(--color-bg);
+        color:var(--color-text);
+        font-size:0.875rem;
+    }
+    .health-form .form-control:focus,
+    .health-form .form-select:focus {
+        border-color:var(--color-primary);
+        background:var(--color-surface);
+        box-shadow:0 0 0 3px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 10%, transparent);
+    }
+    .health-form textarea.form-control {
+        height:auto;
+    }
+    .health-form .input-group-text {
+        height:42px;
+        border-radius:0 12px 12px 0;
+        background:var(--color-primary-soft);
+        border:1px solid var(--color-border);
+        color:var(--color-primary-text);
+        font-weight:600;
+        font-size:0.825rem;
+    }
+    .health-form .input-group .form-control {
+        border-radius:12px 0 0 12px !important;
     }
 </style>
 @endpush
@@ -24,9 +54,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-clipboard-pulse-fill me-2"></i>
-                @if($woman)
+            <div class="page-hero-title">@if($woman)
                     Add Health Record for {{ $woman->name }}
                 @else
                     Add Health Record
@@ -34,19 +62,20 @@
             </div>
             <p class="page-hero-subtitle">
                 <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
+                &nbsp;·&nbsp; Complete patient vital signs and physical assessments
             </p>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('midwife.health-records.archived') }}" class="btn-hero-secondary">
-                <i class="bi bi-archive-fill"></i> Archived
+                <i class="bi bi-archive-fill me-1"></i> Archived
             </a>
             @if($woman)
                 <a href="{{ route('midwife.patient-details', $woman->id) }}" class="btn-hero-secondary">
-                    <i class="bi bi-arrow-left"></i> Back
+                    <i class="bi bi-arrow-left me-1"></i> Back to Patient
                 </a>
             @else
                 <a href="{{ route('midwife.health-records.index') }}" class="btn-hero-secondary">
-                    <i class="bi bi-arrow-left"></i> Back to Records
+                    <i class="bi bi-arrow-left me-1"></i> Back to Records
                 </a>
             @endif
         </div>
@@ -55,24 +84,24 @@
 
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" 
-         style="background:rgba(25,135,84,0.1); border:1px solid rgba(25,135,84,0.3); color:var(--success); border-radius:10px;">
+         style="background:var(--color-success-soft); border:1px solid var(--color-success-soft); color:var(--color-success-text); border-radius:16px;">
         <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" style="filter:invert(1);"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 @endif
 
 {{-- ═══════════════════════════════
      HEALTH RECORD FORM CARD
 ═══════════════════════════════ --}}
-<div class="card fade-in-card mb-4" style="border:none; background:var(--bg-card);">
-    <div class="card-header" style="background:transparent; border-bottom:1px solid var(--border-color); padding:1rem 1.5rem;">
-        <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-            <i class="bi bi-clipboard-plus-fill me-2" style="color:var(--info);"></i>
-            Health Record Information
+<div class="card fade-in-card mb-4" style="border:1px solid var(--color-border); border-radius:24px; background:var(--color-surface); box-shadow:0 10px 30px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 7%, transparent); overflow:hidden;">
+    <div class="card-header" style="background:var(--color-surface); border-bottom:1px solid var(--color-border); padding:1.25rem 1.5rem;">
+        <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--color-text);">Health Record Information
         </h5>
+        <small style="color:var(--color-text-muted);">Input patient vital signs, measurements, and clinical observations</small>
     </div>
-    <div class="card-body p-4">
-            <form action="{{ route('midwife.health-records.store') }}" method="POST">
+    <div class="card-body p-4 health-form">
+            {{-- rc-adaptive-form: ≥1024px multi-column (Layout A) · <1024px strictly stacked (Layout B) --}}
+            <form action="{{ route('midwife.health-records.store') }}" method="POST" class="rc-adaptive-form">
                 @csrf
                 
                 {{-- ═══════════════════════════════
@@ -89,10 +118,10 @@
                         <input type="hidden" name="patient_type" value="registered">
                         <input type="hidden" name="user_id" value="{{ $woman->id }}">
                         <div class="col-12">
-                            <div class="p-3 mb-3" style="background:linear-gradient(135deg, rgba(6,182,212,0.1), rgba(102,16,242,0.05)); border:1px solid rgba(6,182,212,0.3); border-radius:12px;">
+                            <div class="p-3 mb-3" style="background:linear-gradient(135deg, color-mix(in srgb, var(--color-info) 10%, transparent), color-mix(in srgb, var(--color-primary) 5%, transparent)); border:1px solid color-mix(in srgb, var(--color-info) 30%, transparent); border-radius:12px;">
                                 <div class="d-flex align-items-center gap-3">
                                     <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--info),var(--primary));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                        <i class="bi bi-person" style="color:#fff;font-size:1.2rem;"></i>
+                                        <i class="bi bi-person" style="color:var(--color-on-solid);font-size:1.2rem;"></i>
                                     </div>
                                     <div>
                                         <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.7rem; letter-spacing:0.5px;">Patient</small>
@@ -109,9 +138,9 @@
                             </label>
                             <div class="d-flex gap-2 flex-wrap">
                                 <input type="radio" class="btn-check" name="patient_type" id="record_patient_type_registered" value="registered" {{ old('patient_type', 'registered') === 'registered' ? 'checked' : '' }}>
-                                <label class="btn btn-outline-primary" for="record_patient_type_registered">Registered</label>
+                                <label class="btn btn-outline-primary" for="record_patient_type_registered">Enrolled</label>
                                 <input type="radio" class="btn-check" name="patient_type" id="record_patient_type_unregistered" value="walk_in" {{ old('patient_type') === 'walk_in' ? 'checked' : '' }}>
-                                <label class="btn btn-outline-primary" for="record_patient_type_unregistered">Walk-in</label>
+                                <label class="btn btn-outline-primary" for="record_patient_type_unregistered">Unlinked</label>
                             </div>
                         </div>
                         <div class="col-md-12 mb-3">
@@ -144,20 +173,20 @@
                         </div>
                         <div class="col-md-12 mb-3 d-none" id="walkInRecordSearchWrap">
                             <label for="walkInPatientSearch" class="form-label" style="font-size:0.8rem; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">
-                                Search Walk-in Woman
+                                Search Unlinked Woman
                             </label>
                             <input type="text" class="form-control" id="walkInPatientSearch"
-                                   placeholder="Search walk-in women by name, contact, or barangay..."
+                                   placeholder="Search unlinked women by name, contact, or barangay..."
                                    style="background:var(--bg-input); border:1px solid var(--input-border); color:var(--text); border-radius:10px;">
                         </div>
                         <div class="col-md-12 mb-3 d-none" id="unregisteredRecordSelectWrap">
                             <label for="walk_in_patient_id" class="form-label" style="font-size:0.8rem; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">
-                                Select Walk-in Woman <span style="color:var(--danger);">*</span>
+                                Select Unlinked Woman <span style="color:var(--danger);">*</span>
                             </label>
                             <select class="form-select @error('walk_in_patient_id') is-invalid @enderror"
                                     id="walk_in_patient_id" name="walk_in_patient_id"
                                     style="background:var(--bg-input); border:1px solid var(--input-border); color:var(--text); border-radius:10px;">
-                                <option value="">Choose a walk-in woman...</option>
+                                <option value="">Choose an unlinked woman...</option>
                                 @foreach(($walkInPatients ?? collect()) as $patient)
                                     <option value="{{ $patient->id }}" data-search="{{ strtolower(($patient->full_name ?? '') . ' ' . ($patient->contact_number ?? '') . ' ' . ($patient->barangay ?? '')) }}" {{ old('walk_in_patient_id') == $patient->id ? 'selected' : '' }}>
                                         {{ $patient->full_name }}{{ $patient->barangay ? ' - ' . $patient->barangay : '' }}
@@ -268,6 +297,7 @@
                                    style="background:var(--bg-input); border:1px solid var(--input-border); color:var(--text); border-radius:10px 0 0 10px;">
                             <span class="input-group-text" style="background:var(--bg-card2); border:1px solid var(--input-border); color:var(--text-muted);">cm</span>
                         </div>
+                        <div class="form-text">Below 122 cm (4 ft) flags short-stature risk.</div>
                         @error('height')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -471,38 +501,25 @@
                     </div>
                 </div>
 
-                <div class="p-3 mb-4" style="background:linear-gradient(135deg, rgba(6,182,212,0.1), rgba(102,16,242,0.05)); border:1px solid rgba(6,182,212,0.3); border-radius:12px;">
-                    <div class="d-flex align-items-center gap-3">
-                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--info),var(--primary));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="bi bi-info-circle" style="color:#fff;font-size:1.1rem;"></i>
-                        </div>
-                        <div>
-                            <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.7rem; letter-spacing:0.5px;">Risk Assessment</small>
-                            <div style="font-weight:500; color:var(--text); font-size:0.9rem;">
-                                <strong>Risk level is automatically calculated</strong> based on blood pressure, hemoglobin, missed checkups, and pregnancy status.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ═══════════════════════════════
+                <div class="p-3 mb-4" style="background:linear-gradient(135deg, color-mix(in srgb, var(--color-info) 10%, transparent), color-mix(in srgb, var(--color-primary) 5%, transparent)); border:1px solid color-mix(in srgb, var(--color-info) 30%, transparent); border-radius:12px;">
+{{-- ═══════════════════════════════
                      FORM ACTIONS
                 ════════════════════════════════ --}}
-                <div class="d-flex justify-content-between align-items-center pt-3" style="border-top:1px solid var(--border-color);">
+                <div class="d-flex justify-content-between align-items-center pt-3 rc-form-actions" style="border-top:1px solid var(--border-color);">
                     <a href="{{ route('midwife.health-records.index') }}" 
-                       class="btn" 
-                       style="background:transparent; border:1px solid var(--border-color); color:var(--text-muted); border-radius:10px; padding:0.6rem 1.2rem;">
+                       class="btn d-flex align-items-center" 
+                       style="background:var(--color-surface); border:1px solid var(--color-border); color:var(--color-text-muted); border-radius:12px; height:42px; padding:0 1.25rem; font-weight:600;">
                         <i class="bi bi-x-circle me-1"></i> Cancel
                     </a>
                     <div class="d-flex gap-2">
                         <button type="reset" 
-                                class="btn" 
-                                style="background:transparent; border:1px solid var(--warning); color:var(--warning); border-radius:10px; padding:0.6rem 1.2rem;">
+                                class="btn d-flex align-items-center" 
+                                style="background:var(--color-warning-soft); border:1px solid var(--color-warning); color:var(--color-warning-text); border-radius:12px; height:42px; padding:0 1.25rem; font-weight:600;">
                             <i class="bi bi-arrow-clockwise me-1"></i> Reset
                         </button>
                         <button type="submit" 
-                                class="btn" 
-                                style="background:linear-gradient(135deg,var(--info),var(--primary)); color:#fff; border:none; border-radius:10px; padding:0.6rem 1.5rem; font-weight:500;">
+                                class="btn d-flex align-items-center"
+                                style="background:linear-gradient(135deg, var(--color-primary), var(--color-primary-text)); color:var(--color-on-solid); border:none; border-radius:12px; height:42px; padding:0 1.75rem; font-weight:600; box-shadow:0 4px 14px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 25%, transparent);">
                             <i class="bi bi-check-circle me-1"></i> Save Health Record
                         </button>
                     </div>

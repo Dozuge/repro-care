@@ -5,7 +5,7 @@
 @section('midwife-content')
 <div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-pencil-square"></i> Edit Checkup</h1>
+        <h1>Edit Checkup</h1>
         <div>
             <a href="{{ route('midwife.checkups.show', $checkup->id) }}" class="btn btn-outline-info">
                 <i class="bi bi-eye"></i> View Details
@@ -32,19 +32,19 @@
 
     <div class="card shadow">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">
-                <i class="bi bi-calendar-check-fill"></i> Edit Checkup for {{ $checkup->patient_name }}
+            <h5 class="mb-0">Edit Checkup for {{ $checkup->patient_name }}
             </h5>
         </div>
         <div class="card-body">
-            <form action="{{ route('midwife.checkups.update', $checkup->id) }}" method="POST">
+            {{-- rc-adaptive-form: ≥1024px multi-column (Layout A) · <1024px strictly stacked (Layout B) --}}
+            <form action="{{ route('midwife.checkups.update', $checkup->id) }}" method="POST" class="rc-adaptive-form">
                 @csrf
                 @method('PUT')
 
                 <!-- Patient Information -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="text-muted mb-3"><i class="bi bi-person"></i> Patient Information</h6>
+                        <h6 class="text-muted mb-3">Patient Information</h6>
                     </div>
 
                     <div class="col-12">
@@ -61,7 +61,7 @@
                         @if($checkup->walk_in_patient_id)
                             <input type="hidden" name="walk_in_patient_id" value="{{ $checkup->walk_in_patient_id }}">
                         @else
-                            <input type="hidden" name="patient_id" value="{{ $checkup->user_id }}">
+                            <input type="hidden" name="user_id" value="{{ $checkup->user_id }}">
                         @endif
                         <input type="hidden" name="midwife_id" value="{{ $checkup->midwife_id }}">
                     </div>
@@ -70,7 +70,7 @@
                 <!-- Checkup Details -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="text-muted mb-3"><i class="bi bi-calendar"></i> Checkup Details</h6>
+                        <h6 class="text-muted mb-3">Checkup Details</h6>
                     </div>
                     
                     <div class="col-md-6 mb-3">
@@ -110,7 +110,7 @@
                 <!-- Additional Notes -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="text-muted mb-3"><i class="bi bi-clipboard"></i> Additional Notes</h6>
+                        <h6 class="text-muted mb-3">Additional Notes</h6>
                     </div>
                     
                     <div class="col-12 mb-3">
@@ -127,17 +127,17 @@
                 <!-- Status -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="text-muted mb-3"><i class="bi bi-flag"></i> Status</h6>
+                        <h6 class="text-muted mb-3">Status</h6>
                     </div>
                     
                     <div class="col-md-12 mb-3">
                         <label for="status" class="form-label">Checkup Status</label>
                         <select class="form-select @error('status') is-invalid @enderror" 
                                 id="status" name="status">
-                            <option value="scheduled" {{ old('status', $checkup->status) == 'scheduled' ? 'selected' : '' }}>Scheduled</option>
-                            <option value="completed" {{ old('status', $checkup->status) == 'completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="missed" {{ old('status', $checkup->status) == 'missed' ? 'selected' : '' }}>Missed</option>
-                            <option value="cancelled" {{ old('status', $checkup->status) == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            <option value="Scheduled" {{ old('status', $checkup->status) == 'Scheduled' ? 'selected' : '' }}>Scheduled</option>
+                            <option value="Completed" {{ old('status', $checkup->status) == 'Completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="Missed" {{ old('status', $checkup->status) == 'Missed' ? 'selected' : '' }}>Missed</option>
+                            <option value="Cancelled" {{ old('status', $checkup->status) == 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
                             <option value="Rescheduled" {{ old('status', $checkup->status) == 'Rescheduled' ? 'selected' : '' }}>Rescheduled</option>
                         </select>
                         @error('status')

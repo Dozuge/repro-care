@@ -10,8 +10,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-geo-alt-fill me-2"></i>BHW Assignments
+            <div class="page-hero-title">BHW Assignments
             </div>
             <p class="page-hero-subtitle">
                 <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
@@ -26,7 +25,7 @@
 
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert"
-         style="background:rgba(25,135,84,0.1); border:1px solid rgba(25,135,84,0.3); color:var(--success); border-radius:10px;">
+         style="background:color-mix(in srgb, var(--color-success-text) 10%, transparent); border:1px solid color-mix(in srgb, var(--color-success-text) 30%, transparent); color:var(--success); border-radius:10px;">
         <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" style="filter:invert(1);"></button>
     </div>
@@ -38,11 +37,9 @@
     <div class="card fade-in-card" style="border:none; background:var(--bg-card);">
         <div class="card-header d-flex justify-content-between align-items-center"
              style="background:transparent; border-bottom:1px solid var(--border-color); padding:1rem 1.5rem;">
-            <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-                <i class="bi bi-geo-alt-fill me-2" style="color:var(--primary);"></i>
-                All Assignments
+            <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">All Assignments
             </h5>
-            <span style="background:rgba(155,54,255,0.1); color:var(--primary); padding:0.3rem 0.8rem; border-radius:20px; font-size:0.8rem; font-weight:500;">
+            <span style="background:color-mix(in srgb, var(--color-primary) 10%, transparent); color:var(--primary); padding:0.3rem 0.8rem; border-radius:20px; font-size:0.8rem; font-weight:500;">
                 {{ $assignments->count() }} Assignments
             </span>
         </div>
@@ -74,7 +71,7 @@
                                 <td style="padding:1rem; color:var(--text-muted);">{{ $assignment->assigned_at->format('M d, Y') }}</td>
                                 <td style="padding:1rem;">
                                     @if($assignment->is_active)
-                                        <span style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.25rem 0.75rem; background:rgba(25,135,84,0.1); color:var(--success); border-radius:20px; font-weight:500; font-size:0.8rem;">
+                                        <span style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.25rem 0.75rem; background:color-mix(in srgb, var(--color-success-text) 10%, transparent); color:var(--success); border-radius:20px; font-weight:500; font-size:0.8rem;">
                                             <i class="bi bi-check-circle"></i> Active
                                         </span>
                                     @else
@@ -127,14 +124,14 @@
                 <div class="card-body p-5">
                     <div class="text-center py-5">
                         <div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,var(--primary),var(--accent-violet));display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
-                            <i class="bi bi-geo-alt" style="font-size:2rem;color:#fff;"></i>
+                            <i class="bi bi-geo-alt" style="font-size:2rem;color:var(--color-on-solid);"></i>
                         </div>
                         <h5 style="font-weight:600; color:var(--text); margin-bottom:0.75rem;">No Assignments Found</h5>
                         <p style="color:var(--text-muted); margin-bottom:1.5rem;">
                             No BHW assignments have been created yet. Start by assigning a BHW to a Purok.
                         </p>
                         <a href="{{ route('bhw-president.assignments.create') }}" class="btn"
-                           style="background:linear-gradient(135deg,var(--primary),var(--accent-violet)); color:#fff; border:none; border-radius:10px; padding:0.6rem 1.5rem;">
+                           style="background:linear-gradient(135deg,var(--primary),var(--accent-violet)); color:var(--color-on-solid); border:none; border-radius:10px; padding:0.6rem 1.5rem;">
                             <i class="bi bi-plus-circle me-1"></i>Create First Assignment
                         </a>
                     </div>

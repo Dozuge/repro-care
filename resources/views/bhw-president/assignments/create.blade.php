@@ -10,8 +10,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-plus-circle-fill me-2"></i>Create Assignment
+            <div class="page-hero-title">Create Assignment
             </div>
             <p class="page-hero-subtitle">
                 <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
@@ -26,7 +25,7 @@
 
 @if($errors->any())
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert"
-         style="background:rgba(220,53,69,0.1); border:1px solid rgba(220,53,69,0.3); color:var(--danger); border-radius:10px;">
+         style="background:color-mix(in srgb, var(--color-secondary) 10%, transparent); border:1px solid color-mix(in srgb, var(--color-secondary) 30%, transparent); color:var(--danger); border-radius:10px;">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
         <ul class="mb-0">
             @foreach($errors->all() as $error)
@@ -43,9 +42,7 @@
     <div class="card fade-in-card" style="border:none; background:var(--bg-card);">
         <div class="card-header"
              style="background:transparent; border-bottom:1px solid var(--border-color); padding:1rem 1.5rem;">
-            <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-                <i class="bi bi-geo-alt-fill me-2" style="color:var(--primary);"></i>
-                New Assignment Details
+            <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">New Assignment Details
             </h5>
         </div>
         <div class="card-body p-4">
@@ -92,7 +89,7 @@
                 </div>
                 <div class="d-flex gap-3 mt-4">
                     <button type="submit" class="btn"
-                       style="background:linear-gradient(135deg,var(--primary),var(--accent-violet)); color:#fff; border:none; border-radius:10px; padding:0.6rem 1.5rem; font-weight:500;">
+                       style="background:linear-gradient(135deg,var(--primary),var(--accent-violet)); color:var(--color-on-solid); border:none; border-radius:10px; padding:0.6rem 1.5rem; font-weight:500;">
                         <i class="bi bi-check-circle-fill me-1"></i> Create Assignment
                     </button>
                     <a href="{{ route('bhw-president.assignments.index') }}" class="btn"

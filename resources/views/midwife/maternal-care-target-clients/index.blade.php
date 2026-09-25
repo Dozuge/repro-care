@@ -4,260 +4,271 @@
 
 @push('styles')
 <style>
-    .mctl-shell { display: grid; gap: 1.25rem; }
+    .mctl-shell { display:grid; gap:1.25rem; }
     .mctl-header, .mctl-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 22px;
-        box-shadow: var(--shadow-sm);
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:22px;
+        box-shadow:var(--shadow-sm);
     }
-    .mctl-header { padding: 1.4rem 1.6rem; }
-    .mctl-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.45rem; font-weight: 800; color: var(--text); margin: 0; }
-    .mctl-subtitle { color: var(--text-muted); margin: 0.35rem 0 0; }
-    .mctl-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+    .mctl-header { padding:1.4rem 1.6rem; }
+    .mctl-title { font-family:'Plus Jakarta Sans', sans-serif; font-size:1.45rem; font-weight:800; color:var(--text); margin:0; }
+    .mctl-subtitle { color:var(--text-muted); margin:0.35rem 0 0; }
+    .mctl-stats { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:1rem; }
     .mctl-stat {
-        padding: 1rem 1.1rem;
-        border-radius: 18px;
-        border: 1px solid var(--border);
-        background: linear-gradient(135deg, var(--primary-subtle), rgba(6,182,212,0.06));
+        padding:1rem 1.1rem;
+        border-radius:18px;
+        border:1px solid var(--border);
+        background:linear-gradient(135deg, var(--primary-subtle), color-mix(in srgb, var(--color-info) 6%, transparent));
     }
-    .mctl-stat-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
-    .mctl-stat-value { font-size: 1.55rem; font-weight: 800; color: var(--text); }
-    .mctl-card { padding: 1.25rem; }
-    .mctl-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .mctl-tabs { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .mctl-stat-label { font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; }
+    .mctl-stat-value { font-size:1.55rem; font-weight:800; color:var(--text); }
+    .mctl-card { padding:1.25rem; }
+    .mctl-toolbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+    .mctl-tabs { display:flex; gap:0.6rem; flex-wrap:wrap; }
     .mctl-tab {
-        padding: 0.65rem 1rem;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        color: var(--text-muted);
-        text-decoration: none;
-        font-weight: 700;
-        font-size: 0.85rem;
-        background: var(--bg-card2);
+        padding:0.65rem 1rem;
+        border-radius:999px;
+        border:1px solid var(--border);
+        color:var(--text-muted);
+        text-decoration:none;
+        font-weight:700;
+        font-size:0.85rem;
+        background:var(--bg-card2);
     }
-    .mctl-tab.active { background: var(--primary-subtle); color: var(--primary-light); border-color: var(--border-glass); }
+    .mctl-tab.active { background:var(--primary-subtle); color:var(--primary-light); border-color:var(--border-glass); }
     .mctl-page-title {
-        text-align: center;
-        font-family: Georgia, 'Times New Roman', serif;
-        font-size: 1.05rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        color: var(--text);
-        margin-bottom: 0.85rem;
-        text-transform: uppercase;
+        text-align:center;
+        font-family:Georgia, 'Times New Roman', serif;
+        font-size:1.05rem;
+        font-weight:700;
+        letter-spacing:0.02em;
+        color:var(--text);
+        margin-bottom:0.85rem;
+        text-transform:uppercase;
     }
-    .mctl-table-wrap { width: 100%; max-width: 100%; overflow-x: auto; border-radius: 18px; border: 1px solid var(--border); }
-    .mctl-table { width: max-content; min-width: 100%; border-collapse: collapse; background: var(--bg-card); }
+    .mctl-table-wrap { width:100%; max-width:100%; overflow-x:auto; border-radius:18px; border:1px solid var(--border); }
+    .mctl-table { width:max-content; min-width:100%; border-collapse:collapse; background:var(--bg-card); }
     .mctl-table th, .mctl-table td {
-        border: 1px solid var(--border);
-        padding: 0.45rem 0.5rem;
-        vertical-align: middle;
-        color: var(--text);
-        font-size: 0.74rem;
-        line-height: 1.25;
+        border:1px solid var(--border);
+        padding:0.45rem 0.5rem;
+        vertical-align:middle;
+        color:var(--text);
+        font-size:0.74rem;
+        line-height:1.25;
     }
-    .mctl-table thead th { background: var(--bg-card2); font-weight: 800; text-align: center; }
-    .mctl-table tbody td { color: var(--text-muted); }
-    .mctl-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
-    .mctl-name { min-width: 200px; color: var(--text) !important; font-weight: 700; }
+    .mctl-table thead th { background:var(--bg-card2); font-weight:800; text-align:center; }
+    .mctl-table tbody td { color:var(--text-muted); }
+    .mctl-table tbody tr:nth-child(even) { background:color-mix(in srgb, var(--color-surface) 2%, transparent); }
+    .mctl-name { min-width:200px; color:var(--text) !important; font-weight:700; }
     .mctl-actions { 
-        white-space: nowrap; 
-        text-align: center;
-        min-width: 70px;
+        white-space:nowrap; 
+        text-align:center;
+        min-width:70px;
     }
     .mctl-table th:first-child,
     .mctl-table td:first-child {
-        position: sticky;
-        left: 0;
-        background: var(--bg-card);
-        z-index: 1;
-        box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        position:sticky;
+        left:0;
+        background:var(--bg-card);
+        z-index:1;
+        box-shadow:2px 0 5px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 5%, transparent);
     }
     .mctl-table th:first-child {
-        z-index: 2;
-        background: var(--bg-card2);
+        z-index:2;
+        background:var(--bg-card2);
     }
     .mctl-empty {
-        padding: 2rem;
-        text-align: center;
-        color: var(--text-muted);
-        border: 1px dashed var(--border);
-        border-radius: 18px;
+        padding:2rem;
+        text-align:center;
+        color:var(--text-muted);
+        border:1px dashed var(--border);
+        border-radius:18px;
     }
     .mctl-empty-row td {
-        padding: 1.25rem 1rem;
-        text-align: center;
-        color: var(--text-muted);
+        padding:1.25rem 1rem;
+        text-align:center;
+        color:var(--text-muted);
     }
     .mctl-empty-actions {
-        display: flex;
-        justify-content: center;
-        gap: 0.75rem;
-        margin-top: 1rem;
-        flex-wrap: wrap;
+        display:flex;
+        justify-content:center;
+        gap:0.75rem;
+        margin-top:1rem;
+        flex-wrap:wrap;
     }
     .mctl-pill {
-        display: inline-flex;
-        padding: 0.2rem 0.55rem;
-        border-radius: 999px;
-        background: rgba(6,182,212,0.12);
-        color: var(--info);
-        font-weight: 700;
-        font-size: 0.72rem;
+        display:inline-flex;
+        padding:0.2rem 0.55rem;
+        border-radius:999px;
+        background:color-mix(in srgb, var(--color-info) 12%, transparent);
+        color:var(--info);
+        font-weight:700;
+        font-size:0.72rem;
     }
 
     /* Compact table to fit screen without scrolling */
     .mctl-table-wrap {
-        overflow-x: visible;
-        width: 100%;
+        overflow-x:visible;
+        width:100%;
+    }
+    /* On phones the zoomed table would be clipped with no way to scroll —
+       restore full size + horizontal scroll instead. */
+    @media (max-width: 768px) {
+        .mctl-table-wrap {
+            overflow-x:auto !important;
+            zoom:1 !important;
+            -moz-transform:none !important;
+            transform:none !important;
+            width:100% !important;
+        }
     }
     .mctl-card:has(.mctl-table-wrap) {
-        overflow: hidden;
+        overflow:hidden;
     }
     /* Scale table to fit viewport */
     .mctl-table-wrap {
-        zoom: 0.75;
-        -moz-transform: scale(0.75);
-        -moz-transform-origin: top left;
+        zoom:0.75;
+        -moz-transform:scale(0.75);
+        -moz-transform-origin:top left;
     }
     @supports not (zoom: 0.75) {
         .mctl-table-wrap {
-            transform: scale(0.75);
-            transform-origin: top left;
-            width: 133.33%;
+            transform:scale(0.75);
+            transform-origin:top left;
+            width:133.33%;
         }
     }
     .mctl-table {
-        width: 100%;
-        font-size: 0.7rem;
+        width:100%;
+        font-size:0.7rem;
     }
     .mctl-table th, .mctl-table td {
-        padding: 0.3rem 0.35rem;
-        white-space: normal;
-        word-wrap: break-word;
-        max-width: 120px;
+        padding:0.3rem 0.35rem;
+        white-space:normal;
+        word-wrap:break-word;
+        max-width:120px;
     }
     .mctl-table th {
-        font-size: 0.62rem;
-        line-height: 1.2;
+        font-size:0.62rem;
+        line-height:1.2;
     }
     .mctl-table td {
-        font-size: 0.65rem;
-        line-height: 1.3;
+        font-size:0.65rem;
+        line-height:1.3;
     }
     .mctl-name {
-        min-width: 100px;
-        max-width: 150px;
+        min-width:100px;
+        max-width:150px;
     }
     .mctl-actions {
-        min-width: 50px;
-        padding: 0.2rem !important;
+        min-width:50px;
+        padding:0.2rem !important;
     }
     .mctl-actions .btn {
-        font-size: 0.6rem;
-        padding: 0.2rem 0.4rem;
+        font-size:0.6rem;
+        padding:0.2rem 0.4rem;
     }
     /* Scale down the entire table container */
     .mctl-card {
-        transform-origin: top left;
+        transform-origin:top left;
     }
     @media (max-width: 1400px) {
         .mctl-table th, .mctl-table td {
-            padding: 0.25rem 0.3rem;
-            font-size: 0.6rem;
+            padding:0.25rem 0.3rem;
+            font-size:0.6rem;
         }
         .mctl-table th {
-            font-size: 0.58rem;
+            font-size:0.58rem;
         }
     }
     @media (max-width: 768px) {
-        .mctl-stats { grid-template-columns: 1fr; }
+        .mctl-stats { grid-template-columns:1fr; }
     }
 </style>
 @if(!empty($printMode))
 <style>
-    @page { size: landscape; margin: 8mm; }
+    @page { size:landscape; margin:8mm; }
     html, body {
-        background: #fff !important;
-        padding-top: 0 !important;
-        margin: 0 !important;
+        background:var(--color-surface) !important;
+        padding-top:0 !important;
+        margin:0 !important;
     }
-    .navbar, .sidebar, .topbar, .mctl-header, .mctl-toolbar, .pagination { display: none !important; }
+    .navbar, .sidebar, .topbar, .mctl-header, .mctl-toolbar, .pagination { display:none !important; }
     .layout-wrapper, .main-content, .mctl-shell, .mctl-card {
-        display: block !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
+        display:block !important;
+        margin:0 !important;
+        padding:0 !important;
+        width:100% !important;
+        max-width:100% !important;
+        min-width:0 !important;
     }
     .mctl-card {
-        box-shadow: none !important;
-        border: none !important;
-        border-radius: 0 !important;
-        overflow: visible !important;
-        background: #fff !important;
+        box-shadow:none !important;
+        border:none !important;
+        border-radius:0 !important;
+        overflow:visible !important;
+        background:var(--color-surface) !important;
     }
     .mctl-print-page {
-        width: 100%;
-        break-after: page;
-        page-break-after: always;
+        width:100%;
+        break-after:page;
+        page-break-after:always;
     }
     .mctl-print-page:last-of-type {
-        break-after: auto;
-        page-break-after: auto;
+        break-after:auto;
+        page-break-after:auto;
     }
     .mctl-table-wrap {
-        zoom: 1 !important;
-        transform: none !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow: visible !important;
-        border: none !important;
-        border-radius: 0 !important;
+        zoom:1 !important;
+        transform:none !important;
+        width:100% !important;
+        max-width:100% !important;
+        overflow:visible !important;
+        border:none !important;
+        border-radius:0 !important;
     }
     .mctl-table {
-        width: 100% !important;
-        min-width: 0 !important;
-        border-collapse: collapse;
-        table-layout: auto;
+        width:100% !important;
+        min-width:0 !important;
+        border-collapse:collapse;
+        table-layout:auto;
     }
     .mctl-table th, .mctl-table td { 
-        font-size: 7.5px !important; 
-        padding: 3px 2px !important; 
-        border: 1px solid #333 !important;
-        vertical-align: middle;
-        color: #111 !important;
-        word-break: break-word;
-        white-space: normal;
-        max-width: none !important;
+        font-size:7.5px !important; 
+        padding:3px 2px !important; 
+        border:1px solid var(--color-border) !important;
+        vertical-align:middle;
+        color:var(--color-text-muted) !important;
+        word-break:break-word;
+        white-space:normal;
+        max-width:none !important;
     }
     .mctl-table th { 
-        background: #e0e0e0 !important; 
-        font-weight: bold;
-        text-align: center;
+        background:var(--color-surface-soft) !important; 
+        font-weight:bold;
+        text-align:center;
     }
-    .mctl-table tbody tr:nth-child(even) { background: #f5f5f5 !important; }
+    .mctl-table tbody tr:nth-child(even) { background:var(--color-surface-soft) !important; }
     .mctl-table th:first-child, .mctl-table td:first-child {
-        position: static !important;
-        box-shadow: none !important;
+        position:static !important;
+        box-shadow:none !important;
     }
     .mctl-name {
-        min-width: 0 !important;
-        max-width: none !important;
+        min-width:0 !important;
+        max-width:none !important;
     }
     .mctl-actions {
-        display: none !important;
+        display:none !important;
     }
     .mctl-page-title {
-        font-size: 12px !important;
-        margin: 0 0 8px !important;
-        color: #111 !important;
+        font-size:12px !important;
+        margin:0 0 8px !important;
+        color:var(--color-text-muted) !important;
     }
-    tr { page-break-inside: avoid; }
-    thead { display: table-header-group; }
-    tbody { display: table-row-group; }
+    tr { page-break-inside:avoid; }
+    thead { display:table-header-group; }
+    tbody { display:table-row-group; }
 </style>
 @endif
 @endpush
@@ -331,7 +342,7 @@
     <div class="mctl-card">
         <div class="mctl-toolbar">
             <div class="mctl-tabs">
-                @foreach (['page-1' => 'Page 1/4', 'page-2' => 'Page 2/4', 'page-3' => 'Page 3/4', 'page-4' => 'Page 4/4'] as $key => $label)
+                @foreach (['page-1' => '1/4', 'page-2' => '2/4', 'page-3' => '3/4', 'page-4' => '4/4'] as $key => $label)
                     <a href="{{ route('midwife.maternal-care-target-clients.index', ['tab' => $key, 'search' => $search]) }}" class="mctl-tab {{ $tab === $key ? 'active' : '' }}">{{ $label }}</a>
                 @endforeach
             </div>
@@ -374,15 +385,15 @@
                                 <th colspan="3">Age<br>(Write under the proper category)<br>(5)</th>
                                 <th rowspan="2">LMP<br>(mm/dd/yy)<br>(G-P)<br>(7)</th>
                                 <th rowspan="2">EDC<br>(mm/dd/yy)<br>(8)</th>
-                                <th colspan="3">Dates of Pre-natal Check-ups<br>(9)</th>
+                                <th colspan="8">Dates of Pre-natal Check-ups<br>(9)</th>
                             </tr>
                             <tr>
                                 <th>10-14<br>y/o</th>
                                 <th>15-19<br>y/o</th>
                                 <th>20-49<br>y/o</th>
-                                <th>1st Tri</th>
-                                <th>2nd Tri</th>
-                                <th>3rd Tri</th>
+                                <th>1st Tri<br>(1)</th>
+                                <th colspan="2">2nd Tri<br>(2)</th>
+                                <th colspan="5">3rd Tri<br>(5)</th>
                             </tr>
                             <tr></tr>
                         </thead>
@@ -412,13 +423,17 @@
                                         @endif
                                     </td>
                                     <td>{{ $formatDate($client['pregnancy']?->edd) }}</td>
-                                    <td>{{ $formatDate($client['prenatal']['first']) }}</td>
-                                    <td>{{ $formatDate($client['prenatal']['second']) }}</td>
-                                    <td>{{ $formatDate($client['prenatal']['third']) }}</td>
+                                    <td class="text-nowrap">{{ $formatDate($client['prenatal']['visits']['first'][0] ?? null) }}</td>
+                                    @foreach($client['prenatal']['visits']['second'] as $visitDate)
+                                        <td class="text-nowrap">{{ $formatDate($visitDate) }}</td>
+                                    @endforeach
+                                    @foreach($client['prenatal']['visits']['third'] as $visitDate)
+                                        <td class="text-nowrap">{{ $formatDate($visitDate) }}</td>
+                                    @endforeach
                                 </tr>
                             @empty
                                 <tr class="mctl-empty-row">
-                                    <td colspan="{{ $printAllPages ? 14 : 15 }}" style="text-align: center;">No maternal client records available for this page.</td>
+                                    <td colspan="{{ $printAllPages ? 19 : 20 }}" style="text-align:center;">No maternal client records available for this page.</td>
                                 </tr>
                             @endforelse
                         </tbody>

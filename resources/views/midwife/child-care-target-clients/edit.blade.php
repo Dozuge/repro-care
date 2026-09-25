@@ -4,16 +4,16 @@
 
 @push('styles')
 <style>
-    .cctl-edit-shell { display: grid; gap: 1.25rem; }
-    .cctl-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; box-shadow: var(--shadow-sm); padding: 1.4rem; }
-    .cctl-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
-    .cctl-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
-    .cctl-summary-item { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 16px; padding: 1rem; }
-    .cctl-summary-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
-    .cctl-summary-value { margin-top: 0.2rem; color: var(--text); font-weight: 700; }
-    .cctl-section-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.05rem; font-weight: 800; color: var(--text); margin-bottom: 1rem; }
-    @media (max-width: 992px) { .cctl-grid, .cctl-summary { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 640px) { .cctl-grid, .cctl-summary { grid-template-columns: 1fr; } }
+    .cctl-edit-shell { display:grid; gap:1.25rem; }
+    .cctl-panel { background:var(--bg-card); border:1px solid var(--border); border-radius:22px; box-shadow:var(--shadow-sm); padding:1.4rem; }
+    .cctl-grid { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:1rem; }
+    .cctl-summary { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:1rem; }
+    .cctl-summary-item { background:var(--bg-card2); border:1px solid var(--border); border-radius:16px; padding:1rem; }
+    .cctl-summary-label { font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; }
+    .cctl-summary-value { margin-top:0.2rem; color:var(--text); font-weight:700; }
+    .cctl-section-title { font-family:'Plus Jakarta Sans', sans-serif; font-size:1.05rem; font-weight:800; color:var(--text); margin-bottom:1rem; }
+    @media (max-width: 992px) { .cctl-grid, .cctl-summary { grid-template-columns:1fr 1fr; } }
+    @media (max-width: 640px) { .cctl-grid, .cctl-summary { grid-template-columns:1fr; } }
 </style>
 @endpush
 
@@ -166,7 +166,7 @@
                 ] as $field => $label)
                     <div class="d-flex align-items-end"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="{{ $field }}" name="{{ $field }}" value="1" {{ old($field, data_get($profile, $field)) ? 'checked' : '' }}><label class="form-check-label" for="{{ $field }}">{{ $label }}</label></div></div>
                 @endforeach
-                <div style="grid-column: 1 / -1;"><label class="form-label">Remarks</label><textarea name="remarks" rows="3" class="form-control">{{ old('remarks', $profile?->remarks) }}</textarea></div>
+                <div style="grid-column:1 / -1;"><label class="form-label">Remarks</label><textarea name="remarks" rows="3" class="form-control">{{ old('remarks', $profile?->remarks) }}</textarea></div>
             </div>
         </div>
 

@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-heart-pulse-fill me-2" style="color:var(--danger);"></i>Record Morbidity Near-Miss Event
+            <div class="page-hero-title">Record Morbidity Near-Miss Event
             </div>
             <p class="page-hero-subtitle">
                 Enter maternal near-miss surveillance data for clinical quality audits.
@@ -22,7 +21,7 @@
 
 @if ($errors->any())
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius:12px;">
-        <h6 class="alert-heading fw-bold mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Please resolve the following errors:</h6>
+        <h6 class="alert-heading fw-bold mb-2">Please resolve the following errors:</h6>
         <ul class="mb-0 text-xs">
             @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -38,22 +37,20 @@
             @csrf
 
             <!-- Patient Selection -->
-            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color:var(--text);">
-                <i class="bi bi-person-fill me-2" style="color:var(--primary);"></i>
-                Patient Identification
+            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom:1px solid var(--border); padding-bottom:0.5rem; color:var(--text);">Patient Identification
             </h5>
 
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
                     <label class="form-label required-label">Patient Type</label>
                     <select name="patient_type" id="patientTypeSelect" class="form-select" required>
-                        <option value="registered" {{ old('patient_type', 'registered') === 'registered' ? 'selected' : '' }}>Registered Patient</option>
-                        <option value="walk_in" {{ old('patient_type') === 'walk_in' ? 'selected' : '' }}>Walk-in / External Patient</option>
+                        <option value="registered" {{ old('patient_type', 'registered') === 'registered' ? 'selected' : '' }}>Enrolled Patient</option>
+                        <option value="walk_in" {{ old('patient_type') === 'walk_in' ? 'selected' : '' }}>Unlinked / External Patient</option>
                     </select>
                 </div>
 
                 <div class="col-md-8" id="registeredPatientCol">
-                    <label class="form-label required-label">Select Registered Woman</label>
+                    <label class="form-label required-label">Select Enrolled Woman</label>
                     <select name="user_id" id="userSelect" class="form-select">
                         <option value="" disabled selected>-- Select Patient --</option>
                         @foreach($users as $user)
@@ -65,9 +62,9 @@
                 </div>
 
                 <div class="col-md-8 d-none" id="walkInPatientCol">
-                    <label class="form-label required-label">Select Walk-in Patient</label>
+                    <label class="form-label required-label">Select Unlinked Patient</label>
                     <select name="walk_in_patient_id" id="walkInSelect" class="form-select">
-                        <option value="" disabled selected>-- Select Walk-in Patient --</option>
+                        <option value="" disabled selected>-- Select Unlinked Patient --</option>
                         @foreach($walkIns as $wi)
                             <option value="{{ $wi->id }}" data-purok="{{ $wi->purok_id }}" {{ old('walk_in_patient_id') == $wi->id ? 'selected' : '' }}>
                                 {{ $wi->name }} (Age: {{ $wi->age }})
@@ -104,9 +101,7 @@
             </div>
 
             <!-- Complication details -->
-            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color:var(--text);">
-                <i class="bi bi-shield-fill-exclamation me-2" style="color:var(--danger);"></i>
-                Clinical Complication Details
+            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom:1px solid var(--border); padding-bottom:0.5rem; color:var(--text);">Clinical Complication Details
             </h5>
 
             <div class="row g-3 mb-4">
@@ -167,7 +162,7 @@
             </div>
 
             <div class="mb-4 d-none" id="maternalDeathCol">
-                <label class="form-label required-label">Link Registered Maternal Death Case</label>
+                <label class="form-label required-label">Link Enrolled Maternal Death Case</label>
                 <select name="maternal_death_id" id="maternalDeathSelect" class="form-select">
                     <option value="" selected>-- Select Death Record --</option>
                     @foreach($deaths as $death)

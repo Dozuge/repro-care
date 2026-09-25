@@ -14,6 +14,17 @@ return [
     |
     */
 
+    'analytics_ai' => [
+        'provider' => env('ANALYTICS_AI_PROVIDER', 'rules'),
+        'url' => env('OLLAMA_URL', 'http://127.0.0.1:11434'),
+        'model' => env('OLLAMA_MODEL', 'llama3.2:1b'),
+    ],
+
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY', ''),
+        'model' => env('GROQ_MODEL', 'qwen/qwen3.8-27b'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
@@ -35,6 +46,9 @@ return [
         ],
     ],
 
+    // ─── SMS Provider Switch ──────────────────────────────────────────
+    'sms_provider' => env('SMS_PROVIDER', 'movider'), // 'movider' or 'textbee'
+
     // ─── Movider SMS Gateway ──────────────────────────────────────────
     'movider' => [
         'api_key'    => env('MOVIDER_API_KEY'),
@@ -43,11 +57,24 @@ return [
         'mock'       => env('MOVIDER_MOCK', false),
     ],
 
+    // ─── TextBee SMS Gateway (Android phone gateway) ──────────────────
+    'textbee' => [
+        'api_key'   => env('TEXTBEE_API_KEY'),
+        'device_id' => env('TEXTBEE_DEVICE_ID'),
+        'api_url'   => 'https://api.textbee.dev/api/v1/gateway/devices',
+    ],
+
     // ─── Google Gemini AI ─────────────────────────────────────────────
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
         'model'   => env('GEMINI_MODEL', 'gemini-1.5-flash'),
         'endpoint' => 'https://generativelanguage.googleapis.com/v1beta/models',
+    ],
+
+    'google_maps' => [
+        'api_key' => in_array(env('GOOGLE_MAPS_API_KEY', ''), ['', 'your_key_here'], true)
+            ? ''
+            : env('GOOGLE_MAPS_API_KEY'),
     ],
 
 ];

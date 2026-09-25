@@ -6,22 +6,33 @@
 <div class="py-4">
     <div class="page-hero fade-in-card mb-4">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3" style="position:relative;z-index:1;">
-            <div>
-                <div class="page-hero-title">
-                    <i class="bi bi-person-plus-fill me-2"></i>{{ $patient->full_name }}
+                        <div class="d-flex align-items-center gap-3">
+                <x-patient-avatar :patient="$patient" :name="$patient->full_name" :size="64" />
+                <div>
+                    <div class="page-hero-title">{{ $patient->full_name }}</div>
+                    <p class="page-hero-subtitle">{{ $patient->contact_number ?? 'No contact' }} | {{ $patient->barangay ?? 'Barangay not set' }}</p>
                 </div>
-                <p class="page-hero-subtitle">Walk-in patient profile and referral history</p>
             </div>
+            @php
+                // Return to where the user came from (Pregnancies / Women hub),
+                // never strand them on the unlisted walk-in index.
+                $backRoute = request('from') === 'pregnancies'
+                    ? route('bhw.pregnancies.index')
+                    : route('bhw.patients');
+                $editRoute = request('from')
+                    ? route('bhw.walk-in-patients.edit', [$patient->id, 'from' => request('from')])
+                    : route('bhw.walk-in-patients.edit', $patient->id);
+            @endphp
             <div class="d-flex gap-2 flex-wrap">
-                <a href="{{ route('bhw.walk-in-patients.edit', $patient->id) }}" class="btn btn-light">
+                <a href="{{ $editRoute }}" class="btn btn-light">
                     <i class="bi bi-pencil-square me-1"></i> Edit
                 </a>
-                @if(!$patient->converted_to_user_id)
-                    <a href="{{ route('bhw.walk-in-patients.convert', $patient->id) }}" class="btn btn-light">
-                        <i class="bi bi-person-check-fill me-1"></i> Convert
+                @if(!$patient->linkedUserId())
+                    <a href="{{ route('bhw.walk-in-patients.convert', $patient->id) }}" class="btn btn-light" title="Generate credentials and upgrade to Enrolled Account">
+                        <i class="bi bi-person-check-fill me-1"></i> Activate Account
                     </a>
                 @endif
-                <a href="{{ route('bhw.walk-in-patients.index') }}" class="btn btn-outline-light">
+                <a href="{{ $backRoute }}" class="btn-hero-secondary">
                     <i class="bi bi-arrow-left me-1"></i> Back
                 </a>
             </div>
@@ -46,15 +57,15 @@
         <div class="col-md-4">
             <div class="stat-card stat-amber fade-in-card">
                 <i class="bi bi-person-badge-fill stat-icon"></i>
-                <div class="stat-label">Status</div>
-                <div class="stat-number" style="font-size:1rem;">{{ $patient->converted_to_user_id ? 'Converted' : 'Walk-in' }}</div>
+                <div class="stat-label">Portal Status</div>
+                <div class="stat-number" style="font-size:1.1rem; text-wrap:balance;">{{ $patient->portalStatusLabel() }}</div>
             </div>
         </div>
     </div>
 
     <div class="card fade-in-card mb-4">
         <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-person-lines-fill me-2"></i>Patient Information</h5>
+            <h5 class="mb-0">Profile Summary</h5>
         </div>
         <div class="card-body">
             <div class="row g-3">
@@ -71,11 +82,30 @@
         </div>
     </div>
 
+    <div class="card fade-in-card mb-4">
+        <div class="card-header"><h5 class="mb-0"><i class="bi bi-chat-text me-1"></i> SMS Alerts</h5></div>
+        <div class="card-body">
+            @if(session('success'))<div class="alert alert-success py-2">{{ session('success') }}</div>@endif
+            @if(session('error'))<div class="alert alert-danger py-2">{{ session('error') }}</div>@endif
+            @if($patient->contact_number)
+                <p class="small text-muted">Texts to <strong>{{ $patient->contact_number }}</strong> cover checkup and risk alerts (max 1/day per type). Manual SMS sending lives with the midwife and RHU admin.</p>
+                @if(isset($smsLogs) && $smsLogs->count())
+                    <hr><small class="text-uppercase text-muted">Recent SMS</small>
+                    @foreach($smsLogs as $log)
+                        <div class="small mt-2"><span class="badge {{ $log->status === 'sent' ? 'bg-success' : ($log->status === 'failed' ? 'bg-danger' : 'bg-warning text-dark') }}">{{ ucfirst($log->status) }}</span> {{ $log->type }} · {{ $log->created_at->format('M j, g:i A') }}<div class="text-muted">{{ \Illuminate\Support\Str::limit($log->message, 120) }}</div></div>
+                    @endforeach
+                @endif
+            @else
+                <div class="alert alert-warning py-2 mb-0">No contact number — <a href="{{ route('bhw.walk-in-patients.edit', $patient->id) }}">add one</a> so SMS alerts can reach this patient.</div>
+            @endif
+        </div>
+    </div>
+
     <div class="row g-4">
         <div class="col-lg-4">
             <div class="card fade-in-card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-person-check me-2"></i>Recorded By</h5>
+                    <h5 class="mb-0">Recorded By</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-3"><strong>Name</strong><div class="text-muted mt-1">{{ $patient->recordedBy?->name ?? 'Unknown' }}</div></div>
@@ -89,7 +119,7 @@
         <div class="col-lg-8">
             <div class="card fade-in-card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-send-check-fill me-2"></i>Referral History</h5>
+                    <h5 class="mb-0">Referral History</h5>
                 </div>
                 <div class="card-body p-0">
                     @if($patient->checkupReferrals->count())

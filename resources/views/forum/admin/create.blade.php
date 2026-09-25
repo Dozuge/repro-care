@@ -5,11 +5,11 @@
 @push('styles')
 <style>
     .forum-admin-preview {
-        width: 100%;
-        max-height: 320px;
-        object-fit: cover;
-        border-radius: 18px;
-        border: 1px solid var(--border);
+        width:100%;
+        max-height:320px;
+        object-fit:cover;
+        border-radius:18px;
+        border:1px solid var(--border);
     }
 </style>
 @endpush
@@ -19,7 +19,7 @@
     <div class="page-hero fade-in-card">
         <div class="workspace-toolbar" style="position:relative;z-index:1;">
             <div>
-                <div class="page-hero-title"><i class="bi bi-pencil-square me-2"></i>Create Forum Post</div>
+                <div class="page-hero-title">Create Forum Post</div>
                 <p class="page-hero-subtitle">Publish a guided update, announcement, or discussion starter for the community.</p>
             </div>
             <a href="{{ route('midwife.forum.admin.index') }}" class="btn-hero-secondary"><i class="bi bi-arrow-left"></i>Back to Admin</a>
@@ -30,7 +30,7 @@
         <div class="col-lg-8">
             <div class="workspace-panel fade-in-card">
                 <div class="workspace-panel-header">
-                    <h2 class="workspace-panel-title"><i class="bi bi-chat-left-text-fill"></i>Post Content</h2>
+                    <h2 class="workspace-panel-title">Post Content</h2>
                 </div>
                 <div class="workspace-panel-body">
                     <form method="POST" action="{{ route('midwife.forum.admin.store') }}" enctype="multipart/form-data">

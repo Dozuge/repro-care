@@ -5,114 +5,156 @@
 @section('midwife-content')
 
 {{-- ═══════════════════════════════
-     PAGE HERO
+     PAGE HERO HEADER
 ═══════════════════════════════ --}}
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
-        <div>
-            <div class="page-hero-title">
-                <i class="bi bi-person-fill me-2"></i>{{ $woman->name }}
+        <div class="d-flex align-items-center gap-3">
+            <x-patient-avatar :patient="$woman" :size="64" />
+            <div>
+                <h1 class="page-hero-title mb-1" style="font-size:1.75rem;">{{ $woman->name }}</h1>
+                <p class="page-hero-subtitle">
+                    <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
+                    &nbsp;·&nbsp; Patient ID: #{{ $woman->id }} &nbsp;·&nbsp; <span class="badge bg-light text-dark border px-2 py-0.5" style="border-radius:8px;">{{ $woman->barangay ? 'Brgy. ' . $woman->barangay : 'San Carlos City' }}</span>
+                </p>
             </div>
-            <p class="page-hero-subtitle">
-                <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
-                &nbsp;·&nbsp; Patient ID: #{{ $woman->id }}
-            </p>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('midwife.patients') }}" class="btn-hero-primary">
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('midwife.patients') }}" class="btn-hero-secondary">
                 <i class="bi bi-arrow-left"></i> Back to Women
+            </a>
+            <a href="{{ route('midwife.checkups.create', $woman->id) }}" class="btn-hero-primary">
+                <i class="bi bi-calendar-plus-fill"></i> Schedule Checkup
             </a>
         </div>
     </div>
 </div>
 
 @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" 
-         style="background:rgba(25,135,84,0.1); border:1px solid rgba(25,135,84,0.3); color:var(--success); border-radius:10px;">
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert"
+         style="background:color-mix(in srgb, var(--color-success) 12%, transparent); border:1px solid color-mix(in srgb, var(--color-success) 30%, transparent); color:var(--color-success-text); border-radius:14px;">
         <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" style="filter:invert(1);"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 @endif
+
+@include('includes.risk-alert-status')
+@include('midwife.partials.decision-support')
 
 {{-- ═══════════════════════════════
      WOMAN INFORMATION CARD
 ═══════════════════════════════ --}}
-<div class="card fade-in-card mb-4" style="border:none; background:var(--bg-card);">
-    <div class="card-header" style="background:transparent; border-bottom:1px solid var(--border-color); padding:1rem 1.5rem;">
-        <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-            <i class="bi bi-person-fill me-2" style="color:var(--primary);"></i>
-            Woman Information
+<div class="card fade-in-card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Patient Profile &amp; Clinical Information
         </h5>
     </div>
     <div class="card-body p-4">
         <div class="row g-4">
             <div class="col-md-6">
                 <div class="d-flex align-items-start gap-3 mb-3">
-                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--accent-violet));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="bi bi-person" style="color:#fff;font-size:1.1rem;"></i>
+                    <div class="stat-icon" style="margin:0; width:40px; height:40px; border-radius:12px; background:var(--color-primary-soft); color:var(--color-primary-text);">
+                        <i class="bi bi-person"></i>
                     </div>
                     <div>
-                        <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; letter-spacing:0.5px;">Name</small>
-                        <div style="font-weight:600; color:var(--text); font-size:1rem;">{{ $woman->name }}</div>
+                        <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Full Name</small>
+                        <div style="font-weight:700; color:var(--color-text); font-size:1.05rem;">{{ $woman->name }}</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-start gap-3 mb-3">
-                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--info),var(--accent-cyan));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="bi bi-envelope" style="color:#fff;font-size:1.1rem;"></i>
+                    <div class="stat-icon" style="margin:0; width:40px; height:40px; border-radius:12px; background:var(--color-info-soft); color:var(--color-info-text);">
+                        <i class="bi bi-envelope"></i>
                     </div>
                     <div>
-                        <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; letter-spacing:0.5px;">Email</small>
-                        <div style="font-weight:500; color:var(--text); font-size:0.95rem;">{{ $woman->email }}</div>
+                        <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Email Address</small>
+                        <div style="font-weight:600; color:var(--color-text); font-size:0.95rem;">
+                            @if($woman->email)
+                                {{ $woman->email }}
+                            @else
+                                <span style="color:var(--color-text-muted); font-weight:400;">—</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 <div class="d-flex align-items-start gap-3 mb-3">
-                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--success),var(--primary));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="bi bi-geo-alt" style="color:#fff;font-size:1.1rem;"></i>
+                    <div class="stat-icon" style="margin:0; width:40px; height:40px; border-radius:12px; background:var(--color-success-soft); color:var(--color-success-text);">
+                        <i class="bi bi-telephone"></i>
                     </div>
                     <div>
-                        <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; letter-spacing:0.5px;">Barangay</small>
-                        <div style="font-weight:500; color:var(--text); font-size:0.95rem;">{{ $woman->barangay ?? 'N/A' }}</div>
+                        <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Contact Number</small>
+                        <div style="font-weight:600; color:var(--color-text); font-size:0.95rem;">
+                            @if($woman->contact_number)
+                                <a href="tel:{{ $woman->contact_number }}" style="color:var(--color-primary-text); text-decoration:none;">{{ $woman->contact_number }}</a>
+                            @else
+                                <span style="color:var(--color-text-muted); font-weight:400;">—</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="stat-icon" style="margin:0; width:40px; height:40px; border-radius:12px; background:var(--color-peach-soft); color:var(--color-peach-text);">
+                        <i class="bi bi-geo-alt"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Barangay &amp; Address</small>
+                        <div style="font-weight:600; color:var(--color-text); font-size:0.95rem;">
+                            {{ $woman->address ?: ($woman->barangay ? app(\App\Services\AnalyticsScope::class)->canonicalArea($woman->barangay).', San Carlos City, Pangasinan' : 'Not recorded') }}
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="d-flex align-items-start gap-3 mb-3">
-                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--success),var(--primary));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="bi bi-shield-check" style="color:#fff;font-size:1.1rem;"></i>
+                    <div class="stat-icon" style="margin:0; width:40px; height:40px; border-radius:12px; background:var(--color-success-soft); color:var(--color-success-text);">
+                        <i class="bi bi-shield-check"></i>
                     </div>
                     <div>
-                        <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; letter-spacing:0.5px;">Account Status</small>
-                        <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.25rem 0.5rem; background:rgba(25,135,84,0.1); color:var(--success); border-radius:20px; font-weight:500; font-size:0.8rem; margin-top:0.25rem;">
-                            <i class="bi bi-check-circle-fill"></i> Active
+                        <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Account Status</small>
+                        <div class="mt-1">
+                            <span class="badge" style="background:var(--color-success-soft); border:1px solid var(--color-success-soft); color:var(--color-success-text); border-radius:20px; font-weight:700; padding:0.35em 0.8em;">
+                                <i class="bi bi-check-circle-fill me-1"></i> Active Record
+                            </span>
                         </div>
                     </div>
                 </div>
                 <div class="d-flex align-items-start gap-3 mb-3">
-                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent-rose),var(--primary));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="bi bi-calendar-plus" style="color:#fff;font-size:1.1rem;"></i>
+                    <div class="stat-icon" style="margin:0; width:40px; height:40px; border-radius:12px; background:var(--color-primary-soft); color:var(--color-primary-text);">
+                        <i class="bi bi-calendar-plus"></i>
                     </div>
                     <div>
-                        <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; letter-spacing:0.5px;">Member Since</small>
-                        <div style="font-weight:500; color:var(--text); font-size:0.95rem;">{{ $woman->created_at ? $woman->created_at->format('M j, Y') : 'Unknown' }}</div>
+                        <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Registered Date</small>
+                        <div style="font-weight:600; color:var(--color-text); font-size:0.95rem;">
+                            @if($woman->created_at)
+                                {{ $woman->created_at->format('M j, Y') }}
+                            @else
+                                <span style="color:var(--color-text-muted); font-weight:400;">—</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 <div class="d-flex align-items-start gap-3 mb-3">
-                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent-amber),var(--warning));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="bi bi-clock-history" style="color:#fff;font-size:1.1rem;"></i>
+                    <div class="stat-icon" style="margin:0; width:40px; height:40px; border-radius:12px; background:var(--color-peach-soft); color:var(--color-peach-text);">
+                        <i class="bi bi-clock-history"></i>
                     </div>
                     <div>
-                        <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; letter-spacing:0.5px;">Last Login</small>
-                        <div style="font-weight:500; color:var(--text); font-size:0.95rem;">{{ $woman->last_login_at ? $woman->last_login_at->format('M j, Y h:i A') : 'Never' }}</div>
+                        <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Last Portal Login</small>
+                        <div style="font-weight:600; font-size:0.95rem; color:{{ $woman->last_login_at ? 'var(--color-text)' : 'var(--color-text-muted)' }};">
+                            @if($woman->last_login_at)
+                                {{ $woman->last_login_at->format('M j, Y h:i A') }}
+                            @else
+                                <span style="color:var(--color-text-muted); font-weight:400;">—</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 @if($woman->recorded_by_bhw_id)
                 <div class="d-flex align-items-start gap-3 mb-3">
-                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--info),var(--accent-cyan));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="bi bi-person-badge" style="color:#fff;font-size:1.1rem;"></i>
+                    <div class="stat-icon" style="margin:0; width:40px; height:40px; border-radius:12px; background:var(--color-info-soft); color:var(--color-info-text);">
+                        <i class="bi bi-person-badge"></i>
                     </div>
                     <div>
-                        <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; letter-spacing:0.5px;">Recorded By</small>
-                        <div style="font-weight:500; color:var(--text); font-size:0.95rem;">{{ $woman->recordedBy?->name ?? '—' }}</div>
+                        <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Recorded By BHW</small>
+                        <div style="font-weight:600; color:var(--color-text); font-size:0.95rem;">{{ $woman->recordedBy?->name ?? 'Assigned BHW' }}</div>
                     </div>
                 </div>
                 @endif
@@ -122,169 +164,115 @@
 </div>
 
 {{-- ═══════════════════════════════
-     PARTNER INFORMATION CARD
+     EMERGENCY CONTACTS (3-COLUMN HORIZONTAL GRID)
 ═══════════════════════════════ --}}
-@if($woman->partner_name || $woman->partner_contact)
-<div class="card fade-in-card mb-4" style="border:none; background:var(--bg-card);">
-    <div class="card-header" style="background:transparent; border-bottom:1px solid var(--border-color); padding:1rem 1.5rem;">
-        <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-            <i class="bi bi-people-fill me-2" style="color:var(--info);"></i>
-            Partner / Spouse Information
-        </h5>
-    </div>
-    <div class="card-body p-4">
-        <div class="row g-3">
-            <div class="col-md-6">
-                <div class="d-flex align-items-start gap-3">
-                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--info),var(--accent-cyan));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="bi bi-person-hearts" style="color:#fff;font-size:1.1rem;"></i>
-                    </div>
-                    <div>
-                        <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; letter-spacing:0.5px;">Partner Name</small>
-                        <div style="font-weight:600; color:var(--text); font-size:1rem;">{{ $woman->partner_name ?? 'N/A' }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="d-flex align-items-start gap-3">
-                    <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--success),var(--primary));display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i class="bi bi-telephone-plus" style="color:#fff;font-size:1.1rem;"></i>
-                    </div>
-                    <div>
-                        <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.75rem; letter-spacing:0.5px;">Partner Contact</small>
-                        <div style="font-weight:500; color:var(--text); font-size:0.95rem;">
-                            @if($woman->partner_contact)
-                                <a href="tel:{{ $woman->partner_contact }}" style="color:var(--primary-light); text-decoration:none;">{{ $woman->partner_contact }}</a>
-                            @else
-                                N/A
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
-
-{{-- ═══════════════════════════════
-     EMERGENCY CONTACTS CARD
-═══════════════════════════════ --}}
-<div class="card fade-in-card mb-4" style="border:none; background:var(--bg-card);">
-    <div class="card-header" style="background:transparent; border-bottom:1px solid var(--border-color); padding:1rem 1.5rem;">
-        <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-            <i class="bi bi-people-fill me-2" style="color:var(--accent-pink);"></i>
-            Emergency Contact Information
+<div class="card fade-in-card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Emergency Contacts
         </h5>
     </div>
     <div class="card-body p-4">
         <div class="row g-3">
             {{-- Primary Contact --}}
-            <div class="col-md-6">
-                <div class="p-3 h-100" style="background:rgba(255,255,255,0.01); border:1px solid var(--border-color); border-radius:14px;">
-                    <h6 class="mb-3 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--primary-light);">
-                        <i class="bi bi-1-circle-fill me-1"></i> Primary Contact
-                    </h6>
+            <div class="col-md-4">
+                <div class="p-3.5 h-100 rounded-3 border" style="background:var(--color-surface); border-color:var(--color-border) !important; border-radius:16px;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <h6 class="mb-0 fw-bold" style="color:var(--color-primary-text); font-size:0.88rem;">Primary Contact
+                        </h6>
+                        <span class="badge bg-light text-primary border" style="font-size:0.7rem;">Primary</span>
+                    </div>
                     @if($woman->primaryEmergencyContact)
                         <div class="d-flex flex-column gap-2" style="font-size:0.9rem;">
                             <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Name</small>
-                                <span class="fw-600 text-white">{{ $woman->primaryEmergencyContact->name }}</span>
+                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Name</small>
+                                <span class="fw-bold" style="color:var(--color-text);">{{ $woman->primaryEmergencyContact->name }}</span>
                             </div>
                             <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Relationship</small>
-                                <span class="fw-500 text-white">{{ $woman->primaryEmergencyContact->relationship }}</span>
+                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Relationship</small>
+                                <span class="fw-semibold" style="color:var(--color-text);">{{ $woman->primaryEmergencyContact->relationship }}</span>
                             </div>
                             <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Contact Number</small>
-                                <a href="tel:{{ $woman->primaryEmergencyContact->contact_number }}" class="fw-500" style="color:var(--primary-light); text-decoration:none;">
-                                    <i class="bi bi-telephone-fill me-1" style="font-size:0.8rem;"></i>{{ $woman->primaryEmergencyContact->contact_number }}
+                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Contact Number</small>
+                                <a href="tel:{{ $woman->primaryEmergencyContact->contact_number }}" class="fw-bold" style="color:var(--color-primary-text); text-decoration:none;">
+                                    <i class="bi bi-telephone-fill me-1"></i>{{ $woman->primaryEmergencyContact->contact_number }}
                                 </a>
                             </div>
                             @if($woman->primaryEmergencyContact->address)
                             <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Address</small>
-                                <span class="fw-500 text-white-50">{{ $woman->primaryEmergencyContact->address }}</span>
+                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Address</small>
+                                <span style="color:var(--color-text-muted);">{{ $woman->primaryEmergencyContact->address }}</span>
                             </div>
                             @endif
                         </div>
                     @else
-                        <div class="text-muted py-3" style="font-size:0.875rem;">
-                            <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> No primary emergency contact recorded.
+                        <div class="p-3 rounded-3" style="background:var(--color-warning-soft); border:1px solid var(--color-warning); color:var(--color-warning-text); font-size:0.85rem;">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> No primary emergency contact recorded.
                         </div>
                     @endif
                 </div>
             </div>
 
             {{-- Secondary Contact --}}
-            <div class="col-md-6">
-                <div class="p-3 h-100" style="background:rgba(255,255,255,0.01); border:1px solid var(--border-color); border-radius:14px;">
-                    <h6 class="mb-3 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text-muted);">
-                        <i class="bi bi-2-circle-fill me-1"></i> Secondary Contact (Optional)
-                    </h6>
+            <div class="col-md-4">
+                <div class="p-3.5 h-100 rounded-3 border" style="background:var(--color-surface); border-color:var(--color-border) !important; border-radius:16px;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <h6 class="mb-0 fw-bold" style="color:var(--color-text-muted); font-size:0.88rem;">Secondary Contact
+                        </h6>
+                        <span class="badge bg-light text-muted border" style="font-size:0.7rem;">Optional</span>
+                    </div>
                     @if($woman->secondaryEmergencyContact)
                         <div class="d-flex flex-column gap-2" style="font-size:0.9rem;">
                             <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Name</small>
-                                <span class="fw-600 text-white">{{ $woman->secondaryEmergencyContact->name }}</span>
+                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Name</small>
+                                <span class="fw-bold" style="color:var(--color-text);">{{ $woman->secondaryEmergencyContact->name }}</span>
                             </div>
                             <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Relationship</small>
-                                <span class="fw-500 text-white">{{ $woman->secondaryEmergencyContact->relationship }}</span>
+                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Relationship</small>
+                                <span class="fw-semibold" style="color:var(--color-text);">{{ $woman->secondaryEmergencyContact->relationship }}</span>
                             </div>
                             <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Contact Number</small>
-                                <a href="tel:{{ $woman->secondaryEmergencyContact->contact_number }}" class="fw-500" style="color:var(--text-muted); text-decoration:none;">
-                                    <i class="bi bi-telephone-fill me-1" style="font-size:0.8rem;"></i>{{ $woman->secondaryEmergencyContact->contact_number }}
+                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Contact Number</small>
+                                <a href="tel:{{ $woman->secondaryEmergencyContact->contact_number }}" class="fw-bold" style="color:var(--color-primary-text); text-decoration:none;">
+                                    <i class="bi bi-telephone-fill me-1"></i>{{ $woman->secondaryEmergencyContact->contact_number }}
                                 </a>
                             </div>
-                            @if($woman->secondaryEmergencyContact->address)
-                            <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Address</small>
-                                <span class="fw-500 text-white-50">{{ $woman->secondaryEmergencyContact->address }}</span>
-                            </div>
-                            @endif
                         </div>
                     @else
-                        <div class="text-muted py-3" style="font-size:0.875rem;">
-                            <i class="bi bi-info-circle me-1"></i> No secondary emergency contact recorded.
+                        <div class="p-3 rounded-3" style="background:var(--color-bg); border:1px solid var(--color-border); color:var(--color-text-muted); font-size:0.85rem;">
+                            <i class="bi bi-info-circle me-1"></i> No secondary emergency contact.
                         </div>
                     @endif
                 </div>
             </div>
 
             {{-- Tertiary Contact --}}
-            <div class="col-md-6">
-                <div class="p-3 h-100" style="background:rgba(255,255,255,0.01); border:1px solid var(--border-color); border-radius:14px;">
-                    <h6 class="mb-3 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text-muted);">
-                        <i class="bi bi-3-circle-fill me-1"></i> Tertiary Contact (Optional)
-                    </h6>
+            <div class="col-md-4">
+                <div class="p-3.5 h-100 rounded-3 border" style="background:var(--color-surface); border-color:var(--color-border) !important; border-radius:16px;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <h6 class="mb-0 fw-bold" style="color:var(--color-text-muted); font-size:0.88rem;">Tertiary Contact
+                        </h6>
+                        <span class="badge bg-light text-muted border" style="font-size:0.7rem;">Optional</span>
+                    </div>
                     @if($woman->tertiaryEmergencyContact)
                         <div class="d-flex flex-column gap-2" style="font-size:0.9rem;">
                             <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Name</small>
-                                <span class="fw-600 text-white">{{ $woman->tertiaryEmergencyContact->name }}</span>
+                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Name</small>
+                                <span class="fw-bold" style="color:var(--color-text);">{{ $woman->tertiaryEmergencyContact->name }}</span>
                             </div>
                             <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Relationship</small>
-                                <span class="fw-500 text-white">{{ $woman->tertiaryEmergencyContact->relationship }}</span>
+                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Relationship</small>
+                                <span class="fw-semibold" style="color:var(--color-text);">{{ $woman->tertiaryEmergencyContact->relationship }}</span>
                             </div>
                             <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Contact Number</small>
-                                <a href="tel:{{ $woman->tertiaryEmergencyContact->contact_number }}" class="fw-500" style="color:var(--text-muted); text-decoration:none;">
-                                    <i class="bi bi-telephone-fill me-1" style="font-size:0.8rem;"></i>{{ $woman->tertiaryEmergencyContact->contact_number }}
+                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; font-weight:700;">Contact Number</small>
+                                <a href="tel:{{ $woman->tertiaryEmergencyContact->contact_number }}" class="fw-bold" style="color:var(--color-primary-text); text-decoration:none;">
+                                    <i class="bi bi-telephone-fill me-1"></i>{{ $woman->tertiaryEmergencyContact->contact_number }}
                                 </a>
                             </div>
-                            @if($woman->tertiaryEmergencyContact->address)
-                            <div>
-                                <small class="text-muted d-block" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Address</small>
-                                <span class="fw-500 text-white-50">{{ $woman->tertiaryEmergencyContact->address }}</span>
-                            </div>
-                            @endif
                         </div>
                     @else
-                        <div class="text-muted py-3" style="font-size:0.875rem;">
-                            <i class="bi bi-info-circle me-1"></i> No tertiary emergency contact recorded.
+                        <div class="p-3 rounded-3" style="background:var(--color-bg); border:1px solid var(--color-border); color:var(--color-text-muted); font-size:0.85rem;">
+                            <i class="bi bi-info-circle me-1"></i> No tertiary emergency contact.
                         </div>
                     @endif
                 </div>
@@ -294,123 +282,89 @@
 </div>
 
 {{-- ═══════════════════════════════
-     QUICK ACTIONS
+     CONSOLIDATED PREGNANCY HISTORY CARD
 ═══════════════════════════════ --}}
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <a href="{{ route('midwife.checkups.create', $woman->id) }}" 
-           class="btn w-100 py-3 fade-in-card"
-           style="background:linear-gradient(135deg,var(--success),var(--primary)); color:#fff; border:none; border-radius:12px; font-weight:500;">
-            <i class="bi bi-calendar-check me-2"></i>Schedule Checkup
-        </a>
-    </div>
-    <div class="col-md-3">
-        <a href="{{ route('midwife.pregnancies.create', $woman->id) }}"
-           class="btn w-100 py-3 fade-in-card" 
-           style="background:linear-gradient(135deg,var(--secondary),var(--accent-pink)); color:#fff; border:none; border-radius:12px; font-weight:500;">
-            <i class="bi bi-heart-pulse me-2"></i>Track Pregnancy
-        </a>
-    </div>
-</div>
-
-{{-- ═══════════════════════════════
-     PREGNANCY HISTORY
-═══════════════════════════════ --}}
-<div class="card fade-in-card mb-4" style="border:none; background:var(--bg-card);">
-    <div class="card-header d-flex justify-content-between align-items-center" 
-         style="background:transparent; border-bottom:1px solid var(--border-color); padding:1rem 1.5rem;">
-        <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-            <i class="bi bi-heart-fill me-2" style="color:var(--success);"></i>
-            Pregnancy History
+<div class="card fade-in-card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Pregnancy &amp; Maternal History
         </h5>
+        <a href="{{ route('midwife.pregnancies.create', $woman->id) }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Record Pregnancy
+        </a>
     </div>
     <div class="card-body p-4">
         @if($pregnancies->count() > 0)
-            @foreach($pregnancies as $pregnancy)
-                @if($pregnancy->is_active)
-                    {{-- Active Pregnancy Tracking Card --}}
-                    <div class="mb-4 p-4" style="background:linear-gradient(135deg, rgba(13,202,240,0.1), rgba(102,16,242,0.05)); border:1px solid rgba(13,202,240,0.3); border-radius:16px;">
-                        <div class="row align-items-center g-3">
-                            <div class="col-md-3">
-                                <div class="text-center">
-                                    <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.7rem; letter-spacing:0.5px;">Current Gestational Age</small>
-                                    <h4 style="font-weight:700; color:var(--text); margin:0.5rem 0;">{{ $pregnancy->formatted_aog }}</h4>
-                                    <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.25rem 0.75rem; background:var(--info); color:#fff; border-radius:20px; font-size:0.8rem; font-weight:500;">
-                                        {{ $pregnancy->trimester_name }}
-                                    </div>
+            @php $activePreg = $pregnancies->firstWhere('is_active', true); @endphp
+            @if($activePreg)
+                {{-- Active Pregnancy Header Stats Banner --}}
+                <div class="mb-4 p-4 rounded-3 border" style="background:var(--color-success-soft); border-color:var(--color-success-soft) !important; border-radius:20px;">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-3 text-center border-end">
+                            <small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.72rem; letter-spacing:0.5px;">Gestational Age (AOG)</small>
+                            <h3 class="fw-bold mb-1" style="color:var(--color-success-text);">{{ $activePreg->formatted_aog }}</h3>
+                            <span class="badge rounded-pill bg-white text-success border px-2.5 py-1 fw-bold" style="font-size:0.75rem;">
+                                {{ $activePreg->trimester_name }}
+                            </span>
+                        </div>
+                        <div class="col-md-3 text-center border-end">
+                            <small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.72rem; letter-spacing:0.5px;">Estimated Due Date</small>
+                            <h4 class="fw-bold mb-1" style="color:var(--color-text);">{{ $activePreg->edd ? $activePreg->edd->format('M j, Y') : 'N/A' }}</h4>
+                            <small style="color:var(--color-success-text); font-weight:600;"><i class="bi bi-hourglass-split me-1"></i>{{ $activePreg->days_until_due }} days left</small>
+                        </div>
+                        <div class="col-md-3 text-center border-end">
+                            <small class="text-muted d-block text-uppercase fw-bold" style="font-size:0.72rem; letter-spacing:0.5px;">Clinical Triage</small>
+                            @if($activePreg->is_overdue)
+                                <div class="badge bg-danger rounded-pill px-3 py-1.5 fw-bold my-1">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Overdue
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="text-center">
-                                    <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.7rem; letter-spacing:0.5px;">Due Date</small>
-                                    <h4 style="font-weight:700; color:var(--text); margin:0.5rem 0;">{{ $pregnancy->edd ? $pregnancy->edd->format('M j, Y') : 'N/A' }}</h4>
-                                    <small style="color:var(--success);"><i class="bi bi-hourglass-split me-1"></i>{{ $pregnancy->days_until_due }} days remaining</small>
+                            @else
+                                <div class="badge rounded-pill px-3 py-1.5 fw-bold my-1" style="background:var(--color-success-text); color:var(--color-on-solid);">
+                                    <i class="bi bi-heart-pulse-fill me-1"></i> Active Case
                                 </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="text-center">
-                                    <small style="color:var(--text-muted); text-transform:uppercase; font-size:0.7rem; letter-spacing:0.5px;">Status</small>
-                                    @if($pregnancy->is_overdue)
-                                        <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; background:var(--danger); color:#fff; border-radius:20px; font-weight:600; margin:0.5rem 0;">
-                                            <i class="bi bi-exclamation-triangle-fill"></i> Overdue
-                                        </div>
-                                    @else
-                                        <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; background:var(--success); color:#fff; border-radius:20px; font-weight:600; margin:0.5rem 0;">
-                                            <i class="bi bi-heart-pulse-fill"></i> Active
-                                        </div>
-                                    @endif
-                                    <small style="color:var(--text-muted); display:block;">Gravida: {{ $pregnancy->gravida }}, Para: {{ $pregnancy->para }}</small>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="text-center">
-                                    <a href="{{ route('midwife.pregnancies.show', $pregnancy->id) }}" 
-                                       class="btn btn-sm" style="background:linear-gradient(135deg,var(--primary),var(--accent-violet)); color:#fff; border-radius:10px; padding:0.5rem 1rem;">
-                                        <i class="bi bi-eye me-1"></i> View Details
-                                    </a>
-                                </div>
-                            </div>
+                            @endif
+                            <small class="d-block text-muted">Gravida: {{ $activePreg->gravida }} | Para: {{ $activePreg->para }}</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <a href="{{ route('midwife.pregnancies.show', $activePreg->id) }}" class="btn btn-sm btn-hero-secondary">
+                                <i class="bi bi-eye me-1"></i> Full Clinical Details
+                            </a>
                         </div>
                     </div>
-                @endif
-            @endforeach
-            
+                </div>
+            @endif
+
             <div class="table-responsive">
-                <table class="table table-hover align-middle" style="font-size:0.9rem;">
+                <table class="table table-hover align-middle mb-0" style="font-size:0.9rem;">
                     <thead>
-                        <tr style="color:var(--text-muted); font-weight:600; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px;">
-                            <th style="padding:1rem; border:none;">LMP</th>
-                            <th style="padding:1rem; border:none;">EDD</th>
-                            <th style="padding:1rem; border:none;">AOG</th>
-                            <th style="padding:1rem; border:none;">Gravida</th>
-                            <th style="padding:1rem; border:none;">Para</th>
-                            <th style="padding:1rem; border:none;">Status</th>
-                            <th style="padding:1rem; border:none; text-align:right;">Actions</th>
+                        <tr class="text-muted text-uppercase" style="font-size:0.78rem; font-weight:700; border-bottom:1px solid var(--color-border);">
+                            <th class="py-3">LMP</th>
+                            <th class="py-3">EDD</th>
+                            <th class="py-3">AOG</th>
+                            <th class="py-3">Gravida / Para</th>
+                            <th class="py-3">Status</th>
+                            <th class="py-3 text-end">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($pregnancies as $pregnancy)
-                            <tr style="border-bottom:1px solid var(--border-color);">
-                                <td style="padding:1rem;">{{ $pregnancy->lmp ? $pregnancy->lmp->format('M j, Y') : 'N/A' }}</td>
-                                <td style="padding:1rem;">{{ $pregnancy->edd ? $pregnancy->edd->format('M j, Y') : 'N/A' }}</td>
-                                <td style="padding:1rem;">{{ $pregnancy->formatted_aog ?? 'N/A' }}</td>
-                                <td style="padding:1rem;">{{ $pregnancy->gravida ?? 'N/A' }}</td>
-                                <td style="padding:1rem;">{{ $pregnancy->para ?? 'N/A' }}</td>
-                                <td style="padding:1rem;">
+                            <tr style="border-bottom:1px solid var(--color-border);">
+                                <td class="py-3 fw-semibold" style="color:var(--color-text);">{{ $pregnancy->lmp ? $pregnancy->lmp->format('M j, Y') : 'N/A' }}</td>
+                                <td class="py-3">{{ $pregnancy->edd ? $pregnancy->edd->format('M j, Y') : 'N/A' }}</td>
+                                <td class="py-3">{{ $pregnancy->formatted_aog ?? 'N/A' }}</td>
+                                <td class="py-3">G{{ $pregnancy->gravida }} P{{ $pregnancy->para }}</td>
+                                <td class="py-3">
                                     @if($pregnancy->is_active ?? false)
-                                        <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.35rem 0.75rem; background:rgba(25,135,84,0.1); color:var(--success); border-radius:20px; font-weight:500; font-size:0.85rem;">
-                                            <i class="bi bi-heart-pulse-fill"></i> Active
-                                        </div>
+                                        <span class="badge rounded-pill" style="background:var(--color-success-soft); color:var(--color-success-text); border:1px solid var(--color-success-soft); font-weight:700; padding:0.35em 0.75em;">
+                                            <i class="bi bi-heart-pulse-fill me-1"></i> Active
+                                        </span>
                                     @else
-                                        <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.35rem 0.75rem; background:rgba(108,117,125,0.1); color:var(--text-muted); border-radius:20px; font-weight:500; font-size:0.85rem;">
-                                            <i class="bi bi-check-circle-fill"></i> Completed
-                                        </div>
+                                        <span class="badge rounded-pill bg-light text-muted border font-semibold px-2.5 py-1">
+                                            Completed
+                                        </span>
                                     @endif
                                 </td>
-                                <td style="padding:1rem; text-align:right;">
-                                    <a href="{{ route('midwife.pregnancies.show', $pregnancy->id) }}" 
-                                       class="btn btn-sm btn-outline-primary" 
-                                       style="border-radius:8px; padding:0.4rem 0.6rem;">
+                                <td class="py-3 text-end">
+                                    <a href="{{ route('midwife.pregnancies.show', $pregnancy->id) }}" class="btn btn-sm btn-light border" style="border-radius:8px;">
                                         <i class="bi bi-eye"></i> View
                                     </a>
                                 </td>
@@ -420,13 +374,13 @@
                 </table>
             </div>
         @else
-            <div class="text-center py-5">
-                <div style="width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--accent-violet));display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
-                    <i class="bi bi-heart" style="font-size:1.8rem;color:#fff;"></i>
+            <div class="text-center py-4">
+                <div style="width:52px;height:52px;border-radius:14px;background:var(--color-primary-soft);color:var(--color-primary-text);display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;">
+                    <i class="bi bi-heart" style="font-size:1.5rem;"></i>
                 </div>
-                <h5 style="font-weight:600; color:var(--text); margin-bottom:0.5rem;">No pregnancy records found</h5>
-                <p style="color:var(--text-muted); margin-bottom:1rem;">Record the first pregnancy for this patient.</p>
-                <a href="{{ route('midwife.pregnancies.create', $woman->id) }}" class="btn btn-primary" style="border-radius:10px;">
+                <h6 class="fw-bold mb-1" style="color:var(--color-text);">No pregnancy records found</h6>
+                <p class="text-muted mb-3" style="font-size:0.875rem;">Record the first pregnancy case for this patient.</p>
+                <a href="{{ route('midwife.pregnancies.create', $woman->id) }}" class="btn btn-sm btn-primary">
                     <i class="bi bi-plus me-1"></i> Record First Pregnancy
                 </a>
             </div>
@@ -435,64 +389,60 @@
 </div>
 
 {{-- ═══════════════════════════════
-     CHECKUP HISTORY
+     CHECKUP HISTORY CARD
 ═══════════════════════════════ --}}
-<div class="card fade-in-card mb-4" style="border:none; background:var(--bg-card);">
-    <div class="card-header d-flex justify-content-between align-items-center" 
-         style="background:transparent; border-bottom:1px solid var(--border-color); padding:1rem 1.5rem;">
-        <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-            <i class="bi bi-calendar-check-fill me-2" style="color:var(--info);"></i>
-            Checkup History
+<div class="card fade-in-card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Checkup Consultation History
         </h5>
+        <a href="{{ route('midwife.checkups.create', $woman->id) }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Schedule Checkup
+        </a>
     </div>
     <div class="card-body p-4">
         @if($checkups->count() > 0)
             <div class="table-responsive">
-                <table class="table table-hover align-middle" style="font-size:0.9rem;">
+                <table class="table table-hover align-middle mb-0" style="font-size:0.9rem;">
                     <thead>
-                        <tr style="color:var(--text-muted); font-weight:600; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px;">
-                            <th style="padding:1rem; border:none;">Date</th>
-                            <th style="padding:1rem; border:none;">Type</th>
-                            <th style="padding:1rem; border:none;">Midwife</th>
-                            <th style="padding:1rem; border:none;">Status</th>
-                            <th style="padding:1rem; border:none;">Notes</th>
-                            <th style="padding:1rem; border:none; text-align:right;">Actions</th>
+                        <tr class="text-muted text-uppercase" style="font-size:0.78rem; font-weight:700; border-bottom:1px solid var(--color-border);">
+                            <th class="py-3">Date</th>
+                            <th class="py-3">Type</th>
+                            <th class="py-3">Midwife</th>
+                            <th class="py-3">Status</th>
+                            <th class="py-3">Notes</th>
+                            <th class="py-3 text-end">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($checkups as $checkup)
-                            <tr style="border-bottom:1px solid var(--border-color);">
-                                <td style="padding:1rem; font-weight:500; color:var(--text);">{{ $checkup->scheduled_date->format('M j, Y') }}</td>
-                                <td style="padding:1rem;">{{ $checkup->type ?? 'General' }}</td>
-                                <td style="padding:1rem;">{{ $checkup->midwife->name ?? 'N/A' }}</td>
-                                <td style="padding:1rem;">
+                            <tr style="border-bottom:1px solid var(--color-border);">
+                                <td class="py-3 fw-bold" style="color:var(--color-text);">{{ $checkup->scheduled_date->format('M j, Y') }}</td>
+                                <td class="py-3">{{ $checkup->type ?? 'General Prenatal' }}</td>
+                                <td class="py-3">{{ $checkup->midwife->name ?? 'Assigned Midwife' }}</td>
+                                <td class="py-3">
                                     @switch($checkup->status)
                                         @case('scheduled')
-                                            <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.35rem 0.75rem; background:rgba(255,193,7,0.1); color:var(--warning); border-radius:20px; font-weight:500; font-size:0.85rem;">
-                                                <i class="bi bi-clock"></i> Scheduled
-                                            </div>
+                                            <span class="badge rounded-pill" style="background:var(--color-peach-soft); color:var(--color-peach-text); border:1px solid var(--color-peach-soft); font-weight:700;">
+                                                <i class="bi bi-clock me-1"></i> Scheduled
+                                            </span>
                                             @break
                                         @case('completed')
-                                            <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.35rem 0.75rem; background:rgba(25,135,84,0.1); color:var(--success); border-radius:20px; font-weight:500; font-size:0.85rem;">
-                                                <i class="bi bi-check-circle-fill"></i> Completed
-                                            </div>
+                                            <span class="badge rounded-pill" style="background:var(--color-success-soft); color:var(--color-success-text); border:1px solid var(--color-success-soft); font-weight:700;">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Completed
+                                            </span>
                                             @break
                                         @case('missed')
-                                            <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.35rem 0.75rem; background:rgba(220,53,69,0.1); color:var(--danger); border-radius:20px; font-weight:500; font-size:0.85rem;">
-                                                <i class="bi bi-x-circle-fill"></i> Missed
-                                            </div>
+                                            <span class="badge rounded-pill bg-danger text-white font-semibold">
+                                                <i class="bi bi-x-circle me-1"></i> Missed
+                                            </span>
                                             @break
                                         @default
-                                            <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.35rem 0.75rem; background:rgba(108,117,125,0.1); color:var(--text-muted); border-radius:20px; font-weight:500; font-size:0.85rem;">
-                                                {{ $checkup->status }}
-                                            </div>
+                                            <span class="badge rounded-pill bg-light text-muted border">{{ ucfirst($checkup->status) }}</span>
                                     @endswitch
                                 </td>
-                                <td style="padding:1rem; color:var(--text-muted);">{{ \Illuminate\Support\Str::limit($checkup->notes ?? 'N/A', 50) }}</td>
-                                <td style="padding:1rem; text-align:right;">
-                                    <a href="{{ route('midwife.checkups.show', $checkup->id) }}" 
-                                       class="btn btn-sm btn-outline-primary" 
-                                       style="border-radius:8px; padding:0.4rem 0.6rem;">
+                                <td class="py-3 text-muted">{{ \Illuminate\Support\Str::limit($checkup->notes ?? 'N/A', 50) }}</td>
+                                <td class="py-3 text-end">
+                                    <a href="{{ route('midwife.checkups.show', $checkup->id) }}" class="btn btn-sm btn-light border" style="border-radius:8px;">
                                         <i class="bi bi-eye"></i> View
                                     </a>
                                 </td>
@@ -502,14 +452,14 @@
                 </table>
             </div>
         @else
-            <div class="text-center py-5">
-                <div style="width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,var(--info),var(--accent-cyan));display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
-                    <i class="bi bi-calendar-check" style="font-size:1.8rem;color:#fff;"></i>
+            <div class="text-center py-4">
+                <div style="width:52px;height:52px;border-radius:14px;background:var(--color-info-soft);color:var(--color-info-text);display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;">
+                    <i class="bi bi-calendar-check" style="font-size:1.5rem;"></i>
                 </div>
-                <h5 style="font-weight:600; color:var(--text); margin-bottom:0.5rem;">No checkup records found</h5>
-                <p style="color:var(--text-muted); margin-bottom:1rem;">Schedule the first checkup for this patient.</p>
-                <a href="{{ route('midwife.checkups.create', $woman->id) }}" class="btn" style="background:var(--success); color:#fff; border-radius:10px;">
-                    <i class="bi bi-plus me-1"></i> Schedule First Checkup
+                <h6 class="fw-bold mb-1" style="color:var(--color-text);">No checkup records recorded</h6>
+                <p class="text-muted mb-3" style="font-size:0.875rem;">Schedule the first prenatal checkup session for this patient.</p>
+                <a href="{{ route('midwife.checkups.create', $woman->id) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus me-1"></i> Schedule Checkup
                 </a>
             </div>
         @endif
@@ -517,48 +467,58 @@
 </div>
 
 {{-- ═══════════════════════════════
-     HEALTH RECORDS
+     HEALTH RECORDS CARD
 ═══════════════════════════════ --}}
-<div class="card fade-in-card" style="border:none; background:var(--bg-card);">
-    <div class="card-header d-flex justify-content-between align-items-center" 
-         style="background:transparent; border-bottom:1px solid var(--border-color); padding:1rem 1.5rem;">
-        <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-            <i class="bi bi-clipboard-pulse-fill me-2" style="color:var(--warning);"></i>
-            Health Records
+<div class="card fade-in-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Health &amp; Vital Records
         </h5>
+        <a href="{{ route('midwife.health-records.create') }}?user_id={{ $woman->id }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Add Record
+        </a>
     </div>
     <div class="card-body p-4">
         @if($healthRecords->count() > 0)
             <div class="table-responsive">
-                <table class="table table-hover align-middle" style="font-size:0.9rem;">
+                <table class="table table-hover align-middle mb-0" style="font-size:0.9rem;">
                     <thead>
-                        <tr style="color:var(--text-muted); font-weight:600; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px;">
-                            <th style="padding:1rem; border:none;">Date</th>
-                            <th style="padding:1rem; border:none;">Type</th>
-                            <th style="padding:1rem; border:none;">Recorded By</th>
-                            <th style="padding:1rem; border:none;">Summary</th>
-                            <th style="padding:1rem; border:none; text-align:right;">Actions</th>
+                        <tr class="text-muted text-uppercase" style="font-size:0.78rem; font-weight:700; border-bottom:1px solid var(--color-border);">
+                            <th class="py-3">Date</th>
+                            <th class="py-3">Recorded By</th>
+                            <th class="py-3">Vitals Summary</th>
+                            <th class="py-3">Risk Level</th>
+                            <th class="py-3 text-end">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($healthRecords as $record)
-                            <tr style="border-bottom:1px solid var(--border-color);">
-                                <td style="padding:1rem; font-weight:500; color:var(--text);">{{ $record->created_at->format('M j, Y') }}</td>
-                                <td style="padding:1rem;">{{ $record->type ?? 'General' }}</td>
-                                <td style="padding:1rem;">
-                                    @if($record->recordedBy)
-                                        <div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.35rem 0.75rem; background:rgba(102,16,242,0.1); color:var(--primary); border-radius:20px; font-weight:500; font-size:0.85rem;">
-                                            <i class="bi bi-person-badge"></i> {{ $record->recordedBy->name }}
-                                        </div>
+                            <tr style="border-bottom:1px solid var(--color-border);">
+                                <td class="py-3 fw-bold" style="color:var(--color-text);">{{ $record->created_at->format('M j, Y') }}</td>
+                                <td class="py-3">{{ $record->recordedBy?->name ?? 'Midwife' }}</td>
+                                <td class="py-3">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        @if($record->bp)
+                                            <span class="badge bg-light text-dark border px-2 py-1">BP: {{ $record->bp }}</span>
+                                        @endif
+                                        @if($record->heart_rate)
+                                            <span class="badge bg-light text-dark border px-2 py-1">HR: {{ $record->heart_rate }} bpm</span>
+                                        @endif
+                                        @if($record->temperature)
+                                            <span class="badge bg-light text-dark border px-2 py-1">Temp: {{ $record->temperature }}°C</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="py-3">
+                                    @if($record->risk_level === 'High')
+                                        <span class="badge bg-danger text-white">High Risk</span>
+                                    @elseif($record->risk_level === 'Medium')
+                                        <span class="badge bg-warning text-dark">Medium Risk</span>
                                     @else
-                                        <span style="color:var(--text-muted);">N/A</span>
+                                        <span class="badge bg-success text-white">Low Risk</span>
                                     @endif
                                 </td>
-                                <td style="padding:1rem; color:var(--text-muted);">{{ \Illuminate\Support\Str::limit($record->notes ?? 'N/A', 50) }}</td>
-                                <td style="padding:1rem; text-align:right;">
-                                    <a href="{{ route('midwife.health-records.show', $record->id) }}" 
-                                       class="btn btn-sm btn-outline-primary" 
-                                       style="border-radius:8px; padding:0.4rem 0.6rem;">
+                                <td class="py-3 text-end">
+                                    <a href="{{ route('midwife.health-records.show', $record->id) }}" class="btn btn-sm btn-light border" style="border-radius:8px;">
                                         <i class="bi bi-eye"></i> View
                                     </a>
                                 </td>
@@ -568,12 +528,15 @@
                 </table>
             </div>
         @else
-            <div class="text-center py-5">
-                <div style="width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,var(--warning),var(--accent-amber));display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
-                    <i class="bi bi-clipboard-pulse" style="font-size:1.8rem;color:#fff;"></i>
+            <div class="text-center py-4">
+                <div style="width:52px;height:52px;border-radius:14px;background:var(--color-primary-soft);color:var(--color-primary-text);display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;">
+                    <i class="bi bi-file-earmark-medical" style="font-size:1.5rem;"></i>
                 </div>
-                <h5 style="font-weight:600; color:var(--text); margin-bottom:0.5rem;">No health records found</h5>
-                <p style="color:var(--text-muted); margin-bottom:1rem;">This patient has no health records yet.</p>
+                <h6 class="fw-bold mb-1" style="color:var(--color-text);">No clinical health records yet</h6>
+                <p class="text-muted mb-3" style="font-size:0.875rem;">Record vitals and clinical assessments for this patient.</p>
+                <a href="{{ route('midwife.health-records.create') }}?user_id={{ $woman->id }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus me-1"></i> Add Health Record
+                </a>
             </div>
         @endif
     </div>

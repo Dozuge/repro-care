@@ -9,6 +9,7 @@ use App\Models\HealthRecord;
 use App\Models\Bhw;
 use App\Models\BhwProfile;
 use App\Models\BhwMonthlyReport;
+use App\Models\ActivityLog;
 use App\Models\CheckupReferral;
 use App\Models\WalkInPatient;
 use App\Models\Purok;
@@ -17,6 +18,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class MidwifeController extends Controller
@@ -73,6 +75,7 @@ class MidwifeController extends Controller
     {
         $search = request('search');
         $filter = request('filter', 'all');
+        $barangay = request('barangay');
         $purokId = request('purok_id');
         $pregnancyStatus = request('pregnancy_status', 'all');
         $ageRange = request('age_range', 'all');
@@ -105,6 +108,10 @@ class MidwifeController extends Controller
             });
         }
 
+        if ($barangay) {
+            $registeredQuery->where('barangay', $barangay);
+        }
+
         if ($purokId) {
             $registeredQuery->where('purok_id', $purokId);
         }
@@ -118,7 +125,7 @@ class MidwifeController extends Controller
         $unregisteredQuery = WalkInPatient::with(['recordedBy', 'purok', 'convertedToUser', 'pregnancies' => function($query) {
             $query->active();
         }])
-            ->whereNull('converted_to_user_id');
+            ->whereNull('converted_to_user_id')->whereNull('user_id');
 
         if ($search) {
             $unregisteredQuery->where(function ($q) use ($search) {
@@ -131,6 +138,10 @@ class MidwifeController extends Controller
             });
         }
 
+        if ($barangay) {
+            $unregisteredQuery->where('barangay', $barangay);
+        }
+
         if ($purokId) {
             $unregisteredQuery->where('purok_id', $purokId);
         }
@@ -141,7 +152,7 @@ class MidwifeController extends Controller
         });
 
         // Combine both collections
-        $allPatients = $registeredPatients->concat($unregisteredPatients);
+        $allPatients = app(\App\Services\PatientPresentation::class)->sortPatients($registeredPatients->concat($unregisteredPatients));
 
         // Apply filter (registered/unregistered)
         if ($filter === 'registered') {
@@ -156,13 +167,13 @@ class MidwifeController extends Controller
             $allPatients = $allPatients->filter(fn ($patient) => !$patient->pregnancies || $patient->pregnancies->count() === 0);
         }
 
-        // Age filter (including <19 teenage pregnancy)
+        // Age filter (teen = under 20)
         if ($ageRange !== 'all') {
             $allPatients = $allPatients->filter(function ($patient) use ($ageRange) {
                 $age = $patient->age;
                 return match ($ageRange) {
-                    'teen', 'under_20' => $age !== null && $age < 19,
-                    '20_34' => $age !== null && $age >= 19 && $age <= 34,
+                    'teen', 'under_20' => $age !== null && $age < 20,
+                    '20_34' => $age !== null && $age >= 20 && $age <= 34,
                     '35_plus' => $age !== null && $age >= 35,
                     default => true,
                 };
@@ -210,11 +221,12 @@ class MidwifeController extends Controller
         );
 
         // Get statistics
-        $scheduledCheckups = Checkup::where('status', 'scheduled')->count();
-        $missedCheckups = Checkup::where('status', 'missed')->count();
+        $scheduledCheckups = Checkup::where('status', 'Scheduled')->count();
+        $missedCheckups = Checkup::where('status', 'Missed')->count();
         $registeredCount = User::where('role', 'user')->where('status', 'approved')->count();
         $unregisteredCount = WalkInPatient::whereNull('converted_to_user_id')->count();
         $puroks = Purok::orderBy('name')->get();
+        $barangays = \App\Models\Barangay::allNames();
 
         return view('midwife.patients', compact(
             'patients',
@@ -224,6 +236,8 @@ class MidwifeController extends Controller
             'unregisteredCount',
             'puroks',
             'purokId',
+            'barangays',
+            'barangay',
             'pregnancyStatus',
             'ageRange',
             'riskLevel',
@@ -231,58 +245,19 @@ class MidwifeController extends Controller
         ));
     }
 
-    public function pendingPatients()
+    public function decisionSupport(\Illuminate\Http\Request $request)
     {
-        $search = request('search');
-
-        $query = User::where('role', 'user')->where('status', 'pending');
-
-        if ($search) {
+        $filters = $request->validate(['search' => 'nullable|string|max:100', 'type' => 'nullable|in:registered,walk-in']);
+        $type = $filters['type'] ?? 'registered';
+        $search = trim($filters['search'] ?? '');
+        $query = $type === 'walk-in' ? WalkInPatient::query() : User::where('role', 'user');
+        if ($search !== '') {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%')
-                    ->orWhere('address', 'like', '%' . $search . '%')
-                    ->orWhere('barangay', 'like', '%' . $search . '%');
+                $q->where('first_name', 'like', '%'.$search.'%')->orWhere('last_name', 'like', '%'.$search.'%');
             });
         }
-
-        $pending = $query->latest()->paginate(10)->withQueryString();
-
-        return view('midwife.pending-patients', compact('pending'));
-    }
-
-    public function approvePatient($id)
-    {
-        $woman = User::where('role', 'user')->findOrFail($id);
-        $woman->update([
-            'status' => 'approved',
-            'rejection_reason' => null,
-        ]);
-
-        \App\Models\Notification::createNotification(
-            $woman->id,
-            'Your registration has been approved. You can now log in to ReproCare.',
-            'Registration Approved',
-            'success',
-            route('user.dashboard')
-        );
-
-        return redirect()->route('midwife.pending-patients')
-            ->with('success', $woman->name . ' has been approved.');
-    }
-
-    public function rejectPatient(Request $request, $id)
-    {
-        $request->validate(['reason' => 'nullable|string|max:500']);
-
-        $woman = User::where('role', 'user')->findOrFail($id);
-        $womanName = $woman->name;
-
-        // Delete the user account
-        $woman->delete();
-
-        return redirect()->route('midwife.pending-patients')
-            ->with('success', $womanName . ' has been rejected and deleted.');
+        $patients = $query->orderBy('last_name')->orderBy('first_name')->paginate(15)->withQueryString();
+        return view('midwife.decision-support', compact('patients', 'search', 'type'));
     }
 
     public function patientDetails($id)
@@ -290,64 +265,25 @@ class MidwifeController extends Controller
         // Eager load all relationships in single query for better performance
         $woman = User::where('role', 'user')->with([
             'emergencyContacts',
+            'primaryEmergencyContact',
+            'purok',
             'pregnancies' => function($q) { $q->latest()->select('id', 'user_id', 'lmp', 'edd', 'is_high_risk'); },
             'checkups' => function($q) { $q->with('midwife:id,first_name,middle_initial,last_name')->latest()->select('id', 'user_id', 'midwife_id', 'scheduled_date', 'status', 'purpose'); },
             'healthRecords' => function($q) { $q->with('recordedBy:id,first_name,middle_initial,last_name')->latest()->select('id', 'user_id', 'recorded_by_id', 'bp', 'weight', 'created_at')->take(50); }
-        ])->select('id', 'first_name', 'middle_initial', 'last_name', 'email', 'address', 'barangay', 'date_of_birth', 'contact_number', 'partner_name', 'partner_contact')->findOrFail($id);
+        ])->select('id', 'first_name', 'middle_initial', 'last_name', 'email', 'address', 'barangay', 'purok_id', 'status', 'date_of_birth', 'contact_number', 'partner_name', 'partner_contact', 'profile_image', 'gender', 'created_at')->findOrFail($id);
+
+        // Patient-seen status for the latest risk alert (Seen/Unseen + read_at)
+        // so the managing midwife can tell whether the patient opened it.
+        $riskAlertStatus = \App\Services\SmartNotificationService::patientRiskAlertStatus($woman->id);
 
         return view('midwife.patient-details', [
             'woman' => $woman,
             'pregnancies' => $woman->pregnancies,
             'checkups' => $woman->checkups,
             'healthRecords' => $woman->healthRecords,
+            'riskAlertStatus' => $riskAlertStatus,
+            'decisionSupport' => app(\App\Services\MaternalAnalyticsService::class)->patientSupport($woman),
         ]);
-    }
-
-    // Create New Patient
-    public function createPatient()
-    {
-        $puroks = Purok::orderBy('name')->get();
-
-        return view('midwife.create-patient', compact('puroks'));
-    }
-
-    // Store New Patient
-    public function storePatient(Request $request)
-    {
-        $request->validate([
-            'first_name' => 'required|string|max:255',
-            'middle_initial' => 'nullable|string|max:2',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'address' => 'nullable|string|max:255',
-            'purok_id' => 'required|exists:puroks,id',
-            'contact_number' => 'nullable|string|max:20',
-            'date_of_birth' => 'required|date|before:today',
-        ]);
-
-        $selectedPurok = Purok::findOrFail($request->purok_id);
-
-        $woman = User::create([
-            'first_name'     => $request->first_name,
-            'middle_initial' => $request->middle_initial,
-            'last_name'      => $request->last_name,
-            'email'          => $request->email,
-            'password'       => Hash::make($request->password),
-            'role'           => 'user',
-            'address'        => $request->address,
-            'barangay'       => $selectedPurok->barangay,
-            'purok_id'       => $selectedPurok->id,
-            'contact_number' => $request->contact_number,
-            'date_of_birth'  => $request->date_of_birth,
-            'status'         => 'approved',
-        ]);
-
-        // Clear dashboard cache to refresh stats
-        Cache::forget('midwife_dashboard_stats_' . auth()->id());
-
-        return redirect()->route('midwife.patients')
-            ->with('success', 'Patient ' . $woman->name . ' has been successfully added.');
     }
 
     // Profile - Redirect to unified profile system
@@ -359,7 +295,137 @@ class MidwifeController extends Controller
     // Settings
     public function settings()
     {
-        return view('midwife.settings');
+        $user = auth()->user();
+
+        // ── 4. Assigned location oversight (real coverage data) ──
+        $approvedPatients = User::where('role', 'user')->where('status', 'approved');
+        $totalPatients = (clone $approvedPatients)->count();
+        $bhwCount = User::where('role', 'bhw')->where('status', '!=', 'archived')->count();
+        $barangayStats = (clone $approvedPatients)
+            ->select('barangay', DB::raw('COUNT(*) as total'))
+            ->groupBy('barangay')
+            ->orderByDesc('total')
+            ->limit(8)
+            ->get();
+        $purokStats = DB::table('puroks')
+            ->leftJoin('users', function ($join) {
+                $join->on('users.purok_id', '=', 'puroks.id')
+                    ->where('users.role', 'user')
+                    ->where('users.status', 'approved');
+            })
+            ->select('puroks.id', 'puroks.name', 'puroks.barangay', DB::raw('COUNT(users.id) as patients'))
+            ->groupBy('puroks.id', 'puroks.name', 'puroks.barangay')
+            ->orderByDesc('patients')
+            ->limit(10)
+            ->get();
+
+        // ── 2. Pending approval workload (real queue counts) ──
+        $pendingPatients = User::where('role', 'user')->where('status', 'pending')->count();
+        $pendingRecords = HealthRecord::where('workflow_status', 'submitted_to_midwife')->count();
+        $pendingReports = BhwMonthlyReport::where('submission_status', 'submitted_to_midwife')->count();
+
+        // ── 5. Audit trail (real activity + sessions) ──
+        $lastApproval = ActivityLog::where('user_id', $user->id)
+            ->where('action', 'approve')
+            ->latest()
+            ->first();
+        $recentActivity = ActivityLog::where('user_id', $user->id)
+            ->latest()
+            ->limit(8)
+            ->get();
+        $sessions = DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->orderByDesc('last_activity')
+            ->get();
+        $currentSessionId = session()->getId();
+
+        // ── 1. License validity countdown ──
+        $licenseDaysLeft = $user->license_expiry
+            ? (int) now()->startOfDay()->diffInDays($user->license_expiry, false)
+            : null;
+
+        return view('midwife.settings', compact(
+            'totalPatients',
+            'bhwCount',
+            'barangayStats',
+            'purokStats',
+            'pendingPatients',
+            'pendingRecords',
+            'pendingReports',
+            'lastApproval',
+            'recentActivity',
+            'sessions',
+            'currentSessionId',
+            'licenseDaysLeft'
+        ));
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $user = auth()->user();
+        $section = $request->input('section', 'preferences');
+
+        // ── 3a. Change password ──
+        if ($section === 'password') {
+            $request->validate([
+                'current_password' => 'required|string',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+
+            if (!Hash::check($request->input('current_password'), $user->password)) {
+                return back()->withErrors(['current_password' => 'Current password is incorrect.'])->withInput();
+            }
+
+            $user->password = $request->input('password');
+            $user->save();
+            ActivityLog::log('update', 'Changed account password');
+
+            return back()->with('success', 'Password updated successfully.');
+        }
+
+        // ── 3b/1. Profile + clinical fields (license locked once verified) ──
+        if ($section === 'profile') {
+            $request->validate([
+                'contact_number' => 'nullable|string|max:20',
+                'specialization' => 'nullable|string|max:255',
+            ]);
+
+            $user->contact_number = $request->input('contact_number', $user->contact_number);
+            // PRC license fields are editable only until the RHU Admin verifies the account.
+            if (!$user->isApproved()) {
+                $user->license_number = $request->input('license_number', $user->license_number);
+                $user->specialization = $request->input('specialization', $user->specialization);
+            }
+            $user->save();
+            ActivityLog::log('update', 'Updated settings profile information');
+
+            return back()->with('success', 'Profile information updated.');
+        }
+
+        // ── 3c. Two-factor authentication enrollment flag ──
+        if ($section === '2fa') {
+            $user->pref_2fa_enabled = $request->boolean('pref_2fa_enabled');
+            $user->save();
+            ActivityLog::log('update', $user->pref_2fa_enabled ? 'Enabled two-factor authentication' : 'Disabled two-factor authentication');
+
+            return back()->with('success', $user->pref_2fa_enabled ? 'Two-factor authentication enabled.' : 'Two-factor authentication disabled.');
+        }
+
+        // ── 2. Workflow & notification preferences ──
+        $request->validate([
+            'pref_approval_summary' => 'required|in:immediate,daily,weekly,off',
+        ]);
+
+        $user->pref_high_risk_email = $request->boolean('pref_high_risk_email');
+        $user->pref_high_risk_sms = $request->boolean('pref_high_risk_sms');
+        $user->pref_high_risk_dashboard = $request->boolean('pref_high_risk_dashboard');
+        $user->pref_approval_summary = $request->input('pref_approval_summary', 'daily');
+        $user->pref_escalation_alerts = $request->boolean('pref_escalation_alerts');
+        $user->pref_2fa_enabled = $request->boolean('pref_2fa_enabled');
+        $user->save();
+        ActivityLog::log('update', 'Updated workflow and notification preferences');
+
+        return back()->with('success', 'Preferences saved successfully.');
     }
 
     // Pregnant Patients Management
@@ -368,9 +434,9 @@ class MidwifeController extends Controller
         $search = request('search');
         $status = request('status', 'active');
         
-        // Cache pregnancy stats for 5 minutes
-        $statsCacheKey = 'pregnancy_stats_' . $status . '_' . ($search ? md5($search) : 'no_search');
-        $stats = Cache::remember($statsCacheKey, 300, function () use ($status) {
+        // Cache pregnancy stats for 5 minutes (search must not poison global totals)
+        $statsCacheKey = 'pregnancy_stats_' . $status;
+        $stats = Cache::remember($statsCacheKey, 300, function () {
             return [
                 'totalActive' => Pregnancy::active()->count(),
                 'totalCompleted' => Pregnancy::completed()->count(),
@@ -378,8 +444,8 @@ class MidwifeController extends Controller
             ];
         });
         
-        $query = Pregnancy::with('woman')
-            ->select('id', 'user_id', 'lmp', 'edd', 'aog', 'is_high_risk', 'created_at')
+        $query = Pregnancy::with(['woman' => fn($q) => $q->withTrashed(), 'walkInPatient'])
+            ->select('id', 'user_id', 'walk_in_patient_id', 'lmp', 'edd', 'aog', 'is_high_risk', 'created_at')
             ->when($status === 'active', function($q) {
                 return $q->active();
             })
@@ -393,7 +459,8 @@ class MidwifeController extends Controller
         // Apply search if provided
         if ($search) {
             $query->whereHas('woman', function($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
+                $q->where('first_name', 'like', '%' . $search . '%')
+                  ->orWhere('last_name', 'like', '%' . $search . '%')
                   ->orWhere('email', 'like', '%' . $search . '%');
             });
         }
@@ -431,6 +498,7 @@ class MidwifeController extends Controller
     public function notifications()
     {
         $notifications = auth()->user()->notifications()
+            ->with('patientAlert')
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
@@ -462,22 +530,30 @@ class MidwifeController extends Controller
             'target_role' => 'nullable|in:user,bhw,midwife',
         ]);
 
-        auth()->user()->notifications()->create([
-            'title' => $request->title,
-            'message' => $request->message,
-            'type' => $request->type,
-            'target_role' => $request->target_role,
-            'is_read' => false,
-        ]);
+        // Broadcast to every approved user of the target role (empty = all field roles).
+        $roles = $request->filled('target_role') ? [$request->target_role] : ['user', 'bhw', 'midwife'];
+        $recipients = User::whereIn('role', $roles)
+            ->where('status', 'approved')
+            ->where('id', '!=', auth()->id())
+            ->pluck('id');
+
+        foreach ($recipients as $userId) {
+            \App\Models\Notification::createNotification(
+                $userId,
+                $request->message,
+                $request->title,
+                $request->type
+            );
+        }
 
         return redirect()->route('midwife.notifications.index')
-            ->with('success', 'Notification created successfully');
+            ->with('success', 'Notification sent to ' . $recipients->count() . ' user(s).');
     }
 
     public function markNotificationAsRead($id)
     {
         $notification = auth()->user()->notifications()->findOrFail($id);
-        $notification->update(['is_read' => true]);
+        $notification->update(['is_read' => true, 'read_at' => now()]);
 
         return redirect()->back()->with('success', 'Notification marked as read.');
     }
@@ -506,11 +582,13 @@ class MidwifeController extends Controller
 
     public function showReferral($id)
     {
-        $referral = CheckupReferral::with(['woman', 'walkInPatient', 'referredByBhw', 'assignedMidwife', 'convertedCheckup'])
+        $referral = CheckupReferral::with(['woman', 'walkInPatient', 'pregnancy.healthRecords', 'referredByBhw', 'assignedMidwife', 'convertedCheckup'])
             ->where('assigned_midwife_id', auth()->id())
             ->findOrFail($id);
 
-        return view('midwife.referrals.show', compact('referral'));
+        $attachedRecords = $referral->attachedHealthRecords();
+
+        return view('midwife.referrals.show', compact('referral', 'attachedRecords'));
     }
 
     public function reviewReferral($id)
@@ -521,6 +599,15 @@ class MidwifeController extends Controller
             'reviewed_at' => now(),
         ]);
 
+        // 5. Transparency: the referring BHW sees progress, not silence.
+        app(\App\Services\WorkflowService::class)->notifyAction(
+            (int) $referral->referred_by_bhw_id,
+            '👀 Referral Under Review',
+            "Your referral for {$referral->patient_name} is now under midwife review.",
+            'info',
+            route('bhw.referrals.show', $referral->id)
+        );
+
         return redirect()->route('midwife.referrals.show', $id)
             ->with('success', 'Referral marked as reviewed.');
     }
@@ -528,6 +615,12 @@ class MidwifeController extends Controller
     public function convertToCheckup($id)
     {
         $referral = CheckupReferral::with(['woman', 'walkInPatient'])->where('assigned_midwife_id', auth()->id())->findOrFail($id);
+
+        // Idempotent: an already-accepted referral keeps its history and checkup.
+        if ($referral->converted_checkup_id && ($checkup = Checkup::find($referral->converted_checkup_id))) {
+            return redirect()->route('midwife.checkups.edit', $checkup->id)
+                ->with('success', 'This referral was already accepted. Continuing with the linked checkup.');
+        }
 
         // Create the checkup
         $checkup = Checkup::create([
@@ -542,6 +635,14 @@ class MidwifeController extends Controller
             'status' => 'Scheduled',
         ]);
 
+        // Preserve the handoff history instead of deleting the referral.
+        $referral->update([
+            'status' => 'scheduled',
+            'converted_checkup_id' => $checkup->id,
+            'accepted_at' => now(),
+            'scheduled_at' => now(),
+        ]);
+
         // Notify the BHW
         \App\Models\Notification::createNotification(
             $referral->referred_by_bhw_id,
@@ -550,8 +651,6 @@ class MidwifeController extends Controller
             'success',
             route('bhw.checkups.index')
         );
-
-        $referral->delete();
 
         return redirect()->route('midwife.checkups.edit', $checkup->id)
             ->with('success', 'Referral accepted and moved to checkups. Please set the final scheduled date and time.');
@@ -596,92 +695,39 @@ class MidwifeController extends Controller
     {
         $patient = WalkInPatient::with(['recordedBy', 'purok', 'convertedToUser', 'checkupReferrals'])
             ->findOrFail($id);
+        $smsLogs = $patient->contact_number
+            ? \App\Models\SmsLog::where('phone_number', $patient->contact_number)
+                ->orWhere('phone_number', $patient->smsPhone())
+                ->latest()->limit(10)->get()
+            : collect();
 
-        return view('midwife.walk-in-patients.show', compact('patient'));
+        $decisionSupport = app(\App\Services\MaternalAnalyticsService::class)->patientSupport($patient);
+        return view('midwife.walk-in-patients.show', compact('patient', 'smsLogs', 'decisionSupport'));
     }
 
-    public function editWalkInPatient($id)
+    /**
+     * Portal Account Activation (Unlinked Profile → Enrolled Account).
+     * Generates app credentials for a BHW-Managed woman and links the
+     * field record (user_id + has_portal_access). Staff-activated, so
+     * the account is approved immediately — no verification queue.
+     */
+    public function activateWalkInPatient($id)
     {
-        $patient = WalkInPatient::with(['recordedBy', 'purok'])
-            ->findOrFail($id);
-        $puroks = Purok::orderBy('name')->get();
+        $walkInPatient = WalkInPatient::with(['recordedBy', 'purok'])->findOrFail($id);
 
-        if ($patient->converted_to_user_id) {
-            return back()->with('error', 'This walk-in patient has already been converted to a registered user and cannot be edited.');
+        if ($walkInPatient->linkedUserId()) {
+            return back()->with('error', 'This field record already has an active portal account.');
         }
 
-        return view('midwife.walk-in-patients.edit', compact('patient', 'puroks'));
+        return view('midwife.walk-in-patients.activate', compact('walkInPatient'));
     }
 
-    public function updateWalkInPatient(Request $request, $id)
-    {
-        $patient = WalkInPatient::findOrFail($id);
-
-        if ($patient->converted_to_user_id) {
-            return back()->with('error', 'This walk-in patient has already been converted to a registered user and cannot be edited.');
-        }
-
-        $request->validate([
-            'first_name' => 'required|string|max:255',
-            'middle_initial' => 'nullable|string|max:10',
-            'last_name' => 'required|string|max:255',
-            'date_of_birth' => 'nullable|date',
-            'contact_number' => 'nullable|string|max:20',
-            'purok_id' => 'nullable|exists:puroks,id',
-            'reason_for_visit' => 'nullable|string|max:500',
-        ]);
-
-        $selectedPurok = $request->filled('purok_id')
-            ? Purok::find($request->purok_id)
-            : null;
-
-        $patient->update([
-            'first_name' => $request->first_name,
-            'middle_initial' => $request->middle_initial,
-            'last_name' => $request->last_name,
-            'date_of_birth' => $request->date_of_birth,
-            'contact_number' => $request->contact_number,
-            'address' => null,
-            'barangay' => $selectedPurok?->barangay,
-            'purok_id' => $request->purok_id,
-            'reason_for_visit' => $request->reason_for_visit,
-        ]);
-
-        return redirect()->route('midwife.walk-in-patients.show', $id)
-            ->with('success', 'Walk-in patient updated successfully.');
-    }
-
-    public function deleteWalkInPatient($id)
-    {
-        $patient = WalkInPatient::findOrFail($id);
-
-        if ($patient->converted_to_user_id) {
-            return back()->with('error', 'This walk-in patient has already been converted to a registered user and cannot be deleted.');
-        }
-
-        $patient->delete();
-
-        return redirect()->route('midwife.walk-in-patients.index')
-            ->with('success', 'Walk-in patient deleted successfully.');
-    }
-
-    public function convertWalkInToUser($id)
+    public function storeActivatedAccount(Request $request, $id)
     {
         $walkInPatient = WalkInPatient::findOrFail($id);
 
-        if ($walkInPatient->converted_to_user_id) {
-            return back()->with('error', 'This walk-in patient has already been converted to a registered user.');
-        }
-
-        return view('midwife.walk-in-patients.convert', compact('walkInPatient'));
-    }
-
-    public function storeConvertedUser(Request $request, $id)
-    {
-        $walkInPatient = WalkInPatient::findOrFail($id);
-
-        if ($walkInPatient->converted_to_user_id) {
-            return back()->with('error', 'This walk-in patient has already been converted to a registered user.');
+        if ($walkInPatient->linkedUserId()) {
+            return back()->with('error', 'This field record already has an active portal account.');
         }
 
         $request->validate([
@@ -702,17 +748,21 @@ class MidwifeController extends Controller
             'status' => 'approved',
             'address' => $request->address,
             'barangay' => $request->barangay,
+            'purok_id' => $walkInPatient->purok_id,
             'date_of_birth' => $walkInPatient->date_of_birth,
             'contact_number' => $request->contact_number,
+            'created_by_midwife_id' => auth()->id(),
         ]);
 
         $walkInPatient->update([
+            'user_id' => $user->id,
+            'has_portal_access' => true,
             'converted_to_user_id' => $user->id,
             'converted_at' => now(),
         ]);
 
         return redirect()->route('midwife.walk-in-patients.show', $id)
-            ->with('success', 'Walk-in patient converted to registered user successfully.');
+            ->with('success', 'Portal account activated — Unlinked Profile is now an Enrolled Account (Portal-Active).');
     }
 
     // --- Reports ---
@@ -733,14 +783,9 @@ class MidwifeController extends Controller
             });
         }
 
-        // Calculate metrics based on the current scope
-        $allPatientsQuery = clone $query;
-        $allPatients = $allPatientsQuery->get();
-
-        $totalPatients = $allPatients->count();
-        $pregnantPatients = $allPatients->filter(function($user) {
-            return $user->pregnancy_status === 'Pregnant';
-        })->count();
+        // Calculate metrics in SQL (no full-table load)
+        $totalPatients = (clone $query)->count();
+        $pregnantPatients = (clone $query)->whereHas('pregnancies', fn ($q) => $q->active())->count();
 
         // Count completed checkups within the date range
         $completedCheckupsQuery = Checkup::where('status', 'Completed');
@@ -787,241 +832,101 @@ class MidwifeController extends Controller
 
     public function reportsExportCsv(Request $request)
     {
-        return back()->with('error', 'CSV export not implemented yet.');
+        $patients = $this->filteredReportPatients($request);
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="midwife_patients_report_' . now()->format('Y-m-d') . '.csv"',
+        ];
+
+        $callback = function () use ($patients) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Patient Name', 'Age', 'Status', 'Email', 'Contact Number', 'Barangay']);
+
+            foreach ($patients as $patient) {
+                fputcsv($file, [
+                    $patient->name,
+                    $patient->age,
+                    $patient->pregnancy_status,
+                    $patient->email,
+                    $patient->contact_number,
+                    $patient->barangay ?? 'N/A',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function reportsExportPdf(Request $request)
     {
-        return back()->with('error', 'PDF export not implemented yet.');
+        $patients = $this->filteredReportPatients($request);
+        return view('midwife.reports.print', compact('patients'));
     }
 
-    // --- BHW Presidents ---
-
-    public function bhwPresidentsIndex()
+    /**
+     * Shared patient scope for the midwife reports browser + exports.
+     */
+    private function filteredReportPatients(Request $request)
     {
-        $bhwPresidents = User::where('role', 'bhw_president')
-            ->where('status', '!=', 'archived')
+        $search = $request->input('search');
+        $status = $request->input('status', 'all');
+
+        $query = User::where('role', 'user')->where('status', 'approved');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status === 'pregnant') {
+            $query->whereHas('pregnancies', fn ($q) => $q->active());
+        } elseif ($status === 'postpartum') {
+            $query->whereHas('pregnancies', fn ($q) => $q->completed());
+        } elseif ($status === 'not_pregnant') {
+            $query->whereDoesntHave('pregnancies', fn ($q) => $q->active())
+                ->whereDoesntHave('pregnancies', fn ($q) => $q->completed());
+        }
+
+        return $query->orderBy('last_name')->orderBy('first_name')->get();
+    }
+
+    // --- Risk Alerts inbox (clinical review queue) ---
+
+    public function riskAlerts()
+    {
+        $highRiskPregnancies = Pregnancy::active()
+            ->highRisk()
+            ->with(['woman', 'walkInPatient'])
             ->latest()
-            ->paginate(15);
+            ->paginate(10, ['*'], 'pregnancies_page');
 
-        foreach ($bhwPresidents as $president) {
-            $president->managed_bhw_count = User::where('role', 'bhw')->count();
-            $president->supervised_patients_count = User::where('role', 'user')->count();
-        }
-
-        return view('midwife.bhw-presidents.index', compact('bhwPresidents'));
-    }
-
-    public function bhwPresidentsCreate()
-    {
-        $currentPresident = User::where('role', 'bhw_president')
-            ->where('status', '!=', 'archived')
+        $urgentReferrals = \App\Models\CheckupReferral::with(['woman', 'walkInPatient', 'referredByBhw'])
+            ->whereIn('urgency', ['urgent', 'emergency'])
+            ->whereIn('status', ['pending', 'reviewed'])
             ->latest()
-            ->first();
+            ->paginate(10, ['*'], 'referrals_page');
 
-        return view('midwife.bhw-presidents.create', compact('currentPresident'));
-    }
+        $missedCheckups = Checkup::missed()
+            ->with(['woman', 'walkInPatient', 'midwife'])
+            ->latest('scheduled_date')
+            ->paginate(10, ['*'], 'missed_page');
 
-    public function bhwPresidentsStore(Request $request)
-    {
-        $request->validate([
-            'first_name'     => 'required|string|max:255',
-            'middle_initial' => 'nullable|string|max:1',
-            'last_name'      => 'required|string|max:255',
-            'email'          => 'required|string|email|max:255|unique:users',
-            'password'       => 'required|string|min:8|confirmed',
-            'date_of_birth'  => 'required|date|before:today',
-            'gender'         => 'required|in:male,female',
-            'contact_number' => 'required|string|max:20',
-        ]);
-
-        $data = $request->all();
-        $data['password'] = Hash::make($data['password']);
-        $data['role'] = 'bhw_president';
-        $data['status'] = 'approved';
-        $data['barangay'] = 'Barangay Burgos, San Carlos City, Pangasinan';
-
-        // Archive existing president
-        $existingPresident = User::where('role', 'bhw_president')
-            ->where('status', '!=', 'archived')
+        $pendingRecords = HealthRecord::with(['woman', 'walkInPatient', 'recordedBy'])
+            ->where('workflow_status', 'submitted_to_midwife')
             ->latest()
-            ->first();
+            ->paginate(10, ['*'], 'records_page');
 
-        if ($existingPresident) {
-            $existingPresident->update(['status' => 'archived']);
-        }
-
-        // Handle profile image upload
-        if ($request->hasFile('profile_image')) {
-            $data['profile_image'] = $request->file('profile_image')
-                ->store('uploads/profile', 'public');
-        }
-
-        User::create($data);
-
-        return redirect()->route('midwife.bhw-presidents.index')
-            ->with('success', 'BHW President appointed successfully.');
+        return view('midwife.risk-alerts.index', compact(
+            'highRiskPregnancies',
+            'urgentReferrals',
+            'missedCheckups',
+            'pendingRecords'
+        ));
     }
-
-    public function bhwPresidentsShow($id)
-    {
-        $bhwPresident = User::where('role', 'bhw_president')->findOrFail($id);
-        $stats = [
-            'managed_bhw_count'        => User::where('role', 'bhw')->count(),
-            'supervised_patients_count' => User::where('role', 'user')->count(),
-            'active_pregnancies_count'  => Pregnancy::active()->count(),
-        ];
-
-        return view('midwife.bhw-presidents.show', compact('bhwPresident', 'stats'));
-    }
-
-    public function bhwPresidentsEdit($id)
-    {
-        $bhwPresident = User::where('role', 'bhw_president')->findOrFail($id);
-        return view('midwife.bhw-presidents.edit', compact('bhwPresident'));
-    }
-
-    public function bhwPresidentsUpdate(Request $request, $id)
-    {
-        $bhwPresident = User::where('role', 'bhw_president')->findOrFail($id);
-
-        $request->validate([
-            'first_name'     => 'required|string|max:255',
-            'middle_initial' => 'nullable|string|max:1',
-            'last_name'      => 'required|string|max:255',
-            'email'          => 'required|string|email|max:255|unique:users,email,' . $id,
-            'date_of_birth'  => 'required|date|before:today',
-            'gender'         => 'required|in:male,female',
-            'contact_number' => 'required|string|max:20',
-        ]);
-
-        $data = $request->except(['password', 'password_confirmation']);
-
-        if ($request->filled('password')) {
-            $request->validate(['password' => 'required|string|min:8|confirmed']);
-            $data['password'] = Hash::make($request->password);
-        }
-
-        if ($request->hasFile('profile_image')) {
-            $data['profile_image'] = $request->file('profile_image')
-                ->store('uploads/profile', 'public');
-        }
-
-        $bhwPresident->update($data);
-
-        return redirect()->route('midwife.bhw-presidents.show', $id)
-            ->with('success', 'BHW President updated successfully.');
-    }
-
-    public function bhwPresidentsDestroy($id)
-    {
-        $bhwPresident = User::where('role', 'bhw_president')->findOrFail($id);
-        $bhwPresident->delete();
-
-        return redirect()->route('midwife.bhw-presidents.index')
-            ->with('success', 'BHW President deleted successfully.');
-    }
-
-    // --- BHW Monthly Reports ---
-
-    public function bhwReportsIndex()
-    {
-        $filter = request('filter', 'all');
-        $month = request('month');
-        $year = request('year');
-        $submissionStatus = request('submission_status', 'all');
-        
-        $query = BhwMonthlyReport::with(['bhw', 'submittedToPresidentBy', 'approvedByPresident', 'submittedToMidwifeBy']);
-        
-        if ($filter !== 'all') {
-            $query->where('report_type', $filter);
-        }
-
-        if ($month) {
-            $query->where('report_month', (int) $month);
-        }
-
-        if ($year) {
-            $query->where('report_year', (int) $year);
-        }
-
-        if ($submissionStatus !== 'all') {
-            $query->where('submission_status', $submissionStatus);
-        }
-        
-        $reports = $query->latest()->paginate(10)->withQueryString();
-        
-        return view('midwife.bhw-reports.index', compact('reports', 'filter', 'month', 'year', 'submissionStatus'));
-    }
-
-    public function bhwReportsShow($id)
-    {
-        $report = BhwMonthlyReport::with(['bhw', 'submittedToPresidentBy', 'approvedByPresident', 'submittedToMidwifeBy', 'approvedByMidwife'])
-            ->findOrFail($id);
-
-        if ($report->report_type === 'health_records') {
-            $baseQuery = HealthRecord::where('recorded_by_id', $report->bhw_id)
-                ->whereMonth('created_at', $report->report_month)
-                ->whereYear('created_at', $report->report_year)
-                ->with('recordedBy', 'patient');
-
-            $healthRecords = $baseQuery->paginate(20);
-            $uniquePatients = $baseQuery->select('user_id')->distinct()->count();
-            $riskDistribution = [
-                'low' => HealthRecord::where('recorded_by_id', $report->bhw_id)->whereMonth('created_at', $report->report_month)->whereYear('created_at', $report->report_year)->where('risk_level', 'Low')->count(),
-                'medium' => HealthRecord::where('recorded_by_id', $report->bhw_id)->whereMonth('created_at', $report->report_month)->whereYear('created_at', $report->report_year)->where('risk_level', 'Medium')->count(),
-                'high' => HealthRecord::where('recorded_by_id', $report->bhw_id)->whereMonth('created_at', $report->report_month)->whereYear('created_at', $report->report_year)->where('risk_level', 'High')->count(),
-            ];
-
-            return view('midwife.bhw-reports.show', compact('report', 'healthRecords', 'uniquePatients', 'riskDistribution'));
-        } else {
-            $baseQuery = Pregnancy::whereMonth('created_at', $report->report_month)
-                ->whereYear('created_at', $report->report_year)
-                ->with('woman');
-
-            $pregnancies = $baseQuery->paginate(20);
-            $uniquePatients = $baseQuery->select('user_id')->distinct()->count();
-            $riskDistribution = [
-                'low' => Pregnancy::whereMonth('created_at', $report->report_month)->whereYear('created_at', $report->report_year)->where('is_high_risk', false)->count(),
-                'high' => Pregnancy::whereMonth('created_at', $report->report_month)->whereYear('created_at', $report->report_year)->where('is_high_risk', true)->count(),
-                'medium' => 0,
-            ];
-
-            return view('midwife.bhw-reports.show-pregnancies', compact('report', 'pregnancies', 'uniquePatients', 'riskDistribution'));
-        }
-    }
-
-    public function bhwReportsPrint($id)
-    {
-        $report = BhwMonthlyReport::findOrFail($id);
-        return view('midwife.bhw-reports.print', compact('report'));
-    }
-
-    public function bhwReportsApprove(Request $request, $id)
-    {
-        $report = BhwMonthlyReport::findOrFail($id);
-        $report->approveByMidwife(auth()->id(), $request->input('notes'));
-
-        return redirect()->route('midwife.bhw-reports.index')
-            ->with('success', 'BHW Monthly Report approved successfully.');
-    }
-
-    public function bhwReportsReject(Request $request, $id)
-    {
-        $report = BhwMonthlyReport::findOrFail($id);
-        $report->rejectByMidwife(auth()->id(), $request->input('notes'));
-
-        return redirect()->route('midwife.bhw-reports.index')
-            ->with('success', 'Report rejected and returned to BHW President.');
-    }
-
-    public function bhwReportsDestroy($id)
-    {
-        $report = BhwMonthlyReport::findOrFail($id);
-        $report->delete();
-
-        return redirect()->route('midwife.bhw-reports.index')
-            ->with('success', 'Report archived successfully.');
-    }
-
 }

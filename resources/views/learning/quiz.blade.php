@@ -5,48 +5,48 @@
 @push('styles')
 <style>
     .quiz-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow-sm);
-        transition: transform 0.2s;
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:20px;
+        padding:2rem;
+        margin-bottom:1.5rem;
+        box-shadow:var(--shadow-sm);
+        transition:transform 0.2s;
     }
-    .quiz-card:hover { transform: translateY(-2px); }
+    .quiz-card:hover { transform:translateY(-2px); }
     .question-number {
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--primary-light);
-        margin-bottom: 0.5rem;
+        font-size:0.75rem;
+        font-weight:700;
+        text-transform:uppercase;
+        letter-spacing:1px;
+        color:var(--primary-light);
+        margin-bottom:0.5rem;
     }
-    .question-text { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1.25rem; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .question-text { font-size:1rem; font-weight:700; color:var(--text); margin-bottom:1.25rem; font-family:'Plus Jakarta Sans', sans-serif; }
     .option-label {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
-        border: 1.5px solid var(--border);
-        border-radius: 12px;
-        margin-bottom: 0.5rem;
-        cursor: pointer;
-        transition: all 0.15s;
-        background: var(--bg-card2);
-        font-size: 0.9rem;
+        display:flex;
+        align-items:center;
+        gap:0.75rem;
+        padding:0.75rem 1rem;
+        border:1.5px solid var(--border);
+        border-radius:12px;
+        margin-bottom:0.5rem;
+        cursor:pointer;
+        transition:all 0.15s;
+        background:var(--bg-card2);
+        font-size:0.9rem;
     }
-    .option-label:hover { border-color: var(--primary); background: var(--primary-subtle); }
-    input[type="radio"]:checked + .option-label { border-color: var(--primary); background: var(--primary-subtle); color: var(--primary-light); font-weight: 600; }
-    input[type="radio"] { display: none; }
+    .option-label:hover { border-color:var(--primary); background:var(--primary-subtle); }
+    input[type="radio"]:checked + .option-label { border-color:var(--primary); background:var(--primary-subtle); color:var(--primary-light); font-weight:600; }
+    input[type="radio"] { display:none; }
     .submit-btn {
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        border: none; border-radius: 14px; color: #fff;
-        font-weight: 700; font-size: 1rem; padding: 0.85rem 2.5rem;
-        box-shadow: 0 4px 16px var(--primary-glow); cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
+        background:linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border:none; border-radius:14px; color:var(--color-on-solid);
+        font-weight:700; font-size:1rem; padding:0.85rem 2.5rem;
+        box-shadow:0 4px 16px var(--primary-glow); cursor:pointer;
+        transition:transform 0.2s, box-shadow 0.2s;
     }
-    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--primary-glow); }
+    .submit-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px var(--primary-glow); }
 </style>
 @endpush
 
@@ -57,9 +57,7 @@
         <i class="bi bi-arrow-left me-1"></i> Back
     </a>
     <div>
-        <h1 class="page-title mb-0">
-            <i class="bi bi-patch-question-fill me-2" style="color:var(--primary-light);"></i>
-            Quiz: {{ $material->title }}
+        <h1 class="page-title mb-0">Quiz: {{ $material->title }}
         </h1>
         <p class="page-subtitle">Answer all questions and submit when done</p>
     </div>

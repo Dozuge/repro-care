@@ -18,6 +18,7 @@ class SmsLog extends Model
         'error_message',
         'provider_sid',
         'sent_at',
+        'notification_id',
     ];
 
     protected $casts = [

@@ -42,10 +42,10 @@
                                     <td>{{ $patient->barangay ?? '—' }}</td>
                                     <td>{{ $patient->reason_for_visit ?? '—' }}</td>
                                     <td>
-                                        @if($patient->converted_to_user_id)
-                                            <span class="badge bg-success">Converted</span>
+                                        @if($patient->isPortalActive())
+                                            <span class="badge bg-success" title="Authenticated Patient · Direct Access">Enrolled · Portal-Active</span>
                                         @else
-                                            <span class="badge bg-secondary">Walk-in</span>
+                                            <span class="badge bg-secondary" title="Managed Beneficiary · Field Record Only">Unlinked · BHW-Managed</span>
                                         @endif
                                     </td>
                                     <td>{{ $patient->created_at->format('M d, Y') }}</td>

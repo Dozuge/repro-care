@@ -5,44 +5,44 @@
 @section('midwife-content')
 <style>
     .profile-show-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 1rem;
-        overflow: hidden;
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:1rem;
+        overflow:hidden;
     }
 
     .profile-show-header {
-        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        background:linear-gradient(135deg, var(--primary), var(--primary-light));
     }
 
     .profile-show-avatar {
-        width: 160px;
-        height: 160px;
-        object-fit: cover;
-        border: 5px solid var(--bg-card);
-        box-shadow: var(--shadow-md);
+        width:160px;
+        height:160px;
+        object-fit:cover;
+        border:5px solid var(--bg-card);
+        box-shadow:var(--shadow-md);
     }
 
     .profile-info-item {
-        border: 1px solid var(--border);
-        border-radius: 0.85rem;
-        padding: 1rem;
-        height: 100%;
-        background: var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:0.85rem;
+        padding:1rem;
+        height:100%;
+        background:var(--bg-card);
     }
 
     .profile-info-label {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-muted);
-        margin-bottom: 0.35rem;
+        font-size:0.8rem;
+        text-transform:uppercase;
+        letter-spacing:0.04em;
+        color:var(--text-muted);
+        margin-bottom:0.35rem;
     }
 
     .profile-info-value {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text);
+        font-size:1rem;
+        font-weight:600;
+        color:var(--text);
     }
 </style>
 <div class="py-4">

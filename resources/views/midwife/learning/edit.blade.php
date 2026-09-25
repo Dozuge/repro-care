@@ -5,19 +5,18 @@
 
 @extends($layout)
 
-@section('title', 'Edit Media & Learning Material - ReproCare')
+@section('title', 'Edit Learning Material - ReproCare')
 
 @section($section)
-<div class="py-3" style="width: 100%; max-width: 100%;">
+<div class="py-3" style="width:100%; max-width:100%;">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h2 class="fw-800 text-dark mb-1" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                <i class="bi bi-pencil-square text-primary me-2"></i>Edit Media &amp; Learning Material
+            <h2 class="fw-800 text-dark mb-1" style="font-family:'Plus Jakarta Sans',sans-serif;">Edit Learning Material
             </h2>
             <p class="text-muted mb-0" style="font-size:0.9rem;">Update video links, uploaded files, or clinical counseling points.</p>
         </div>
         <a href="{{ route('midwife.learning.index') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="border-radius:10px;">
-            <i class="bi bi-arrow-left"></i> Back to Media Library
+                <i class="bi bi-arrow-left"></i> Back to Learning Materials
         </a>
     </div>
 
@@ -50,7 +49,7 @@
             <div class="col-lg-8">
                 <div class="card shadow-sm border mb-4" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
                     <div class="card-header bg-transparent py-3 border-bottom">
-                        <h6 class="fw-800 mb-0 text-dark"><i class="bi bi-info-circle-fill me-2 text-primary"></i>Media Content Information</h6>
+                        <h6 class="fw-800 mb-0 text-dark">Media Content Information</h6>
                     </div>
                     <div class="card-body p-4">
                         {{-- Title --}}
@@ -67,31 +66,33 @@
                         <div class="mb-3">
                             <label for="material_type" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">Material Type <span class="text-danger">*</span></label>
                             <select class="form-select @error('material_type') is-invalid @enderror" id="material_type" name="material_type" required onchange="handleTypeChange(this.value)" style="border-radius:10px;">
-                                <option value="video" {{ old('material_type', $material->material_type) === 'video' ? 'selected' : '' }}>🎬 Playable Video (Upload MP4 or Stream URL)</option>
+                                <option value="video" {{ old('material_type', $material->material_type) === 'video' ? 'selected' : '' }}>🎬 YouTube Video (Embed Link)</option>
                                 <option value="article" {{ old('material_type', $material->material_type) === 'article' ? 'selected' : '' }}>📄 Educational Article</option>
                                 <option value="link" {{ old('material_type', $material->material_type) === 'link' ? 'selected' : '' }}>🔗 External Resource Link</option>
                                 <option value="file" {{ old('material_type', $material->material_type) === 'file' ? 'selected' : '' }}>📁 Downloadable Clinical Document (PDF / PPT / Doc)</option>
                             </select>
                         </div>
 
-                        {{-- Video URL / Stream Input --}}
-                        <div class="mb-3" id="video_url_group" style="display: {{ old('material_type', $material->material_type) === 'video' ? 'block' : 'none' }};">
+                        {{-- YouTube Video Link + Live Preview --}}
+                        <div class="mb-3" id="video_url_group" style="display:{{ old('material_type', $material->material_type) === 'video' ? 'block' : 'none' }};">
                             <label for="video_url" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">
-                                Video Streaming URL (YouTube / Vimeo / Direct Stream)
+                                YouTube Video Link <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-youtube text-danger"></i></span>
-                                <input type="url" class="form-control" id="video_url" name="video_url" 
-                                       value="{{ old('video_url', $material->video_url) }}" placeholder="https://www.youtube.com/watch?v=... or Vimeo link" style="border-radius:0 10px 10px 0;">
+                                <input type="url" class="form-control" id="video_url" name="video_url"
+                                       value="{{ old('video_url', $material->video_url) }}" placeholder="e.g., https://www.youtube.com/watch?v=..." style="border-radius:0 10px 10px 0;">
                             </div>
+                            <small class="text-muted">Watch, Shorts, share (youtu.be), live, or embed links — a live preview appears once a valid link is pasted.</small>
+                            @include('learning.partials.youtube-live-preview')
                         </div>
 
-                        {{-- MP4 Video / File Upload --}}
-                        <div class="mb-3" id="file_upload_group" style="display: {{ in_array(old('material_type', $material->material_type), ['video', 'file']) ? 'block' : 'none' }};">
+                        {{-- Document File Upload (videos use YouTube embeds) --}}
+                        <div class="mb-3" id="file_upload_group" style="display:{{ old('material_type', $material->material_type) === 'file' ? 'block' : 'none' }};">
                             <label for="file" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">
-                                Upload / Replace File (MP4, WEBM, MOV, PDF, DOCX)
+                                Upload / Replace Document (PDF, DOCX, PPT, Images, Audio)
                             </label>
-                            <input type="file" class="form-control" id="file" name="file" accept=".mp4,.webm,.mov,.avi,.pdf,.doc,.docx,.ppt,.pptx" style="border-radius:10px;">
+                            <input type="file" class="form-control" id="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.webp,.mp3,.wav" style="border-radius:10px;">
                             @if($material->file)
                                 <div class="mt-2 text-xs text-success fw-600">
                                     <i class="bi bi-check-circle-fill me-1"></i> Current file: {{ basename($material->file) }}
@@ -100,7 +101,7 @@
                         </div>
 
                         {{-- External Link URL --}}
-                        <div class="mb-3" id="link_url_group" style="display: {{ old('material_type', $material->material_type) === 'link' ? 'block' : 'none' }};">
+                        <div class="mb-3" id="link_url_group" style="display:{{ old('material_type', $material->material_type) === 'link' ? 'block' : 'none' }};">
                             <label for="link_url" class="form-label fw-700 text-xs text-uppercase text-muted" style="letter-spacing:0.5px;">External Resource URL</label>
                             <input type="url" class="form-control" id="link_url" name="link_url" value="{{ old('link_url', $material->link_url) }}" style="border-radius:10px;">
                         </div>
@@ -118,7 +119,7 @@
             <div class="col-lg-4">
                 <div class="card shadow-sm border mb-4" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
                     <div class="card-header bg-transparent py-3 border-bottom">
-                        <h6 class="fw-800 mb-0 text-dark"><i class="bi bi-tags-fill me-2 text-primary"></i>Category &amp; Target</h6>
+                        <h6 class="fw-800 mb-0 text-dark">Category &amp; Target</h6>
                     </div>
                     <div class="card-body p-4">
                         {{-- Category --}}
@@ -130,7 +131,6 @@
                                 <option value="warning-signs" {{ old('category', $material->category) === 'warning-signs' ? 'selected' : '' }}>⚠️ Warning Signs &amp; Preeclampsia</option>
                                 <option value="family-planning" {{ old('category', $material->category) === 'family-planning' ? 'selected' : '' }}>👨‍👩‍👧 Family Planning &amp; Contraception</option>
                                 <option value="postpartum" {{ old('category', $material->category) === 'postpartum' ? 'selected' : '' }}>👶 Postpartum &amp; Newborn Care</option>
-                                <option value="hcw-training" {{ old('category', $material->category) === 'hcw-training' ? 'selected' : '' }}>🎓 Healthcare Worker (HCW) Training</option>
                                 <option value="general" {{ old('category', $material->category) === 'general' ? 'selected' : '' }}>General Health Education</option>
                             </select>
                         </div>
@@ -175,7 +175,7 @@ function handleTypeChange(val) {
 
     if (val === 'video') {
         videoGrp.style.display = 'block';
-        fileGrp.style.display = 'block';
+        fileGrp.style.display = 'none';
         linkGrp.style.display = 'none';
     } else if (val === 'link') {
         videoGrp.style.display = 'none';

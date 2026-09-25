@@ -2,17 +2,35 @@
 
 @section('title', 'Archived Records Hub - CHO Admin | ReproCare')
 
+@push('styles')
+<style>
+    .arch-mini .card { border:none !important; border-radius:18px !important; box-shadow:0 2px 12px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 6%, transparent) !important; transition:transform .2s ease, box-shadow .2s ease; }
+    .arch-mini .card:hover { transform:translateY(-3px); box-shadow:0 10px 26px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 10%, transparent) !important; }
+    .arch-mini .card.border-primary { background:var(--color-surface-strong) !important; background-color:var(--color-surface-strong) !important; }
+    .arch-mini .card.border-primary i, .arch-mini .card.border-primary div, .arch-mini .card.border-primary h4 { color:var(--color-on-solid) !important; }
+    .arch-wrap { border:none !important; border-radius:20px !important; box-shadow:0 2px 12px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 6%, transparent) !important; overflow:hidden; }
+    .arch-wrap .card-header { border:none !important; }
+    .arch-tabs .nav-link { border:none !important; border-radius:999px !important; font-weight:800 !important; font-size:0.8rem !important; padding:0.5rem 1.05rem !important; color:var(--color-text) !important; background:var(--color-surface-soft) !important; background-color:var(--color-surface-soft) !important; }
+    .arch-tabs .nav-link.active { background:var(--color-surface-strong) !important; background-color:var(--color-surface-strong) !important; color:var(--color-on-solid) !important; box-shadow:0 6px 16px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 25%, transparent); }
+    .arch-search { background:var(--color-surface-soft) !important; background-color:var(--color-surface-soft) !important; border:none !important; border-radius:999px !important; overflow:hidden; }
+    .arch-search .form-control { background:transparent !important; border:none !important; box-shadow:none !important; }
+    .arch-search .btn { border:none !important; color:var(--color-text) !important; }
+    .arch-wrap table thead th { border:none !important; background:transparent !important; font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--color-text-muted) !important; }
+    .arch-wrap table tbody td { border:none !important; }
+    .arch-wrap table tbody tr:hover { background:var(--color-bg); }
+    .arch-restore-btn { border:none !important; border-radius:999px !important; padding:0.4rem 1rem !important; font-weight:800 !important; font-size:0.78rem !important; background:var(--color-success-soft) !important; background-color:var(--color-success-soft) !important; color:var(--color-success-text) !important; }
+    .arch-restore-btn:hover { background:var(--color-surface-strong) !important; background-color:var(--color-surface-strong) !important; color:var(--color-on-solid) !important; }
+</style>
+@endpush
+
 @section('cho-content')
 
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-archive-fill me-2" style="color:var(--primary-light);"></i>Archived Records & Data Integrity
+            <div class="page-hero-title">Archived Records & Data Integrity
             </div>
-            <p class="page-hero-subtitle">
-                Comprehensive data retention hub. Review and restore soft-deleted records across all system modules.
-            </p>
+            <p class="page-hero-subtitle" style="font-weight:600;">Comprehensive data retention hub. Review and restore soft-deleted records across all system modules.</p>
         </div>
         <div class="d-flex gap-2">
             <span class="badge bg-secondary p-2 d-flex align-items-center">
@@ -37,7 +55,7 @@
 @endif
 
 {{-- Summary Metric Cards --}}
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4 arch-mini">
     <div class="col-6 col-md-4 col-lg-2">
         <a href="?tab=patients" class="text-decoration-none">
             <div class="card fade-in-card p-3 text-center h-100 {{ $activeTab === 'patients' ? 'border-primary shadow-sm' : '' }}" style="border-radius:14px;">
@@ -95,11 +113,11 @@
 </div>
 
 {{-- Main Tabbed Container --}}
-<div class="card fade-in-card shadow-sm" style="border-radius:16px;">
-    <div class="card-header bg-transparent border-bottom p-3">
+<div class="card fade-in-card arch-wrap" style="border-radius:20px;">
+    <div class="card-header bg-transparent p-3" style="border:none;">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             {{-- Navigation Tabs --}}
-            <ul class="nav nav-pills gap-2 flex-wrap" role="tablist">
+            <ul class="nav nav-pills arch-tabs gap-2 flex-wrap" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link {{ $activeTab === 'patients' ? 'active' : '' }}" href="?tab=patients">
                         <i class="bi bi-people me-1"></i> Patients ({{ $stats['patients'] }})
@@ -135,9 +153,9 @@
             {{-- Tab Search Filter --}}
             <form method="GET" class="d-flex gap-2">
                 <input type="hidden" name="tab" value="{{ $activeTab }}">
-                <div class="input-group input-group-sm" style="max-width:260px;">
+                <div class="input-group input-group-sm arch-search" style="max-width:260px;">
                     <input type="text" name="search" class="form-control" placeholder="Search in this tab..." value="{{ $search }}">
-                    <button class="btn btn-outline-secondary" type="submit">
+                    <button class="btn" type="submit">
                         <i class="bi bi-search"></i>
                     </button>
                 </div>
@@ -178,7 +196,7 @@
                                 <td class="text-end px-3">
                                     <form action="{{ route('cho.archived.restore', ['type' => 'patient', 'id' => $patient->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Restore patient record for {{ $patient->name }}?');">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <button type="submit" class="btn btn-sm arch-restore-btn">
                                             <i class="bi bi-arrow-counterclockwise me-1"></i> Restore
                                         </button>
                                     </form>
@@ -196,7 +214,7 @@
                 </table>
             </div>
             @if($patients->hasPages())
-                <div class="p-3 border-top">{{ $patients->links() }}</div>
+                <div class="p-3">{{ $patients->links() }}</div>
             @endif
         @endif
 
@@ -235,7 +253,7 @@
                                 <td class="text-end px-3">
                                     <form action="{{ route('cho.archived.restore', ['type' => 'staff', 'id' => $member->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Restore staff account for {{ $member->name }}?');">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <button type="submit" class="btn btn-sm arch-restore-btn">
                                             <i class="bi bi-arrow-counterclockwise me-1"></i> Restore
                                         </button>
                                     </form>
@@ -253,7 +271,7 @@
                 </table>
             </div>
             @if($staff->hasPages())
-                <div class="p-3 border-top">{{ $staff->links() }}</div>
+                <div class="p-3">{{ $staff->links() }}</div>
             @endif
         @endif
 
@@ -297,7 +315,7 @@
                                 <td class="text-end px-3">
                                     <form action="{{ route('cho.archived.restore', ['type' => 'health-record', 'id' => $record->id]) }}" method="POST" class="d-inline">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <button type="submit" class="btn btn-sm arch-restore-btn">
                                             <i class="bi bi-arrow-counterclockwise me-1"></i> Restore
                                         </button>
                                     </form>
@@ -315,7 +333,7 @@
                 </table>
             </div>
             @if($healthRecords->hasPages())
-                <div class="p-3 border-top">{{ $healthRecords->links() }}</div>
+                <div class="p-3">{{ $healthRecords->links() }}</div>
             @endif
         @endif
 
@@ -358,7 +376,7 @@
                                 <td class="text-end px-3">
                                     <form action="{{ route('cho.archived.restore', ['type' => 'learning-material', 'id' => $mat->id]) }}" method="POST" class="d-inline">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <button type="submit" class="btn btn-sm arch-restore-btn">
                                             <i class="bi bi-arrow-counterclockwise me-1"></i> Restore
                                         </button>
                                     </form>
@@ -376,7 +394,7 @@
                 </table>
             </div>
             @if($learningMaterials->hasPages())
-                <div class="p-3 border-top">{{ $learningMaterials->links() }}</div>
+                <div class="p-3">{{ $learningMaterials->links() }}</div>
             @endif
         @endif
 
@@ -413,7 +431,7 @@
                                 <td class="text-end px-3">
                                     <form action="{{ route('cho.archived.restore', ['type' => 'pregnancy', 'id' => $preg->id]) }}" method="POST" class="d-inline">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <button type="submit" class="btn btn-sm arch-restore-btn">
                                             <i class="bi bi-arrow-counterclockwise me-1"></i> Restore
                                         </button>
                                     </form>
@@ -431,7 +449,7 @@
                 </table>
             </div>
             @if($pregnancies->hasPages())
-                <div class="p-3 border-top">{{ $pregnancies->links() }}</div>
+                <div class="p-3">{{ $pregnancies->links() }}</div>
             @endif
         @endif
 
@@ -463,7 +481,7 @@
                                 <td class="text-end px-3">
                                     <form action="{{ route('cho.archived.restore', ['type' => 'supply-request', 'id' => $sup->id]) }}" method="POST" class="d-inline">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <button type="submit" class="btn btn-sm arch-restore-btn">
                                             <i class="bi bi-arrow-counterclockwise me-1"></i> Restore
                                         </button>
                                     </form>
@@ -481,7 +499,7 @@
                 </table>
             </div>
             @if($supplyRequests->hasPages())
-                <div class="p-3 border-top">{{ $supplyRequests->links() }}</div>
+                <div class="p-3">{{ $supplyRequests->links() }}</div>
             @endif
         @endif
 

@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-person-fill me-2" style="color:var(--primary-light);"></i>Midwife Details
+            <div class="page-hero-title">Midwife Details
             </div>
             <p class="page-hero-subtitle">
                 Staff profile information and assignment details.
@@ -28,7 +27,7 @@
                 <img src="{{ $midwife->profile_image_url }}"
                      alt="{{ $midwife->name }}"
                      class="rounded-circle mb-3 border border-4 border-light"
-                     style="width: 110px; height: 110px; object-fit: cover;"
+                     style="width:110px; height:110px; object-fit:cover;"
                      onerror="this.onerror=null;this.src='{{ $midwife->gender === 'male' ? '/images/avatars/avatar-male.svg' : '/images/avatars/avatar-female.svg' }}';">
                 
                 <h4 class="fw-700 mb-1" style="color:var(--text); font-family:'Plus Jakarta Sans',sans-serif;">{{ $midwife->name }}</h4>
@@ -58,9 +57,7 @@
     <div class="col-lg-8">
         <div class="card fade-in-card">
             <div class="card-header">
-                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    <i class="bi bi-info-circle me-2" style="color:var(--primary-light);"></i>
-                    Personal Profile & System Log
+                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">Personal Profile & System Log
                 </h5>
             </div>
             <div class="card-body">

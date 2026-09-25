@@ -8,7 +8,7 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="page-title"><i class="bi bi-calendar-heart me-2" style="color: #fca5a5;"></i>Log Period</h1>
+            <h1 class="page-title">Log Period</h1>
             <p class="page-subtitle">Record your menstrual period dates</p>
         </div>
         <a href="{{ route('user.menstruation.index') }}" class="btn btn-outline-secondary btn-sm">
@@ -42,19 +42,19 @@
                         @csrf
 
                         <!-- Banner -->
-                        <div style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; display:flex; align-items:center; gap: 0.75rem;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(239,68,68,0.15); display:flex; align-items:center; justify-content:center; flex-shrink: 0;">
-                                <i class="bi bi-droplet-fill" style="color: #f87171; font-size: 1.1rem;"></i>
+                        <div style="background:color-mix(in srgb, var(--color-danger) 8%, transparent); border:1px solid color-mix(in srgb, var(--color-danger) 20%, transparent); border-radius:12px; padding:1rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.75rem;">
+                            <div style="width:40px; height:40px; border-radius:50%; background:color-mix(in srgb, var(--color-danger) 15%, transparent); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="bi bi-droplet-fill" style="color:var(--color-danger-text); font-size:1.1rem;"></i>
                             </div>
                             <div>
-                                <div style="font-size: 0.875rem; font-weight: 600; color: var(--text);">Add Period Record</div>
-                                <div style="font-size: 0.78rem; color: var(--text-muted);">Enter the first and last day of your period</div>
+                                <div style="font-size:0.875rem; font-weight:600; color:var(--text);">Add Period Record</div>
+                                <div style="font-size:0.78rem; color:var(--text-muted);">Enter the first and last day of your period</div>
                             </div>
                         </div>
 
                         <div class="mb-4">
                             <label for="start_date" class="form-label">
-                                <i class="bi bi-calendar me-1" style="color: var(--primary-light);"></i>
+                                <i class="bi bi-calendar me-1" style="color:var(--primary-light);"></i>
                                 First Day of Period
                             </label>
                             <input type="date" class="form-control" id="start_date" name="start_date"
@@ -64,7 +64,7 @@
 
                         <div class="mb-4">
                             <label for="end_date" class="form-label">
-                                <i class="bi bi-calendar-check me-1" style="color: var(--primary-light);"></i>
+                                <i class="bi bi-calendar-check me-1" style="color:var(--primary-light);"></i>
                                 Last Day of Period
                             </label>
                             <input type="date" class="form-control" id="end_date" name="end_date"
@@ -74,10 +74,10 @@
 
                         <!-- Duration preview -->
                         <div id="durationPreview" class="d-none mb-4">
-                            <div style="background: var(--bg-card2); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="bi bi-clock-history" style="color: var(--primary-light);"></i>
-                                <span style="font-size: 0.875rem; color: var(--text-muted);">Duration: </span>
-                                <strong id="durationText" style="color: var(--text);"></strong>
+                            <div style="background:var(--bg-card2); border:none; border-radius:10px; padding:0.75rem 1rem; display:flex; align-items:center; gap:0.5rem;">
+                                <i class="bi bi-clock-history" style="color:var(--primary-light);"></i>
+                                <span style="font-size:0.875rem; color:var(--text-muted);">Duration: </span>
+                                <strong id="durationText" style="color:var(--text);"></strong>
                             </div>
                         </div>
 

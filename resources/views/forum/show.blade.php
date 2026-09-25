@@ -12,164 +12,164 @@
 
 @push('styles')
 <style>
-    .forum-show-wrap { max-width: 860px; margin: 0 auto; }
+    .forum-show-wrap { max-width:860px; margin:0 auto; }
 
     /* Post card */
     .post-detail-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
-        margin-bottom: 1.5rem;
-        transition: background 0.4s ease;
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:20px;
+        overflow:hidden;
+        box-shadow:var(--shadow-sm);
+        margin-bottom:1.5rem;
+        transition:background 0.4s ease;
     }
     .post-detail-header {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
+        padding:1.25rem 1.5rem;
+        border-bottom:1px solid var(--border);
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:1rem;
     }
     .forum-show-avatar {
-        width: 50px; height: 50px;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 2px solid var(--primary);
-        box-shadow: 0 0 0 3px var(--primary-subtle);
+        width:50px; height:50px;
+        object-fit:cover;
+        border-radius:50%;
+        border:2px solid var(--primary);
+        box-shadow:0 0 0 3px var(--primary-subtle);
     }
     .forum-avatar-init-lg {
-        width: 50px; height: 50px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary), var(--accent-violet));
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.2rem; font-weight: 700; color: #fff;
-        box-shadow: 0 2px 10px var(--primary-glow);
-        flex-shrink: 0;
+        width:50px; height:50px;
+        border-radius:50%;
+        background:linear-gradient(135deg, var(--primary), var(--accent-violet));
+        display:flex; align-items:center; justify-content:center;
+        font-size:1.2rem; font-weight:700; color:var(--color-on-solid);
+        box-shadow:0 2px 10px var(--primary-glow);
+        flex-shrink:0;
     }
-    .post-detail-body { padding: 1.5rem; }
+    .post-detail-body { padding:1.5rem; }
     .post-content-text {
-        font-size: 1rem;
-        line-height: 1.8;
-        color: var(--text);
-        white-space: pre-wrap;
-        margin-bottom: 1.25rem;
+        font-size:1rem;
+        line-height:1.8;
+        color:var(--text);
+        white-space:pre-wrap;
+        margin-bottom:1.25rem;
     }
     .forum-show-image {
-        width: 100%;
-        max-height: 420px;
-        object-fit: cover;
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        margin-bottom: 1.25rem;
-        cursor: pointer;
-        transition: transform 0.2s ease, opacity 0.2s ease;
+        width:100%;
+        max-height:420px;
+        object-fit:cover;
+        border-radius:14px;
+        border:1px solid var(--border);
+        margin-bottom:1.25rem;
+        cursor:pointer;
+        transition:transform 0.2s ease, opacity 0.2s ease;
     }
-    .forum-show-image:hover { transform: scale(1.005); opacity: 0.95; }
+    .forum-show-image:hover { transform:scale(1.005); opacity:0.95; }
 
     /* Actions */
     .post-action-bar {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--border);
-        flex-wrap: wrap;
+        display:flex;
+        align-items:center;
+        gap:0.75rem;
+        padding-top:1rem;
+        border-top:1px solid var(--border);
+        flex-wrap:wrap;
     }
     .post-action-btn {
-        display: inline-flex; align-items: center; gap: 0.4rem;
-        border: 1px solid var(--border); background: transparent;
-        color: var(--text-muted); border-radius: 10px;
-        padding: 0.38rem 0.85rem; font-size: 0.85rem; font-weight: 500;
-        cursor: pointer; transition: all 0.18s ease; text-decoration: none;
+        display:inline-flex; align-items:center; gap:0.4rem;
+        border:1px solid var(--border); background:transparent;
+        color:var(--text-muted); border-radius:10px;
+        padding:0.38rem 0.85rem; font-size:0.85rem; font-weight:500;
+        cursor:pointer; transition:all 0.18s ease; text-decoration:none;
     }
     .post-action-btn:hover {
-        background: var(--primary-subtle); border-color: var(--primary); color: var(--primary-light);
+        background:var(--primary-subtle); border-color:var(--primary); color:var(--primary-light);
     }
     .post-action-btn.liked {
-        background: rgba(244,63,142,0.12); border-color: rgba(244,63,142,0.35); color: var(--secondary);
+        background:color-mix(in srgb, var(--color-secondary) 12%, transparent); border-color:color-mix(in srgb, var(--color-secondary) 35%, transparent); color:var(--secondary);
     }
 
     /* Comments */
     .comments-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
-        transition: background 0.4s ease;
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:20px;
+        overflow:hidden;
+        box-shadow:var(--shadow-sm);
+        transition:background 0.4s ease;
     }
     .comments-card-header {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid var(--border);
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-weight: 700;
-        font-size: 0.95rem;
-        color: var(--text);
+        padding:1rem 1.5rem;
+        border-bottom:1px solid var(--border);
+        font-family:'Plus Jakarta Sans', sans-serif;
+        font-weight:700;
+        font-size:0.95rem;
+        color:var(--text);
     }
-    .comment-form-area { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
+    .comment-form-area { padding:1.25rem 1.5rem; border-bottom:1px solid var(--border); }
     .comment-textarea {
-        width: 100%;
-        background: var(--bg-input);
-        border: 1.5px solid var(--border);
-        border-radius: 12px;
-        color: var(--text);
-        font-size: 0.9rem;
-        padding: 0.75rem 0.95rem;
-        resize: none;
-        outline: none;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-        margin-bottom: 0.75rem;
+        width:100%;
+        background:var(--bg-input);
+        border:1.5px solid var(--border);
+        border-radius:12px;
+        color:var(--text);
+        font-size:0.9rem;
+        padding:0.75rem 0.95rem;
+        resize:none;
+        outline:none;
+        transition:border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+        margin-bottom:0.75rem;
     }
     .comment-textarea:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px var(--primary-glow);
+        border-color:var(--primary);
+        box-shadow:0 0 0 3px var(--primary-glow);
     }
-    .comment-textarea::placeholder { color: var(--text-muted); opacity: 0.65; }
+    .comment-textarea::placeholder { color:var(--text-muted); opacity:0.65; }
 
     /* Comment items */
     .comment-item-show {
-        display: flex; gap: 0.9rem;
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid var(--border);
-        transition: background 0.15s ease;
+        display:flex; gap:0.9rem;
+        padding:1rem 1.5rem;
+        border-bottom:1px solid var(--border);
+        transition:background 0.15s ease;
     }
-    .comment-item-show:last-child { border-bottom: none; }
-    .comment-item-show:hover { background: var(--primary-subtle); }
+    .comment-item-show:last-child { border-bottom:none; }
+    .comment-item-show:hover { background:var(--primary-subtle); }
     .comment-avatar-md {
-        width: 36px; height: 36px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary), var(--accent-violet));
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.82rem; font-weight: 700; color: #fff;
-        flex-shrink: 0; margin-top: 2px;
-        box-shadow: 0 2px 6px var(--primary-glow);
+        width:36px; height:36px;
+        border-radius:50%;
+        background:linear-gradient(135deg, var(--primary), var(--accent-violet));
+        display:flex; align-items:center; justify-content:center;
+        font-size:0.82rem; font-weight:700; color:var(--color-on-solid);
+        flex-shrink:0; margin-top:2px;
+        box-shadow:0 2px 6px var(--primary-glow);
     }
     .comment-bubble-show {
-        flex: 1;
+        flex:1;
     }
-    .comment-meta { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.3rem; }
-    .comment-author { font-size: 0.875rem; font-weight: 700; color: var(--text); }
-    .comment-ts { font-size: 0.75rem; color: var(--text-muted); }
-    .comment-body { font-size: 0.875rem; color: var(--text); line-height: 1.6; }
+    .comment-meta { display:flex; align-items:center; gap:0.6rem; margin-bottom:0.3rem; }
+    .comment-author { font-size:0.875rem; font-weight:700; color:var(--text); }
+    .comment-ts { font-size:0.75rem; color:var(--text-muted); }
+    .comment-body { font-size:0.875rem; color:var(--text); line-height:1.6; }
 
     /* Role chip */
     .forum-role-chip {
-        font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 0.6px; padding: 0.12em 0.55em; border-radius: 5px;
+        font-size:0.65rem; font-weight:700; text-transform:uppercase;
+        letter-spacing:0.6px; padding:0.12em 0.55em; border-radius:5px;
     }
-    .chip-midwife-s { background: linear-gradient(135deg, var(--primary), var(--accent-violet)); color: #fff; }
-    .chip-bhw-s     { background: linear-gradient(135deg, #06b6d4, #0ea5e9); color: #fff; }
-    .chip-user-s    { background: var(--primary-subtle); color: var(--primary-light); border: 1px solid var(--border-glass); }
+    .chip-midwife-s { background:linear-gradient(135deg, var(--primary), var(--accent-violet)); color:var(--color-on-solid); }
+    .chip-bhw-s     { background:linear-gradient(135deg, var(--color-info), var(--color-info)); color:var(--color-on-solid); }
+    .chip-user-s    { background:var(--primary-subtle); color:var(--primary-light); border:1px solid var(--border-glass); }
 
     /* Sidebar */
-    .forum-sidebar-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; margin-bottom: 1.25rem; transition: background 0.4s ease; }
-    .forum-sidebar-card-header { padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--text); }
-    .forum-sidebar-card-header i { color: var(--primary-light); }
-    .guideline-item { display: flex; align-items: flex-start; gap: 0.65rem; padding: 0.55rem 1.2rem; font-size: 0.875rem; color: var(--text-muted); border-bottom: 1px solid var(--border); line-height: 1.4; }
-    .guideline-item:last-child { border-bottom: none; }
-    .guideline-item i { color: var(--success); flex-shrink: 0; margin-top: 2px; }
+    .forum-sidebar-card { background:var(--bg-card); border:1px solid var(--border); border-radius:18px; overflow:hidden; margin-bottom:1.25rem; transition:background 0.4s ease; }
+    .forum-sidebar-card-header { padding:0.9rem 1.2rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:0.6rem; font-family:'Plus Jakarta Sans', sans-serif; font-weight:700; font-size:0.9rem; color:var(--text); }
+    .forum-sidebar-card-header i { color:var(--primary-light); }
+    .guideline-item { display:flex; align-items:flex-start; gap:0.65rem; padding:0.55rem 1.2rem; font-size:0.875rem; color:var(--text-muted); border-bottom:1px solid var(--border); line-height:1.4; }
+    .guideline-item:last-child { border-bottom:none; }
+    .guideline-item i { color:var(--success); flex-shrink:0; margin-top:2px; }
 </style>
 @endpush
 

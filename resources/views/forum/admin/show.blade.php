@@ -7,7 +7,7 @@
     <div class="page-hero fade-in-card">
         <div class="workspace-toolbar" style="position:relative;z-index:1;">
             <div>
-                <div class="page-hero-title"><i class="bi bi-shield-lock-fill me-2"></i>Forum Post Administration</div>
+                <div class="page-hero-title">Forum Post Administration</div>
                 <p class="page-hero-subtitle">Review the post content, engagement, and comment activity from the moderation view.</p>
             </div>
             <div class="workspace-toolbar-actions">
@@ -45,7 +45,7 @@
         <div class="workspace-panel-header">
             <div class="workspace-toolbar">
                 <div>
-                    <h2 class="workspace-panel-title"><i class="bi bi-file-earmark-text-fill"></i>Post Details</h2>
+                    <h2 class="workspace-panel-title">Post Details</h2>
                     <p class="workspace-panel-subtitle">Published {{ $post->created_at->format('M j, Y g:i A') }}</p>
                 </div>
                 <div class="workspace-toolbar-actions">
@@ -83,7 +83,7 @@
 
     <div class="workspace-panel fade-in-card">
         <div class="workspace-panel-header">
-            <h2 class="workspace-panel-title"><i class="bi bi-chat-left-dots-fill"></i>Comments</h2>
+            <h2 class="workspace-panel-title">Comments</h2>
             <p class="workspace-panel-subtitle">{{ $post->comments->count() }} replies on this thread.</p>
         </div>
         <div class="workspace-panel-body">

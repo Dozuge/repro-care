@@ -6,12 +6,12 @@
 <style>
     input[type=number]::-webkit-outer-spin-button,
     input[type=number]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
+        -webkit-appearance:none;
+        margin:0;
     }
     input[type=number] {
-        -moz-appearance: textfield;
-        appearance: textfield;
+        -moz-appearance:textfield;
+        appearance:textfield;
     }
 </style>
 @endpush
@@ -19,7 +19,7 @@
 @section('midwife-content')
 <div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-pencil-square"></i> Edit Health Record</h1>
+        <h1>Edit Health Record</h1>
         <div class="d-flex gap-2">
             <a href="{{ route('midwife.health-records.show', $healthRecord->id) }}" class="btn btn-outline-info">
                 <i class="bi bi-eye"></i> View Record
@@ -39,17 +39,18 @@
 
     <div class="card shadow">
         <div class="card-header bg-warning text-white">
-            <h5 class="mb-0"><i class="bi bi-clipboard-pulse-fill"></i> Edit Patient Health Record</h5>
+            <h5 class="mb-0">Edit Patient Health Record</h5>
         </div>
         <div class="card-body">
-            <form action="{{ route('midwife.health-records.update', $healthRecord->id) }}" method="POST">
+            {{-- rc-adaptive-form: ≥1024px multi-column (Layout A) · <1024px strictly stacked (Layout B) --}}
+            <form action="{{ route('midwife.health-records.update', $healthRecord->id) }}" method="POST" class="rc-adaptive-form">
                 @csrf
                 @method('PUT')
                 
                 <!-- Patient Information -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="text-muted mb-3"><i class="bi bi-person"></i> Patient Information</h6>
+                        <h6 class="text-muted mb-3">Patient Information</h6>
                     </div>
                     
                     <div class="col-12">
@@ -75,7 +76,7 @@
                 <!-- Vital Signs -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="text-muted mb-3"><i class="bi bi-heart-pulse"></i> Vital Signs</h6>
+                        <h6 class="text-muted mb-3">Vital Signs</h6>
                     </div>
                     
                     <div class="col-md-6 mb-3">
@@ -146,7 +147,7 @@
                 <!-- Clinical Assessment -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="text-muted mb-3"><i class="bi bi-clipboard2-pulse"></i> Clinical Assessment</h6>
+                        <h6 class="text-muted mb-3">Clinical Assessment</h6>
                     </div>
                     
                     <div class="col-md-6 mb-3">
@@ -211,7 +212,7 @@
                 <!-- Pregnancy Information -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="text-muted mb-3"><i class="bi bi-heart"></i> Pregnancy Information (if applicable)</h6>
+                        <h6 class="text-muted mb-3">Pregnancy Information (if applicable)</h6>
                     </div>
                     
                     <div class="col-md-6 mb-3">
@@ -232,7 +233,7 @@
 
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="text-muted mb-3"><i class="bi bi-check2-square"></i> Lifestyle Factors</h6>
+                        <h6 class="text-muted mb-3">Lifestyle Factors</h6>
                     </div>
 
                     <div class="col-md-4 mb-2">
@@ -269,7 +270,7 @@
                 <!-- Risk Assessment (Automated) -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="text-muted mb-3"><i class="bi bi-exclamation-triangle"></i> Risk Assessment</h6>
+                        <h6 class="text-muted mb-3">Risk Assessment</h6>
                     </div>
                     
                     <div class="col-md-12 mb-3">
@@ -283,7 +284,7 @@
                 <!-- Additional Information -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="text-muted mb-3"><i class="bi bi-clipboard-data"></i> Additional Information</h6>
+                        <h6 class="text-muted mb-3">Additional Information</h6>
                     </div>
                     
                     <div class="col-12 mb-3">
@@ -317,7 +318,7 @@
                 </div>
 
                 <!-- Form Actions -->
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between rc-form-actions">
                     <div>
                         <a href="{{ route('midwife.health-records.show', $healthRecord->id) }}" class="btn btn-outline-secondary">
                             <i class="bi bi-x-circle"></i> Cancel

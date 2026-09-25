@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-box-seam-fill me-2" style="color:var(--primary-light);"></i>Supply Requests
+            <div class="page-hero-title">Supply Requests
             </div>
             <p class="page-hero-subtitle">
                 Track and submit requests to the City Health Office (CHO) for clinic supplies.
@@ -90,7 +89,7 @@
             @endif
         @else
             <div class="text-center py-5">
-                <i class="bi bi-box-seam" style="font-size: 3rem; color: var(--text-muted);"></i>
+                <i class="bi bi-box-seam" style="font-size:3rem; color:var(--text-muted);"></i>
                 <h5 class="mt-3">No Supply Requests Found</h5>
                 <p class="text-muted text-xs">Submit supply replenishment requests to keep inventory stocked.</p>
             </div>

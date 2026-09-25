@@ -71,19 +71,13 @@
     <div class="col-12">
         <div class="card fade-in-card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-shield-exclamation me-2"></i>Account Actions</h5>
+                <h5 class="mb-0">Account Actions</h5>
             </div>
             <div class="card-body">
                 @if(($bhw->status ?? 'approved') === 'approved')
-                    <div class="alert alert-warning mb-0">Active BHW accounts cannot be deleted. Mark this BHW inactive first.</div>
+                    <div class="alert alert-warning mb-0">Active BHW accounts stay on the roster. Mark this BHW inactive first, then archive.</div>
                 @else
-                    <form action="{{ route('bhw-president.bhws.delete', $bhw->id) }}" method="POST" onsubmit="return confirm('Delete {{ $bhw->name }} permanently? This cannot be undone.');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger">
-                            <i class="bi bi-trash me-1"></i> Delete BHW
-                        </button>
-                    </form>
+                    <x-archive-form :action="route('bhw-president.bhws.delete', $bhw->id)" label="Archive BHW" title="Archive BHW (retained for audit)" btnClass="btn btn-outline-warning" icon="bi bi-archive" :confirmText="'Archive ' . $bhw->name . '? Sessions are revoked and the account is retained for audit.'" />
                 @endif
             </div>
         </div>
@@ -92,7 +86,7 @@
     <div class="col-12">
         <div class="card fade-in-card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-geo-alt-fill me-2"></i>Assigned Work Purok</h5>
+                <h5 class="mb-0">Assigned Work Purok</h5>
             </div>
             <div class="card-body">
                 <form action="{{ route('bhw-president.bhws.assign-purok', $bhw->id) }}" method="POST" class="row g-3 align-items-end">
@@ -127,7 +121,7 @@
     <div class="col-lg-6">
         <div class="card fade-in-card h-100">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-file-medical me-2"></i>Health Records</h5>
+                <h5 class="mb-0">Health Records</h5>
             </div>
             <div class="card-body p-0">
                 @if($healthRecords->count() > 0)
@@ -169,7 +163,7 @@
     <div class="col-lg-6">
         <div class="card fade-in-card h-100">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-calendar-heart me-2"></i>Checkups Scheduled</h5>
+                <h5 class="mb-0">Checkups Scheduled</h5>
             </div>
             <div class="card-body p-0">
                 @if($checkups->count() > 0)

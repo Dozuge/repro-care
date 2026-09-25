@@ -23,22 +23,22 @@
 @push('styles')
 <style>
     .material-hero {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        overflow: hidden;
-        margin-bottom: 1.5rem;
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:20px;
+        overflow:hidden;
+        margin-bottom:1.5rem;
     }
-    .material-banner { width: 100%; height: 240px; object-fit: cover; }
-    .material-body { padding: 2rem; }
-    .material-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--text); margin-bottom: 1rem; line-height: 1.3; }
-    .material-prose { font-size: 0.95rem; line-height: 1.8; color: var(--text); white-space: pre-wrap; }
-    .video-embed-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 16px; margin-bottom: 1.5rem; background: #000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-    .video-embed-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-    .html5-video-player { width: 100%; max-height: 520px; border-radius: 16px; background: #000; margin-bottom: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-    .category-pill { background: var(--primary-subtle); color: var(--primary-light); padding: 0.25em 0.85em; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
-    .meta-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; font-size: 0.8rem; color: var(--text-muted); }
-    .consultation-badge { background: linear-gradient(135deg, #10b981, #059669); color: #fff; padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .material-banner { width:100%; height:240px; object-fit:cover; }
+    .material-body { padding:2rem; }
+    .material-title { font-family:'Plus Jakarta Sans', sans-serif; font-size:1.6rem; font-weight:800; color:var(--text); margin-bottom:1rem; line-height:1.3; }
+    .material-prose { font-size:0.95rem; line-height:1.8; color:var(--text); white-space:pre-wrap; }
+    .video-embed-container { position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:16px; margin-bottom:1.5rem; background:var(--color-surface-strong); box-shadow:0 10px 25px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 30%, transparent); }
+    .video-embed-container iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
+    .html5-video-player { width:100%; max-height:520px; border-radius:16px; background:var(--color-surface-strong); margin-bottom:1.5rem; box-shadow:0 10px 25px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 30%, transparent); }
+    .category-pill { background:var(--primary-subtle); color:var(--primary-light); padding:0.25em 0.85em; border-radius:20px; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; }
+    .meta-row { display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:1.25rem; font-size:0.8rem; color:var(--text-muted); }
+    .consultation-badge { background:linear-gradient(135deg, var(--color-success), var(--color-success-text)); color:var(--color-on-solid); padding:0.35rem 0.85rem; border-radius:20px; font-size:0.75rem; font-weight:700; }
 </style>
 @endpush
 
@@ -78,19 +78,19 @@
             <span class="category-pill">{{ ucfirst(str_replace('-', ' ', $material->category ?? 'General')) }}</span>
             @php
                 $typeConfig = [
-                    'article' => ['bg' => '#6366f1', 'icon' => 'bi-file-text', 'label' => 'Article'],
-                    'link'    => ['bg' => '#10b981', 'icon' => 'bi-link-45deg', 'label' => 'Link'],
-                    'file'    => ['bg' => '#f59e0b', 'icon' => 'bi-file-earmark', 'label' => 'File'],
-                    'video'   => ['bg' => '#ef4444', 'icon' => 'bi-play-circle-fill', 'label' => 'Playable Video'],
-                    'quiz'    => ['bg' => '#8b5cf6', 'icon' => 'bi-patch-question', 'label' => 'Quiz'],
+                    'article' => ['bg' => 'var(--color-purple-text)', 'icon' => 'bi-file-text', 'label' => 'Article'],
+                    'link'    => ['bg' => 'var(--color-success)', 'icon' => 'bi-link-45deg', 'label' => 'Link'],
+                    'file'    => ['bg' => 'var(--color-warning)', 'icon' => 'bi-file-earmark', 'label' => 'File'],
+                    'video'   => ['bg' => 'var(--color-teal-text)', 'icon' => 'bi-play-circle-fill', 'label' => 'Playable Video'],
+                    'quiz'    => ['bg' => 'var(--color-purple-text)', 'icon' => 'bi-patch-question', 'label' => 'Quiz'],
                 ];
                 $tc = $typeConfig[$material->material_type] ?? $typeConfig['article'];
             @endphp
-            <span style="background:{{ $tc['bg'] }}20;color:{{ $tc['bg'] }};padding:0.25em 0.85em;border-radius:20px;font-size:0.75rem;font-weight:700;">
+            <span style="background:color-mix(in srgb, {{ $tc['bg'] }} 12%, var(--color-surface));color:{{ $tc['bg'] }};padding:0.25em 0.85em;border-radius:20px;font-size:0.75rem;font-weight:700;">
                 <i class="bi {{ $tc['icon'] }} me-1"></i>{{ $tc['label'] }}
             </span>
             @if($material->week_number)
-                <span style="background:rgba(236,72,153,0.12);color:#f472b6;padding:0.25em 0.85em;border-radius:20px;font-size:0.75rem;font-weight:700;">
+                <span style="background:color-mix(in srgb, var(--color-secondary) 12%, transparent);color:var(--color-secondary-text);padding:0.25em 0.85em;border-radius:20px;font-size:0.75rem;font-weight:700;">
                     <i class="bi bi-calendar-heart me-1"></i>Week {{ $material->week_number }}
                 </span>
             @endif
@@ -109,7 +109,12 @@
                         Your browser does not support the video tag.
                     </video>
                 </div>
-            {{-- Case B: YouTube / Vimeo Embedded Video Player --}}
+            {{-- Case B: YouTube embedded player (privacy-enhanced nocookie) --}}
+            @elseif($material->isYoutubeVideo())
+                <div class="mb-4">
+                    @include('learning.partials.youtube-player', ['id' => $material->youtube_id, 'title' => $material->title])
+                </div>
+            {{-- Case C: Vimeo / other embedded streams --}}
             @elseif($material->embed_url)
                 <div class="video-embed-container mb-4">
                     <iframe src="{{ $material->embed_url }}"
@@ -145,7 +150,7 @@
 
         {{-- ── 3. CONTENT & CLINICAL TEACHING NOTES ──────────────── --}}
         <div class="card p-3 bg-light border-0 mb-4" style="border-radius:14px;">
-            <h6 class="fw-700 text-xs text-muted text-uppercase mb-2"><i class="bi bi-card-text me-1"></i>Educational Content & Discussion Points</h6>
+            <h6 class="fw-700 text-xs text-muted text-uppercase mb-2">Educational Content & Discussion Points</h6>
             <div class="material-prose">{{ $material->content }}</div>
         </div>
 

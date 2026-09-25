@@ -7,31 +7,31 @@
 @push('styles')
 <style>
     .report-actions-col {
-        width: 160px;
-        min-width: 160px;
+        width:160px;
+        min-width:160px;
     }
     .report-table-actions {
-        display: inline-flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 0.55rem;
-        flex-wrap: nowrap;
+        display:inline-flex;
+        align-items:center;
+        justify-content:flex-end;
+        gap:0.55rem;
+        flex-wrap:nowrap;
     }
     .report-table-actions form {
-        margin: 0;
+        margin:0;
     }
     .report-action-btn {
-        width: 38px;
-        height: 38px;
-        padding: 0;
-        border-radius: 12px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        width:38px;
+        height:38px;
+        padding:0;
+        border-radius:12px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
     }
     @media (max-width: 768px) {
         .report-actions-col {
-            min-width: 146px;
+            min-width:146px;
         }
     }
 </style>
@@ -47,7 +47,7 @@
     <div class="page-hero fade-in-card">
         <div class="workspace-toolbar" style="position:relative;z-index:1;">
             <div>
-                <div class="page-hero-title"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Monthly Reports</div>
+                <div class="page-hero-title">Monthly Reports</div>
                 <p class="page-hero-subtitle">Review submissions from BHWs, add notes, and forward approved reports to the midwife.</p>
             </div>
         </div>
@@ -82,7 +82,7 @@
 
     <div class="workspace-panel fade-in-card">
         <div class="workspace-panel-header">
-            <h2 class="workspace-panel-title"><i class="bi bi-funnel-fill"></i>Filter Queue</h2>
+            <h2 class="workspace-panel-title">Filter Queue</h2>
             <p class="workspace-panel-subtitle">Focus on health reports or pregnancy reports only.</p>
         </div>
         <div class="workspace-panel-body">
@@ -96,7 +96,7 @@
                     </select>
                 </div>
                 <div class="span-8 workspace-filter-actions">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i>Apply Filter</button>
+                    <button type="submit" class="btn btn-filter"><i class="bi bi-funnel me-1"></i>Apply Filter</button>
                     <a href="{{ route('bhw-president.reports.index') }}" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-1"></i>Clear</a>
                 </div>
             </form>
@@ -110,7 +110,7 @@
         ] as $section)
             <div class="workspace-panel fade-in-card">
                 <div class="workspace-panel-header">
-                    <h2 class="workspace-panel-title"><i class="bi {{ $section['icon'] }}"></i>{{ $section['title'] }}</h2>
+                    <h2 class="workspace-panel-title">{{ $section['title'] }}</h2>
                 </div>
                 <div class="workspace-panel-body pt-3">
                     @if($section['items']->count() > 0)
@@ -165,8 +165,8 @@
 
     <div class="workspace-panel fade-in-card">
         <div class="workspace-panel-header">
-            <h2 class="workspace-panel-title"><i class="bi bi-table"></i>All Reports</h2>
-            <p class="workspace-panel-subtitle">Full list with quick access to review and delete actions.</p>
+            <h2 class="workspace-panel-title">All Reports</h2>
+            <p class="workspace-panel-subtitle">Full list with quick access to review and archive actions.</p>
         </div>
         <div class="workspace-panel-body pt-3">
             @if($reports->count() > 0)

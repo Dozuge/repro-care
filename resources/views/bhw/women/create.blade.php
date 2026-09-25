@@ -2,15 +2,112 @@
 
 @section('title', 'Create Woman - BHW Portal | ReproCare')
 
+@push('styles')
+<style>
+    /* Patient-type selector: unmistakable selected state (beats portal-theme !important whites) */
+    .patient-type-btn {
+        flex:1 1 220px;
+        text-align:left;
+        position:relative;
+        transition:all 0.2s ease;
+    }
+    .patient-type-btn .type-check {
+        position:absolute;
+        top:8px;
+        right:10px;
+        font-size:1.1rem;
+        display:none;
+    }
+    #patient_registered:checked + label.patient-type-btn {
+        background:linear-gradient(135deg, var(--color-secondary), var(--color-secondary-text)) !important;
+        background-color:var(--color-secondary) !important;
+        border-color:var(--color-secondary-text) !important;
+        color:var(--color-on-solid) !important;
+        box-shadow:0 6px 18px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 35%, transparent) !important;
+    }
+    #patient_unregistered:checked + label.patient-type-btn {
+        background:linear-gradient(135deg, var(--color-warning), var(--color-warning-text)) !important;
+        background-color:var(--color-warning) !important;
+        border-color:var(--color-warning-text) !important;
+        color:var(--color-on-solid) !important;
+        box-shadow:0 6px 18px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 35%, transparent) !important;
+    }
+    #patient_registered:checked + label.patient-type-btn small,
+    #patient_unregistered:checked + label.patient-type-btn small {
+        color:color-mix(in srgb, var(--color-on-solid) 90%, transparent) !important;
+    }
+    #patient_registered:checked + label.patient-type-btn .type-check,
+    #patient_unregistered:checked + label.patient-type-btn .type-check {
+        display:inline-block;
+    }
+    #patient_registered:checked + label.patient-type-btn i.bi-person-badge,
+    #patient_unregistered:checked + label.patient-type-btn i.bi-person-plus {
+        color:var(--color-on-solid) !important;
+    }
+    /* Pregnancy toggle: self-contained switch (immune to theme form-check overrides) */
+    .pregnancy-toggle {
+        display:inline-flex;
+        align-items:center;
+        gap:0.75rem;
+        cursor:pointer;
+        user-select:none;
+        font-weight:600;
+        font-size:0.95rem;
+        color:var(--text, var(--color-text));
+        padding:0.25rem 0;
+    }
+    .pregnancy-toggle input {
+        position:absolute;
+        opacity:0;
+        width:1px;
+        height:1px;
+        overflow:hidden;
+        clip:rect(0 0 0 0);
+    }
+    .pregnancy-track {
+        width:48px;
+        height:26px;
+        border-radius:9999px;
+        background:var(--color-border);
+        border:1.5px solid var(--color-border);
+        position:relative;
+        flex-shrink:0;
+        transition:background 0.2s ease, border-color 0.2s ease;
+    }
+    .pregnancy-thumb {
+        position:absolute;
+        top:50%;
+        left:3px;
+        transform:translateY(-50%);
+        width:18px;
+        height:18px;
+        border-radius:50%;
+        background:var(--color-surface);
+        box-shadow:0 1px 4px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 25%, transparent);
+        transition:left 0.2s ease, background 0.2s ease;
+    }
+    .pregnancy-toggle input:checked + .pregnancy-track {
+        background:linear-gradient(135deg, var(--color-secondary), var(--color-secondary-text));
+        border-color:var(--color-secondary-text);
+    }
+    .pregnancy-toggle input:checked + .pregnancy-track .pregnancy-thumb {
+        left:23px;
+    }
+    .pregnancy-toggle input:focus-visible + .pregnancy-track {
+        outline:3px solid color-mix(in srgb, var(--color-secondary) 35%, transparent);
+        outline-offset:2px;
+    }
+</style>
+@endpush
+
 @section('bhw-content')
 <div class="py-4">
     <div class="page-hero fade-in-card mb-4">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3" style="position:relative;z-index:1;">
             <div>
-                <div class="page-hero-title">
-                    <i class="bi bi-person-plus-fill me-2"></i>Add Woman
+                <div class="page-hero-title">Add Woman
                 </div>
-                <p class="page-hero-subtitle">Create a registered account or save an unregistered woman record for follow-up care.</p>
+                <p class="page-hero-subtitle">Create an <strong>Enrolled Account</strong> (Portal-Active · Authenticated Patient with app login) or save an <strong>Unlinked Profile</strong> (BHW-Managed · Field Record Only, no login).</p>
             </div>
             <a href="{{ route('bhw.patients') }}" class="btn btn-light">
                 <i class="bi bi-arrow-left me-1"></i> Back to Women
@@ -26,22 +123,28 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('bhw.patients.store') }}" class="fade-in-card">
+    <form method="POST" action="{{ route('bhw.patients.store') }}" class="fade-in-card rc-adaptive-form">
         @csrf
 
         <div class="card mb-4">
             <div class="card-body p-4">
                 <div class="d-flex flex-wrap gap-2 mb-4">
-                    <input type="radio" class="btn-check" name="patient_type" id="patient_registered" value="registered" {{ old('patient_type', 'registered') === 'registered' ? 'checked' : '' }} onchange="togglePatientType()">
-                    <label class="btn btn-outline-primary" for="patient_registered">
-                        <i class="bi bi-person-badge me-1"></i> Registered
+                    <input type="radio" class="btn-check" name="patient_type" id="patient_registered" value="registered" {{ old('patient_type', 'registered') === 'registered' ? 'checked' : '' }} onchange="togglePatientType()" autocomplete="off">
+                    <label class="btn btn-outline-primary patient-type-btn" for="patient_registered">
+                        <i class="bi bi-check-circle-fill type-check"></i>
+                        <i class="bi bi-person-badge me-1"></i> Enrolled Account
+                        <small class="d-block text-muted" style="font-size:0.7rem;">Portal-Active · Direct Access · gets login</small>
                     </label>
 
-                    <input type="radio" class="btn-check" name="patient_type" id="patient_unregistered" value="unregistered" {{ old('patient_type') === 'unregistered' ? 'checked' : '' }} onchange="togglePatientType()">
-                    <label class="btn btn-outline-primary" for="patient_unregistered">
-                        <i class="bi bi-person-plus me-1"></i> Unregistered
+                    <input type="radio" class="btn-check" name="patient_type" id="patient_unregistered" value="unregistered" {{ old('patient_type') === 'unregistered' ? 'checked' : '' }} onchange="togglePatientType()" autocomplete="off">
+                    <label class="btn btn-outline-primary patient-type-btn" for="patient_unregistered">
+                        <i class="bi bi-check-circle-fill type-check"></i>
+                        <i class="bi bi-person-plus me-1"></i> Unlinked Profile
+                        <small class="d-block text-muted" style="font-size:0.7rem;">BHW-Managed · Field Record Only · no login</small>
                     </label>
                 </div>
+
+
 
                 <div class="row g-3">
                     <div class="col-md-4">
@@ -65,24 +168,29 @@
                         @error('date_of_birth')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Contact Number</label>
-                        <input type="text" name="contact_number" class="form-control @error('contact_number') is-invalid @enderror" value="{{ old('contact_number') }}">
+                        <label class="form-label">Contact Number *</label>
+                        <input type="text" name="contact_number" class="form-control @error('contact_number') is-invalid @enderror" value="{{ old('contact_number') }}" required>
                         @error('contact_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Barangay</label>
-                        <input type="text" class="form-control" value="Barangay Burgos Padlan, San Carlos City, Pangasinan" readonly>
-                        <input type="hidden" name="barangay" value="Barangay Burgos Padlan, San Carlos City, Pangasinan">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Purok</label>
-                        <select name="purok_id" class="form-select @error('purok_id') is-invalid @enderror">
-                            <option value="">Select purok</option>
-                            @foreach($puroks as $purok)
-                                <option value="{{ $purok->id }}" {{ old('purok_id') == $purok->id ? 'selected' : '' }}>{{ $purok->name }}</option>
+                        <label class="form-label">Barangay *</label>
+                        <select name="barangay" class="form-select @error('barangay') is-invalid @enderror" required>
+                            <option value="">Select barangay</option>
+                            @foreach(($barangays ?? collect()) as $brgy)
+                                <option value="{{ $brgy->name }}" {{ old('barangay') === $brgy->name ? 'selected' : '' }}>{{ $brgy->name }}</option>
                             @endforeach
                         </select>
-                        @error('purok_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        @error('barangay')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Sitio / Street / Purok</label>
+                        <input type="text" name="purok" class="form-control @error('purok') is-invalid @enderror" value="{{ old('purok') }}" placeholder="e.g. Sitio Malinis, Purok 3">
+                        @error('purok')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">House No. / Street Address</label>
+                        <input type="text" name="address" class="form-control @error('address') is-invalid @enderror" value="{{ old('address') }}" placeholder="e.g. 123 Sampaguita St">
+                        @error('address')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                 </div>
             </div>
@@ -90,12 +198,15 @@
 
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-heart-pulse-fill me-2 text-danger"></i>Pregnancy Details</h5>
+                <h5 class="mb-0">Pregnancy Details</h5>
             </div>
             <div class="card-body p-4">
-                <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" id="is_pregnant" name="is_pregnant" {{ old('is_pregnant') ? 'checked' : '' }} onchange="togglePregnancyFields()">
-                    <label class="form-check-label fw-semibold" for="is_pregnant">This woman is currently pregnant</label>
+                <div class="mb-3">
+                    <label class="pregnancy-toggle" for="is_pregnant">
+                        <input type="checkbox" id="is_pregnant" name="is_pregnant" {{ old('is_pregnant') ? 'checked' : '' }} onchange="togglePregnancyFields()">
+                        <span class="pregnancy-track" aria-hidden="true"><span class="pregnancy-thumb"></span></span>
+                        <span>This woman is currently pregnant</span>
+                    </label>
                 </div>
 
                 <div id="pregnancy-fields" class="d-none">
@@ -137,7 +248,7 @@
 
         <div id="registered-fields" class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-shield-lock-fill me-2 text-primary"></i>Account Access</h5>
+                <h5 class="mb-0">Portal Account Credentials <small class="text-muted" style="font-size:0.75rem;">(Enrolled Account · Portal-Active)</small></h5>
             </div>
             <div class="card-body p-4">
                 <div class="row g-3">
@@ -156,24 +267,49 @@
                         <input type="password" name="password_confirmation" class="form-control">
                     </div>
                 </div>
-                <div class="alert alert-info mt-3 mb-0">
-                    Registered women will wait for approval before they can sign in.
+            </div>
+        </div>
+
+        <div id="emergency-fields" class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Primary Emergency Contact</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Contact Name *</label>
+                        <input type="text" name="emergency_name_1" class="form-control @error('emergency_name_1') is-invalid @enderror" value="{{ old('emergency_name_1') }}">
+                        @error('emergency_name_1')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="emergency_relationship_1_select">Relationship *</label>
+                        <select id="emergency_relationship_1_select" class="form-select @error('emergency_relationship_1') is-invalid @enderror" onchange="syncEmergencyRelationship()">
+                            <option value="">Select relationship</option>
+                            @foreach(['Husband', 'Wife', 'Partner', 'Mother', 'Father', 'Sister', 'Brother', 'Daughter', 'Son', 'Guardian', 'Friend', 'Neighbor'] as $rel)
+                                <option value="{{ $rel }}">{{ $rel }}</option>
+                            @endforeach
+                            <option value="__other">Others — type below</option>
+                        </select>
+                        <input type="text" name="emergency_relationship_1" id="emergency_relationship_1" class="form-control mt-2 d-none @error('emergency_relationship_1') is-invalid @enderror" value="{{ old('emergency_relationship_1') }}" placeholder="Type the relationship">
+                        @error('emergency_relationship_1')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Contact Number *</label>
+                        <input type="text" name="emergency_contact_number_1" class="form-control @error('emergency_contact_number_1') is-invalid @enderror" value="{{ old('emergency_contact_number_1') }}">
+                        @error('emergency_contact_number_1')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="unregistered-fields" class="card mb-4 d-none">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-journal-medical me-2 text-warning"></i>Visit Information</h5>
+                <h5 class="mb-0">Field Visit Information <small class="text-muted" style="font-size:0.75rem;">(Unlinked Profile · BHW-Managed)</small></h5>
             </div>
             <div class="card-body p-4">
                 <label class="form-label">Reason for Visit *</label>
                 <textarea name="reason_for_visit" class="form-control @error('reason_for_visit') is-invalid @enderror" rows="3" placeholder="Describe why the patient was recorded as a walk-in">{{ old('reason_for_visit') }}</textarea>
                 @error('reason_for_visit')<div class="invalid-feedback">{{ $message }}</div>@enderror
-
-                <div class="alert alert-warning mt-3 mb-0">
-                    Unregistered women can still be tracked here and converted into full accounts later.
-                </div>
             </div>
         </div>
 
@@ -190,19 +326,61 @@
 function togglePatientType() {
     const registered = document.getElementById('patient_registered').checked;
     const registeredFields = document.getElementById('registered-fields');
+    const emergencyFields = document.getElementById('emergency-fields');
     const unregisteredFields = document.getElementById('unregistered-fields');
     const emailInput = document.querySelector('input[name="email"]');
     const passwordInput = document.querySelector('input[name="password"]');
     const passwordConfirmInput = document.querySelector('input[name="password_confirmation"]');
     const reasonInput = document.querySelector('textarea[name="reason_for_visit"]');
+    const emergencyInputs = document.querySelectorAll('#emergency-fields input');
 
     registeredFields.classList.toggle('d-none', !registered);
+    if (emergencyFields) emergencyFields.classList.toggle('d-none', !registered);
     unregisteredFields.classList.toggle('d-none', registered);
 
     emailInput.required = registered;
     passwordInput.required = registered;
     passwordConfirmInput.required = registered;
+    emergencyInputs.forEach(function (input) { input.required = registered; });
     reasonInput.required = !registered;
+}
+
+var EMERGENCY_RELATIONSHIP_PRESETS = ['Husband', 'Wife', 'Partner', 'Mother', 'Father', 'Sister', 'Brother', 'Daughter', 'Son', 'Guardian', 'Friend', 'Neighbor'];
+
+function syncEmergencyRelationship() {
+    var select = document.getElementById('emergency_relationship_1_select');
+    var input = document.getElementById('emergency_relationship_1');
+    if (!select || !input) return;
+
+    if (select.value === '__other') {
+        // Others: reveal the typing box
+        input.classList.remove('d-none');
+        input.focus();
+    } else if (select.value !== '') {
+        // Preset picked: store it and hide the typing box
+        input.value = select.value;
+        input.classList.add('d-none');
+    } else {
+        input.classList.remove('d-none');
+    }
+}
+
+function initEmergencyRelationship() {
+    var select = document.getElementById('emergency_relationship_1_select');
+    var input = document.getElementById('emergency_relationship_1');
+    if (!select || !input) return;
+
+    var current = (input.value || '').trim();
+    if (EMERGENCY_RELATIONSHIP_PRESETS.indexOf(current) !== -1) {
+        select.value = current;
+        input.classList.add('d-none');
+    } else if (current !== '') {
+        select.value = '__other';
+        input.classList.remove('d-none');
+    } else {
+        select.value = '';
+        input.classList.add('d-none');
+    }
 }
 
 function togglePregnancyFields() {
@@ -231,6 +409,7 @@ function calculateEDD() {
 document.addEventListener('DOMContentLoaded', function () {
     togglePatientType();
     togglePregnancyFields();
+    initEmergencyRelationship();
 
     const lmpInput = document.querySelector('input[name="lmp"]');
     if (lmpInput) {

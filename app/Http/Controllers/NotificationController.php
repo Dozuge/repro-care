@@ -33,7 +33,8 @@ class NotificationController extends Controller
             return response()->json(['notifications' => []]);
         }
         $notifications = $user->notifications()
-            ->latest()
+            ->with('patientAlert:id,is_read,read_at,resolved_at')
+            ->orderByRaw('COALESCE(last_reminded_at, created_at) DESC')
             ->take(5)
             ->get();
 
@@ -61,7 +62,7 @@ class NotificationController extends Controller
         if (!$user) {
             return response()->json(['success' => false], 401);
         }
-        $user->notifications()->unread()->update(['is_read' => true]);
+        $user->notifications()->unread()->update(['is_read' => true, 'read_at' => now()]);
 
         return response()->json(['success' => true]);
     }
@@ -75,6 +76,7 @@ class NotificationController extends Controller
         }
         $notification = Notification::where('user_id', $user->id)->findOrFail($id);
 
+        $notification->markAsRead();
         $notification->delete();
 
         return response()->json(['success' => true]);

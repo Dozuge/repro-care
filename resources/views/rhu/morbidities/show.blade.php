@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-heart-pulse-fill me-2" style="color:var(--danger);"></i>Near-Miss Case Details
+            <div class="page-hero-title">Near-Miss Case Details
             </div>
             <p class="page-hero-subtitle">
                 Morbidity Surveillance and life-threatening maternal near-miss complication record.
@@ -22,13 +21,7 @@
                 <a href="{{ route('rhu.morbidities.edit', $morbidity->id) }}" class="btn btn-warning btn-sm text-dark fw-600">
                     <i class="bi bi-pencil-fill me-1"></i> Edit Case
                 </a>
-                <form action="{{ route('rhu.morbidities.destroy', $morbidity->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to permanently delete this morbidity record?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm">
-                        <i class="bi bi-trash-fill me-1"></i> Delete
-                    </button>
-                </form>
+                <x-archive-form :action="route('rhu.morbidities.destroy', $morbidity->id)" label="Archive" title="Archive case (retained for audit)" btnClass="btn btn-warning btn-sm text-white" icon="bi bi-archive-fill" confirmText="Archive this near-miss case? It will be retained for FHSIS/MNCHN audit and can be restored." />
             @endif
         </div>
     </div>
@@ -46,9 +39,7 @@
     <div class="col-lg-8">
         <div class="card fade-in-card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center bg-transparent py-3">
-                <h5 class="mb-0 fw-700 text-dark">
-                    <i class="bi bi-file-earmark-medical me-2" style="color:var(--danger);"></i>
-                    Clinical Complication Record
+                <h5 class="mb-0 fw-700 text-dark">Clinical Complication Record
                 </h5>
                 <span class="badge bg-{{ $morbidity->outcome === 'died' ? 'danger' : ($morbidity->outcome === 'transferred_to_higher_facility' ? 'warning' : 'success') }} text-white text-xs py-1.5 px-3 rounded-pill">
                     Outcome: {{ str_replace('_', ' ', ucfirst($morbidity->outcome)) }}
@@ -60,7 +51,7 @@
                         <div class="text-muted text-xs mb-1">Patient Name</div>
                         <div class="fw-700 text-lg text-dark">{{ $morbidity->patient_name }}</div>
                         <div style="font-size:0.75rem; color:var(--text-muted);">
-                            {{ $morbidity->user_id ? 'Registered Patient' : 'Walk-in / External Patient' }}
+                            {{ $morbidity->user_id ? 'Enrolled Patient' : 'Unlinked / External Patient' }}
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -98,12 +89,12 @@
 
                     <div class="col-12 border-top pt-3">
                         <div class="text-muted text-xs mb-1">Clinical Presentation Description</div>
-                        <p class="mb-0 p-3 rounded border bg-light text-dark" style="font-size:0.875rem; line-height:1.5; white-space: pre-wrap;">{{ $morbidity->description ?? 'No clinical description recorded.' }}</p>
+                        <p class="mb-0 p-3 rounded border bg-light text-dark" style="font-size:0.875rem; line-height:1.5; white-space:pre-wrap;">{{ $morbidity->description ?? 'No clinical description recorded.' }}</p>
                     </div>
 
                     <div class="col-12 border-top pt-3">
                         <div class="text-muted text-xs mb-1">Emergency Interventions Performed</div>
-                        <p class="mb-0 p-3 rounded border bg-light text-dark" style="font-size:0.875rem; line-height:1.5; white-space: pre-wrap;">{{ $morbidity->interventions_done ?? 'No specific clinical interventions logged.' }}</p>
+                        <p class="mb-0 p-3 rounded border bg-light text-dark" style="font-size:0.875rem; line-height:1.5; white-space:pre-wrap;">{{ $morbidity->interventions_done ?? 'No specific clinical interventions logged.' }}</p>
                     </div>
 
                     <div class="col-12 border-top pt-3">
@@ -134,9 +125,7 @@
     <div class="col-lg-4">
         <div class="card fade-in-card h-100">
             <div class="card-header bg-transparent py-3">
-                <h5 class="mb-0 fw-700 text-dark">
-                    <i class="bi bi-shield-check me-2" style="color:var(--success);"></i>
-                    Surveillance Review Status
+                <h5 class="mb-0 fw-700 text-dark">Surveillance Review Status
                 </h5>
             </div>
             <div class="card-body">

@@ -5,31 +5,31 @@
 @push('styles')
 <style>
     .report-actions-col {
-        width: 170px;
-        min-width: 170px;
+        width:170px;
+        min-width:170px;
     }
     .report-table-actions {
-        display: inline-flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 0.55rem;
-        flex-wrap: nowrap;
+        display:inline-flex;
+        align-items:center;
+        justify-content:flex-end;
+        gap:0.55rem;
+        flex-wrap:nowrap;
     }
     .report-table-actions form {
-        margin: 0;
+        margin:0;
     }
     .report-action-btn {
-        width: 38px;
-        height: 38px;
-        padding: 0;
-        border-radius: 12px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        width:38px;
+        height:38px;
+        padding:0;
+        border-radius:12px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
     }
     @media (max-width: 768px) {
         .report-actions-col {
-            min-width: 154px;
+            min-width:154px;
         }
     }
 </style>
@@ -47,7 +47,7 @@
     <div class="page-hero fade-in-card">
         <div class="workspace-toolbar" style="position:relative;z-index:1;">
             <div>
-                <div class="page-hero-title"><i class="bi bi-file-earmark-medical-fill me-2"></i>Monthly Reports</div>
+                <div class="page-hero-title">Monthly Reports</div>
                 <p class="page-hero-subtitle">Create, track, and submit your health records and pregnancy reports for review.</p>
             </div>
             <a href="{{ route('bhw.reports.create') }}" class="btn-hero-primary"><i class="bi bi-plus-circle-fill"></i>Create Report</a>
@@ -83,7 +83,7 @@
 
     <div class="workspace-panel fade-in-card">
         <div class="workspace-panel-header">
-            <h2 class="workspace-panel-title"><i class="bi bi-funnel-fill"></i>Filter Reports</h2>
+            <h2 class="workspace-panel-title">Filter Reports</h2>
             <p class="workspace-panel-subtitle">Sort by report type, date, and preparation status.</p>
         </div>
         <div class="workspace-panel-body">
@@ -123,7 +123,7 @@
                     </select>
                 </div>
                 <div class="span-12 workspace-filter-actions">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i>Apply Filters</button>
+                    <button type="submit" class="btn btn-filter"><i class="bi bi-funnel me-1"></i>Apply Filters</button>
                     <a href="{{ route('bhw.reports.index') }}" class="btn btn-outline-secondary"><i class="bi bi-x-lg me-1"></i>Clear</a>
                 </div>
             </form>
@@ -133,7 +133,7 @@
     <div class="split-panels">
         <div class="workspace-panel fade-in-card">
             <div class="workspace-panel-header">
-                <h2 class="workspace-panel-title"><i class="bi bi-file-medical-fill"></i>Health Record Reports</h2>
+                <h2 class="workspace-panel-title">Health Record Reports</h2>
                 <p class="workspace-panel-subtitle">Monthly summaries built from patient health records.</p>
             </div>
             <div class="workspace-panel-body pt-3">
@@ -187,7 +187,7 @@
 
         <div class="workspace-panel fade-in-card">
             <div class="workspace-panel-header">
-                <h2 class="workspace-panel-title"><i class="bi bi-heart-fill"></i>Pregnancy Reports</h2>
+                <h2 class="workspace-panel-title">Pregnancy Reports</h2>
                 <p class="workspace-panel-subtitle">Monthly summaries of active pregnancy monitoring.</p>
             </div>
             <div class="workspace-panel-body pt-3">
@@ -242,7 +242,7 @@
 
     <div class="workspace-panel fade-in-card">
         <div class="workspace-panel-header">
-            <h2 class="workspace-panel-title"><i class="bi bi-journal-text"></i>All Reports</h2>
+            <h2 class="workspace-panel-title">All Reports</h2>
             <p class="workspace-panel-subtitle">Your full monthly report history with quick actions.</p>
         </div>
         <div class="workspace-panel-body pt-3">
@@ -282,11 +282,7 @@
                                         <div class="report-table-actions">
                                             <a href="{{ route('bhw.reports.show', $report->id) }}" class="btn btn-sm btn-outline-primary report-action-btn" title="View report"><i class="bi bi-eye"></i></a>
                                             <a href="{{ route('bhw.reports.print', $report->id) }}" class="btn btn-sm btn-outline-success report-action-btn" target="_blank" title="Print report"><i class="bi bi-printer"></i></a>
-                                            <form action="{{ route('bhw.reports.destroy', $report->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this report?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger report-action-btn" title="Delete report"><i class="bi bi-trash"></i></button>
-                                            </form>
+                                            <x-archive-form :action="route('bhw.reports.destroy', $report->id)" label="" title="Archive report (retained for audit)" btnClass="btn btn-sm btn-outline-warning report-action-btn" icon="bi bi-archive" confirmText="Archive this report? It will be retained for audit and can be restored." />
                                         </div>
                                     </td>
                                 </tr>

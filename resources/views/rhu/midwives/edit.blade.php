@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-pencil-square me-2" style="color:var(--primary-light);"></i>Edit Midwife Profile
+            <div class="page-hero-title">Edit Midwife Profile
             </div>
             <p class="page-hero-subtitle">
                 Update account details and contact information for {{ $midwife->name }}.
@@ -22,7 +21,7 @@
 
 @if ($errors->any())
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius:12px;">
-        <h6 class="alert-heading fw-bold mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Please resolve the following errors:</h6>
+        <h6 class="alert-heading fw-bold mb-2">Please resolve the following errors:</h6>
         <ul class="mb-0 text-xs">
             @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -38,9 +37,7 @@
             @csrf
             @method('PUT')
 
-            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color:var(--text);">
-                <i class="bi bi-person-badge me-2" style="color:var(--primary-light);"></i>
-                Credentials
+            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom:1px solid var(--border); padding-bottom:0.5rem; color:var(--text);">Credentials
             </h5>
 
             <div class="row g-3 mb-4">
@@ -50,9 +47,7 @@
                 </div>
             </div>
 
-            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color:var(--text);">
-                <i class="bi bi-person-fill-gear me-2" style="color:var(--info);"></i>
-                Profile Details
+            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom:1px solid var(--border); padding-bottom:0.5rem; color:var(--text);">Profile Details
             </h5>
 
             <div class="row g-3 mb-4">

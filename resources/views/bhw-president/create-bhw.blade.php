@@ -157,27 +157,38 @@
             <!-- Address Information -->
             <h6 class="mb-3">Address Information</h6>
             <div class="row mb-4">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label for="barangay" class="form-label">Barangay</label>
-                    <input type="text" 
-                           class="form-control" 
-                           id="barangay" 
-                           value="{{ old('barangay', 'Burgos') }}"
+                    <input type="text"
+                           class="form-control"
+                           id="barangay"
+                           value="{{ auth()->user()->barangay ? 'Barangay ' . auth()->user()->barangay : 'Not assigned' }}"
                            readonly>
-                    <small class="form-text text-muted">Barangay is automatically set to Burgos.</small>
+                    <small class="form-text text-muted">New BHWs are assigned to your barangay automatically.</small>
                 </div>
 
-                <div class="col-md-6 mb-3">
-                    <label for="purok_id" class="form-label">Assigned Purok</label>
-                    <select class="form-select @error('purok_id') is-invalid @enderror" id="purok_id" name="purok_id">
-                        <option value="">Assign later</option>
-                        @foreach($puroks as $purok)
-                            <option value="{{ $purok->id }}" data-barangay="{{ $purok->barangay }}" {{ (string) old('purok_id') === (string) $purok->id ? 'selected' : '' }}>
-                                {{ $purok->name }}{{ $purok->barangay ? ' - ' . $purok->barangay : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('purok_id')
+                <div class="col-md-4 mb-3">
+                    <label for="purok" class="form-label">Sitio / Street / Purok</label>
+                    <input type="text"
+                           class="form-control @error('purok') is-invalid @enderror"
+                           id="purok"
+                           name="purok"
+                           value="{{ old('purok') }}"
+                           placeholder="e.g. Sitio Malinis, Purok 3">
+                    @error('purok')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="address" class="form-label">House No. / Street Address</label>
+                    <input type="text"
+                           class="form-control @error('address') is-invalid @enderror"
+                           id="address"
+                           name="address"
+                           value="{{ old('address') }}"
+                           placeholder="e.g. 123 Sampaguita St">
+                    @error('address')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -263,27 +274,5 @@
         </form>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const purokInput = document.getElementById('purok_id');
-    const barangayInput = document.getElementById('barangay');
-    const defaultBarangay = 'Burgos';
-
-    if (!purokInput || !barangayInput) {
-        return;
-    }
-
-    const syncBarangay = () => {
-        const selectedOption = purokInput.options[purokInput.selectedIndex];
-        const barangay = selectedOption?.dataset?.barangay || defaultBarangay;
-
-        barangayInput.value = barangay;
-    };
-
-    purokInput.addEventListener('change', syncBarangay);
-    syncBarangay();
-});
-</script>
 
 @endsection

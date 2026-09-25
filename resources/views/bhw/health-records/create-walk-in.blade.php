@@ -5,7 +5,7 @@
 @section('bhw-content')
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-file-plus"></i> Add Health Record</h1>
+        <h1>Add Health Record</h1>
         <a href="{{ route('bhw.walk-in-patients.show', $walkInPatient->id) }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back
         </a>
@@ -23,7 +23,8 @@
             <h5 class="mb-0">Add Health Record for {{ $walkInPatient->full_name }}</h5>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ route('bhw.health-records.store') }}">
+            {{-- rc-adaptive-form: ≥1024px multi-column (Layout A) · <1024px strictly stacked (Layout B) --}}
+            <form method="POST" action="{{ route('bhw.health-records.store') }}" class="rc-adaptive-form">
                 @csrf
                 <input type="hidden" name="patient_type" value="walk_in">
                 <input type="hidden" name="walk_in_patient_id" value="{{ $walkInPatient->id }}">
@@ -95,6 +96,7 @@
                         <label for="height" class="form-label">Height (cm)</label>
                         <input type="number" class="form-control" id="height" name="height" 
                                value="{{ old('height') }}" min="100" max="250" step="0.1" placeholder="e.g., 165">
+                        <div class="form-text">Below 122 cm (4 ft) flags short-stature risk.</div>
                         @error('height')
                             <div class="text-danger small mt-1">{{ $message }}</div>
                         @enderror
@@ -221,15 +223,15 @@
                     </div>
                 </div>
                 
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 rc-form-actions">
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-save"></i> Save Health Record
                     </button>
                     <a href="{{ route('bhw.walk-in-patients.show', $walkInPatient->id) }}" class="btn btn-outline-secondary">
                         <i class="bi bi-x"></i> Cancel
                     </a>
-                    <a href="{{ route('bhw.walk-in-patients.index') }}" class="btn btn-outline-info">
-                        <i class="bi bi-list"></i> Back to Walk-in Patients
+                    <a href="{{ route('bhw.patients', ['filter' => 'unregistered']) }}" class="btn btn-outline-info">
+                        <i class="bi bi-list"></i> Back to Women
                     </a>
                 </div>
             </form>

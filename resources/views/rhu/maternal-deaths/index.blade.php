@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-journal-x me-2" style="color:var(--danger);"></i>Maternal Death Records
+            <div class="page-hero-title">Maternal Death Records
             </div>
             <p class="page-hero-subtitle">
                 Log and monitor maternal mortality cases for clinic reviews.
@@ -94,7 +93,7 @@
             @endif
         @else
             <div class="text-center py-5">
-                <i class="bi bi-journal-x" style="font-size: 3rem; color: var(--text-muted);"></i>
+                <i class="bi bi-journal-x" style="font-size:3rem; color:var(--text-muted);"></i>
                 <h5 class="mt-3">No Maternal Death Records</h5>
                 <p class="text-muted text-xs">No maternal mortality events have been logged for this health unit.</p>
             </div>

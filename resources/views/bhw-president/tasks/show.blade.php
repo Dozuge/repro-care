@@ -2,29 +2,30 @@
 
 @section('title', 'Task Details - BHW President Portal | ReproCare')
 
-@section('content')
-<div class="page-header">
-    <div class="page-header-content">
-        <div>
-            <h1 class="page-title">Task Details</h1>
-            <p class="page-subtitle">{{ $task->title }}</p>
-        </div>
-        <div class="btn-group">
-            @if($task->status != 'completed')
-            <a href="{{ route('bhw-president.tasks.edit', $task->id) }}" class="btn btn-warning">
-                <i class="bi bi-pencil me-1"></i> Edit
-            </a>
-            @endif
-            <a href="{{ route('bhw-president.tasks.index') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Back
-            </a>
+@section('bhw-president-content')
+<div class="py-4">
+    <div class="page-hero fade-in-card mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
+            <div>
+                <div class="page-hero-title">Task Details</div>
+                <p class="page-hero-subtitle mb-0">{{ $task->title }}</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                @if($task->status != 'completed')
+                <a href="{{ route('bhw-president.tasks.edit', $task->id) }}" class="btn btn-warning">
+                    <i class="bi bi-pencil me-1"></i> Edit
+                </a>
+                @endif
+                <a href="{{ route('bhw-president.tasks.index') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back
+                </a>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="row">
+<div class="row g-4">
     <div class="col-md-8">
-        <div class="card mb-3">
+        <div class="card fade-in-card mb-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">Task Information</h5>
             </div>
@@ -48,7 +49,7 @@
     </div>
 
     <div class="col-md-4">
-        <div class="card">
+        <div class="card fade-in-card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Task Status</h5>
             </div>
@@ -90,5 +91,6 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 @endsection

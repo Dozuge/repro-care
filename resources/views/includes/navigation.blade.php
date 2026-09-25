@@ -10,87 +10,73 @@
         'bhw_president' => route('bhw-president.dashboard'),
         default => route('bhw.dashboard'),
     };
+    // Profile lives inside Settings (My Profile section) — no standalone profile page.
+    $settingsRoute = match ($currentRole) {
+        'cho' => route('cho.settings'),
+        'rhu' => route('rhu.settings'),
+        'user' => route('user.settings'),
+        'midwife' => route('midwife.settings'),
+        'bhw_president' => route('bhw-president.settings'),
+        default => route('bhw.settings'),
+    };
     $roleDisplay = match ($currentRole) {
         'cho' => 'CHO Administrator',
         'rhu' => 'RHU Administrator',
-        'midwife' => 'RHU Midwife',
+        'midwife' => 'Midwife',
         'bhw_president' => 'BHW President',
         'bhw' => 'Barangay Health Worker',
         default => 'Patient / Client',
     };
     $roleBadgeBg = match ($currentRole) {
-        'cho' => 'rgba(108, 92, 231, 0.12)',
-        'rhu' => 'rgba(14, 165, 233, 0.12)',
-        'midwife' => 'rgba(16, 185, 129, 0.12)',
+        'cho' => 'rgba(242, 115, 172, 0.12)',
+        'rhu' => 'rgba(244, 114, 182, 0.12)',
+        'midwife' => 'rgba(242, 115, 172, 0.12)',
         default => 'rgba(100, 116, 139, 0.12)',
     };
     $roleBadgeText = match ($currentRole) {
-        'cho' => '#6C5CE7',
-        'rhu' => '#0284C7',
-        'midwife' => '#059669',
-        default => '#475569',
+        'cho' => 'var(--color-primary-text)',
+        'rhu' => 'var(--color-primary)',
+        'midwife' => 'var(--color-primary-text)',
+        default => 'var(--color-text-muted)',
     };
 @endphp
 
 @if($currentUser)
-<nav class="navbar navbar-expand-lg border-bottom" style="background:#FFFFFF; border-color:#E2E8F0 !important; height:64px;">
+    @if($currentRole === 'user')
+        @include('includes.women-navigation')
+    @else
+<nav class="navbar navbar-expand-lg border-bottom" style="background:var(--color-surface); border-color:var(--color-border) !important; height:64px;">
     <div class="container-fluid px-3">
         {{-- Brand & Sidebar Toggle --}}
         <div class="d-flex align-items-center gap-2">
             <button id="sidebarToggleBtn"
-                    class="btn btn-sm btn-light border d-flex align-items-center justify-content-center"
-                    style="width:36px; height:36px; border-radius:10px; color:#64748B; background:#F8F9FA;"
+                    class="btn btn-sm btn-light border d-flex d-lg-none align-items-center justify-content-center"
+                    style="width:36px; height:36px; border-radius:10px; color:var(--color-text-muted); background:var(--color-surface-soft);"
                     aria-label="Toggle sidebar">
                 <i class="bi bi-list fs-5"></i>
             </button>
             <a class="navbar-brand d-flex align-items-center gap-2 m-0 p-0 text-decoration-none" href="{{ $dashboardRoute }}">
-                <div class="d-flex align-items-center justify-content-center rounded-3 text-white" 
-                     style="width:34px; height:34px; background:linear-gradient(135deg, #6C5CE7, #5E35B1);">
-                    <i class="bi bi-heart-pulse-fill" style="font-size:1.1rem;"></i>
-                </div>
-                <span class="fw-800" style="font-family:'Plus Jakarta Sans',sans-serif; color:#1E293B; font-size:1.15rem; letter-spacing:-0.4px;">
-                    Repro<span style="color:#6C5CE7;">Care</span>
+                <img src="{{ asset('images/brand/reprocare-logo.png?v=4') }}" alt="ReproCare Logo"
+                     style="width:36px; height:36px; object-fit:contain; border-radius:10px; background:var(--color-surface);">
+                <span class="fw-800" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text); font-size:1.15rem; letter-spacing:-0.4px;">
+                    Repro<span style="color:var(--color-secondary-text);">Care</span>
                 </span>
             </a>
         </div>
 
-        {{-- Facility Dropdown & Global Search (Desktop) --}}
-        <div class="d-none d-md-flex align-items-center gap-3 ms-4 flex-grow-1" style="max-width:550px;">
-            {{-- Facility Selector --}}
-            <div class="dropdown">
-                <button class="btn btn-sm btn-light border d-flex align-items-center gap-2" 
-                        type="button" data-bs-toggle="dropdown" 
-                        style="border-radius:10px; background:#F8F9FA; color:#334155; font-size:0.82rem; font-weight:600; padding:0.4rem 0.75rem;">
-                    <i class="bi bi-hospital text-primary"></i>
-                    <span>{{ $currentRole === 'cho' ? 'City Health Office (CHO)' : ($currentRole === 'midwife' ? 'RHU Main Health Center' : 'Maternal Health System') }}</span>
-                    <i class="bi bi-chevron-down text-muted" style="font-size:0.75rem;"></i>
-                </button>
-                <ul class="dropdown-menu shadow-sm border mt-1" style="border-radius:12px; font-size:0.85rem;">
-                    <li><h6 class="dropdown-header text-xs text-uppercase fw-700">Health Units & Facilities</h6></li>
-                    <li><a class="dropdown-item active d-flex align-items-center gap-2" href="#"><i class="bi bi-building"></i> City Health Office (CHO) - Central</a></li>
-                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#"><i class="bi bi-hospital"></i> RHU Rural Health Unit - Main</a></li>
-                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#"><i class="bi bi-geo-alt"></i> Barangay Health Stations (All)</a></li>
-                </ul>
-            </div>
-
-            {{-- Global Search Bar --}}
-            <form action="{{ $currentRole === 'midwife' ? route('midwife.patients') : ($currentRole === 'cho' ? route('cho.patients.index') : '#') }}" 
-                  method="GET" class="w-100 position-relative">
-                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size:0.85rem;"></i>
-                <input type="search" name="search" class="form-control form-control-sm ps-5 bg-light border-0" 
-                       placeholder="Search patient name, ID, or case..." 
-                       style="border-radius:10px; font-size:0.84rem; height:36px; color:#1E293B;">
-            </form>
-        </div>
-
         {{-- Right Side Actions --}}
         <div class="d-flex align-items-center gap-2 ms-auto">
-            {{-- Active Role Indicator Badge --}}
-            <div class="d-none d-sm-inline-flex align-items-center gap-1 px-2.5 py-1 rounded-pill" 
-                 style="background:{{ $roleBadgeBg }}; color:{{ $roleBadgeText }}; font-size:0.75rem; font-weight:700;">
-                <span class="rounded-circle" style="width:6px; height:6px; background:currentColor;"></span>
-                {{ $roleDisplay }}
-            </div>
+            {{-- Offline / sync status (PWA field support) --}}
+            <span id="pwa-sync-pill" style="display:none;align-items:center;gap:.4rem;background:var(--color-secondary-soft);border:1px solid var(--color-secondary-soft);color:var(--color-secondary-text);font-size:.74rem;font-weight:700;padding:.4rem .8rem;border-radius:999px;white-space:nowrap;"></span>
+
+            {{-- Global Dark Mode Toggle (all portals) --}}
+            <button type="button" class="btn btn-sm btn-light border d-flex align-items-center justify-content-center rc-theme-toggle"
+               style="width:36px; height:36px; border-radius:10px; color:var(--color-text-muted); background:var(--color-surface-soft);"
+               title="Toggle dark mode"
+               onclick="setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark')">
+                <i class="bi bi-moon-fill icon-moon fs-6"></i>
+                <i class="bi bi-sun-fill icon-sun fs-6"></i>
+            </button>
 
             {{-- System Alerts / Notification Bell --}}
             @php
@@ -104,7 +90,7 @@
                 };
             @endphp
             <a href="{{ $notifRoute }}" class="btn btn-sm btn-light border position-relative d-flex align-items-center justify-content-center"
-               style="width:36px; height:36px; border-radius:10px; color:#64748B; background:#F8F9FA;"
+               style="width:36px; height:36px; border-radius:10px; color:var(--color-text-muted); background:var(--color-surface-soft);"
                title="System Alerts & Notifications">
                 <i class="bi bi-bell fs-6"></i>
                 @if($unreadNotifications > 0)
@@ -121,10 +107,10 @@
                     <img src="{{ $currentUser->profile_image_url }}"
                          alt="{{ $currentUser->name }}"
                          class="rounded-circle border"
-                         style="width:34px; height:34px; object-fit:cover; border-color:#E2E8F0;"
+                         style="width:34px; height:34px; object-fit:cover; border-color:var(--color-border);"
                          onerror="this.onerror=null;this.src='{{ $currentUser->gender === 'male' ? '/images/avatars/avatar-male.svg' : '/images/avatars/avatar-female.svg' }}';">
                     <div class="d-none d-lg-block text-start lh-1">
-                        <div class="fw-700 text-truncate" style="max-width:110px; font-size:0.84rem; color:#1E293B;">
+                        <div class="fw-700 text-truncate" style="max-width:110px; font-size:0.84rem; color:var(--text);">
                             {{ $currentUser->first_name }}
                         </div>
                         <small class="text-muted" style="font-size:0.7rem;">{{ ucfirst($currentRole) }}</small>
@@ -137,7 +123,7 @@
                         <div class="text-muted text-xs">{{ $currentUser->email }}</div>
                     </li>
                     <li>
-                        <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ route('profile.show') }}">
+                        <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ $settingsRoute }}">
                             <i class="bi bi-person-circle text-primary"></i> My Profile
                         </a>
                     </li>
@@ -152,18 +138,12 @@
                                 <i class="bi bi-archive text-secondary"></i> Archived Records
                             </a>
                         </li>
-                    @elseif($currentRole === 'midwife')
-                        <li>
-                            <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ route('midwife.learning.index') }}">
-                                <i class="bi bi-camera-video text-danger"></i> Media & Training
-                            </a>
-                        </li>
                     @endif
                     <li class="border-top">
-                        <form action="{{ route('logout') }}" method="POST">
+                        <form action="{{ route('logout') }}" method="POST" class="js-logout-form" data-user-name="{{ $currentUser->first_name ?? $currentUser->name }}">
                             @csrf
                             <button type="submit" class="dropdown-item text-danger py-2 d-flex align-items-center gap-2">
-                                <i class="bi bi-box-arrow-right"></i> Sign Out
+                                <i class="bi bi-box-arrow-right"></i> Log Out
                             </button>
                         </form>
                     </li>
@@ -172,4 +152,5 @@
         </div>
     </div>
 </nav>
+    @endif
 @endif

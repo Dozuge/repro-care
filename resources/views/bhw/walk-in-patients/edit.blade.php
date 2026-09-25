@@ -6,14 +6,19 @@
 <div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="page-title">
-                <i class="bi bi-pencil-fill me-2" style="color:var(--primary-light);"></i>
-                Edit Walk-in Patient
+            <h1 class="page-title">Edit Walk-in Patient
             </h1>
             <p class="page-subtitle">Update patient information</p>
         </div>
-        <a href="{{ route('bhw.walk-in-patients.show', $patient->id) }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back to Patient Details
+        @php
+            $backRoute = request('from') === 'pregnancies'
+                ? route('bhw.pregnancies.index')
+                : (request('from') === 'women'
+                    ? route('bhw.patients')
+                    : route('bhw.walk-in-patients.show', $patient->id));
+        @endphp
+        <a href="{{ $backRoute }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back
         </a>
     </div>
 
@@ -22,6 +27,7 @@
             <form method="POST" action="{{ route('bhw.walk-in-patients.update', $patient->id) }}">
                 @method('PUT')
                 @csrf
+                <input type="hidden" name="from" value="{{ request('from') }}">
 
                 <h5 class="mb-3">Patient Information</h5>
                 <div class="row">
@@ -68,14 +74,9 @@
                         @enderror
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Purok</label>
-                        <select name="purok_id" class="form-select @error('purok_id') is-invalid @enderror">
-                            <option value="">-- Select Purok --</option>
-                            @foreach($puroks as $purok)
-                                <option value="{{ $purok->id }}" {{ $patient->purok_id == $purok->id ? 'selected' : '' }}>{{ $purok->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('purok_id')
+                        <label class="form-label">Sitio / Street / Purok</label>
+                        <input type="text" name="purok" class="form-control @error('purok') is-invalid @enderror" value="{{ old('purok', $patient->purok?->name ?? '') }}" placeholder="e.g. Sitio Malinis, Purok 3">
+                        @error('purok')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>

@@ -6,7 +6,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
-            <div class="page-hero-title"><i class="bi bi-clipboard2-pulse-fill me-2"></i>Health Record Review</div>
+            <div class="page-hero-title">Health Record Review</div>
             <p class="page-hero-subtitle">Review BHW-submitted records, update details, message the assigned BHW, and pass records to the midwife.</p>
         </div>
     </div>
@@ -54,9 +54,6 @@
                             </td>
                             <td class="px-4 py-3 text-end">
                                 <div class="d-flex justify-content-end gap-2 flex-wrap">
-                                    <a href="{{ route('bhw-president.health-records.edit', $record->id) }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-pencil me-1"></i>Edit
-                                    </a>
                                     @if($record->recordedBy)
                                         <a href="{{ route('bhw-president.messages.create', ['to' => $record->recordedBy->id, 'role' => 'bhw']) }}" class="btn btn-sm btn-outline-secondary">
                                             <i class="bi bi-chat-text me-1"></i>Message Recorder

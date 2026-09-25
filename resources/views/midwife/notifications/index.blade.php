@@ -2,188 +2,262 @@
 
 @section('title', 'Notifications - ReproCare')
 
-@section('content')
-<!-- Page Header -->
-<div class="page-header">
-    <div class="d-flex justify-content-between align-items-center">
+@push('styles')
+<style>
+    .notif-feed { display:flex; flex-direction:column; gap:0; }
+
+    .notif-row {
+        display:flex; align-items:center; gap:1rem;
+        padding:1.1rem 1.4rem;
+        border-bottom:1px solid var(--mw-border);
+        transition:background 0.15s ease;
+        position:relative;
+    }
+    .notif-row:last-child { border-bottom:none; }
+    .notif-row:hover { background:color-mix(in srgb, var(--color-primary) 3%, transparent); }
+    .notif-row.unread { background:color-mix(in srgb, var(--color-primary) 4%, transparent); }
+    .notif-row.unread::before {
+        content:'';
+        position:absolute; left:0; top:50%; transform:translateY(-50%);
+        width:3px; height:60%; border-radius:0 2px 2px 0;
+        background:var(--mw-primary);
+    }
+
+    /* Type icon badge */
+    .notif-icon-badge {
+        width:42px; height:42px; border-radius:14px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:1.1rem; flex-shrink:0;
+    }
+    .notif-icon-info    { background:var(--color-info-soft); color:var(--color-info-text); }
+    .notif-icon-warning { background:var(--color-warning-soft); color:var(--color-warning-text); }
+    .notif-icon-success { background:var(--color-success-soft); color:var(--color-success-text); }
+    .notif-icon-error,
+    .notif-icon-danger  { background:var(--color-danger-soft); color:var(--color-danger-text); }
+
+    /* Content */
+    .notif-body { flex:1; min-width:0; }
+    .notif-title {
+        font-weight:700; font-size:0.9rem;
+        color:var(--mw-heading); white-space:nowrap;
+        overflow:hidden; text-overflow:ellipsis;
+        max-width:100%;
+    }
+    .notif-preview {
+        font-size:0.8rem; color:var(--mw-body);
+        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        max-width:420px;
+    }
+    .notif-meta {
+        font-size:0.75rem; color:var(--mw-body);
+        margin-top:0.2rem; display:flex; align-items:center; gap:0.5rem;
+    }
+
+    /* Status badge */
+    .notif-status-badge {
+        padding:0.2em 0.7em; border-radius:20px;
+        font-size:0.72rem; font-weight:700; white-space:nowrap;
+    }
+    .notif-status-unread {
+        background:var(--color-primary-soft); border:1px solid var(--color-primary-soft); color:var(--color-primary-text);
+    }
+    .notif-status-read {
+        background:var(--color-bg); border:1px solid var(--color-border); color:var(--color-text-muted);
+    }
+
+    /* Ghost action buttons */
+    .notif-actions { display:flex; gap:0.4rem; flex-shrink:0; }
+    .notif-btn {
+        width:32px; height:32px; border-radius:8px; border:1px solid transparent;
+        display:flex; align-items:center; justify-content:center;
+        background:transparent; color:var(--color-text-muted);
+        font-size:0.88rem; cursor:pointer; transition:all 0.15s ease;
+        text-decoration:none;
+    }
+    .notif-btn:hover { background:var(--color-bg); border-color:var(--mw-border); color:var(--mw-heading); }
+    .notif-btn.danger:hover { background:var(--color-danger-soft); border-color:var(--color-danger-soft); color:var(--color-danger-text); }
+    .notif-btn.success:hover { background:var(--color-success-soft); border-color:var(--color-success-soft); color:var(--color-success-text); }
+
+    /* Filter pill tabs */
+    .notif-filter-row { display:flex; align-items:center; gap:0.5rem; padding:1rem 1.4rem; border-bottom:1px solid var(--mw-border); flex-wrap:wrap; }
+    .notif-pill {
+        padding:0.35em 1em; border-radius:20px; font-size:0.82rem; font-weight:700;
+        border:1px solid var(--mw-border); background:transparent;
+        color:var(--mw-body); cursor:pointer; text-decoration:none;
+        transition:all 0.15s ease;
+    }
+    .notif-pill:hover, .notif-pill.active {
+        background:var(--mw-primary); border-color:var(--mw-primary);
+        color:var(--color-on-solid);
+    }
+    .notif-pill.active-secondary {
+        background:var(--color-primary-soft); border-color:var(--color-border); color:var(--mw-primary);
+    }
+
+    /* Stats row */
+    .notif-stats-bar {
+        display:flex; gap:1.5rem; padding:0.9rem 1.4rem;
+        border-bottom:1px solid var(--mw-border);
+        background:var(--color-primary-soft);
+    }
+    .notif-stat-item { font-size:0.82rem; color:var(--mw-body); }
+    .notif-stat-item strong { color:var(--mw-heading); font-weight:700; }
+</style>
+@endpush
+
+@section('midwife-content')
+
+{{-- Page Hero --}}
+<div class="page-hero fade-in-card mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
-            <h1 class="page-title">
-                <i class="bi bi-bell"></i> Notifications
-            </h1>
-            <p class="page-subtitle">Manage system notifications and announcements</p>
+            <div class="page-hero-title">Notifications
+            </div>
+            <p class="page-hero-subtitle">
+                <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
+                &nbsp;·&nbsp; System alerts and announcements
+            </p>
         </div>
-        <div>
-            <a href="{{ route('midwife.notifications.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Create Notification
+        <div class="d-flex gap-2">
+            <a href="{{ route('midwife.notifications.create') }}" class="btn-hero-primary">
+                <i class="bi bi-plus-circle-fill"></i> Create Notification
             </a>
         </div>
     </div>
 </div>
 
-<!-- Notifications List -->
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white border-0">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">All Notifications</h5>
-            <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-primary active">All</button>
-                <button class="btn btn-outline-secondary">Unread</button>
-                <button class="btn btn-outline-secondary">Read</button>
-            </div>
+@if(session('success'))
+    <div class="alert alert-success d-flex align-items-center gap-2 mb-4 fade-in-card" style="border-radius:14px; background:color-mix(in srgb, var(--color-success) 10%, transparent); border:1px solid color-mix(in srgb, var(--color-success) 30%, transparent); color:var(--color-success-text);">
+        <i class="bi bi-check-circle-fill flex-shrink-0"></i>
+        <span>{{ session('success') }}</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+@endif
+
+<div class="card fade-in-card">
+    {{-- Stats Bar --}}
+    <div class="notif-stats-bar">
+        <div class="notif-stat-item">
+            <strong>{{ $notifications->total() }}</strong> Total
+        </div>
+        <div class="notif-stat-item">
+            <strong style="color:var(--color-primary-text);">{{ $notifications->where('is_read', false)->count() }}</strong> Unread
+        </div>
+        <div class="notif-stat-item">
+            <strong style="color:var(--color-success-text);">{{ $notifications->where('is_read', true)->count() }}</strong> Read
         </div>
     </div>
-    <div class="card-body">
-        @if($notifications->count() > 0)
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Title</th>
-                            <th>Message</th>
-                            <th>Target</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($notifications as $notification)
-                            <tr class="{{ $notification->is_read ? '' : 'table-primary' }}">
-                                <td>
-                                    <span class="badge bg-{{ $notification->type === 'info' ? 'info' : ($notification->type === 'warning' ? 'warning' : ($notification->type === 'success' ? 'success' : 'danger')) }}">
-                                        <i class="bi bi-{{ $notification->type === 'info' ? 'info-circle' : ($notification->type === 'warning' ? 'exclamation-triangle' : ($notification->type === 'success' ? 'check-circle' : 'x-circle')) }}"></i>
-                                        {{ ucfirst($notification->type) }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <strong>{{ $notification->title }}</strong>
-                                </td>
-                                <td>
-                                    <span class="text-truncate d-block" style="max-width: 300px;">
-                                        {{ Str::limit($notification->message, 100) }}
-                                    </span>
-                                </td>
-                                <td>
-                                    @if($notification->target_role)
-                                        <span class="badge bg-outline-primary">{{ ucfirst($notification->target_role) }}</span>
-                                    @else
-                                        <span class="text-muted">All</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($notification->is_read)
-                                        <span class="badge bg-secondary">Read</span>
-                                    @else
-                                        <span class="badge bg-primary">Unread</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <small>{{ $notification->created_at->format('M j, Y g:i A') }}</small>
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        @if(!$notification->is_read)
-                                            <form method="POST" action="{{ route('midwife.notifications.mark-read', $notification->id) }}" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-outline-success" title="Mark as Read">
-                                                    <i class="bi bi-check"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                        <form method="POST" action="{{ route('midwife.notifications.delete', $notification->id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this notification?')">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="d-flex justify-content-center mt-4">
-                {{ $notifications->links() }}
-            </div>
-        @else
-            <div class="text-center py-5">
-                <div class="bg-light rounded-circle p-3 d-inline-block mb-3">
-                    <i class="bi bi-bell text-muted fs-4"></i>
-                </div>
-                <h6 class="text-muted">No Notifications Found</h6>
-                <p class="text-muted small">You haven't created any notifications yet.</p>
-                <a href="{{ route('midwife.notifications.create') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Create First Notification
-                </a>
-            </div>
-        @endif
+
+    {{-- Filter Pills --}}
+    <div class="notif-filter-row">
+        <a href="{{ route('midwife.notifications.index') }}" class="notif-pill {{ !request('filter') ? 'active' : '' }}">
+            <i class="bi bi-grid me-1"></i> All
+        </a>
+        <a href="{{ route('midwife.notifications.index', ['filter' => 'unread']) }}" class="notif-pill {{ request('filter') === 'unread' ? 'active' : '' }}">
+            <i class="bi bi-circle-fill me-1" style="font-size:0.5rem;vertical-align:middle;"></i> Unread
+        </a>
+        <a href="{{ route('midwife.notifications.index', ['filter' => 'read']) }}" class="notif-pill {{ request('filter') === 'read' ? 'active' : '' }}">
+            <i class="bi bi-check-circle me-1"></i> Read
+        </a>
     </div>
+
+    {{-- Notification Feed --}}
+    @if($notifications->count() > 0)
+        <div class="notif-feed">
+            @foreach($notifications as $notification)
+                @php
+                    $iconClass = match($notification->type) {
+                        'info'    => 'notif-icon-info',
+                        'warning' => 'notif-icon-warning',
+                        'success' => 'notif-icon-success',
+                        'error', 'danger' => 'notif-icon-danger',
+                        default   => 'notif-icon-info',
+                    };
+                    $iconName = match($notification->type) {
+                        'info'    => 'bi-info-circle-fill',
+                        'warning' => 'bi-exclamation-triangle-fill',
+                        'success' => 'bi-check-circle-fill',
+                        'error', 'danger' => 'bi-x-circle-fill',
+                        default   => 'bi-bell-fill',
+                    };
+                    // Safely decode title to handle encoding glitches
+                    $safeTitle = htmlspecialchars_decode(strip_tags($notification->title ?? 'Notification'));
+                @endphp
+                <div class="notif-row {{ !$notification->is_read ? 'unread' : '' }}">
+                    {{-- Icon --}}
+                    <div class="notif-icon-badge {{ $iconClass }}">
+                        <i class="bi {{ $iconName }}"></i>
+                    </div>
+
+                    {{-- Body --}}
+                    <div class="notif-body">
+                        <div class="notif-title">{{ $safeTitle }}</div>
+                        <div class="notif-preview">{{ Str::limit(strip_tags($notification->message ?? ''), 90) }}</div>
+                        <div class="notif-meta">
+                            <i class="bi bi-clock"></i>
+                            {{ $notification->created_at->format('M j, Y g:i A') }}
+                            @if($notification->target_role)
+                                <span style="background:color-mix(in srgb, var(--color-primary) 12%, transparent);color:var(--mw-primary);padding:0.1em 0.55em;border-radius:8px;font-size:0.7rem;font-weight:700;">
+                                    {{ ucfirst($notification->target_role) }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Status Badge --}}
+                    <span class="notif-status-badge {{ $notification->is_read ? 'notif-status-read' : 'notif-status-unread' }}">
+                        {{ $notification->is_read ? 'Read' : 'Unread' }}
+                    </span>
+
+                    {{-- Actions --}}
+                    <div class="notif-actions">
+                        <a href="{{ route('midwife.notifications.show', $notification->id) }}"
+                           class="notif-btn" title="View Details">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        @if(!$notification->is_read)
+                            <form method="POST" action="{{ route('midwife.notifications.mark-read', $notification->id) }}" class="d-inline">
+                                @csrf
+                                <button type="submit" class="notif-btn success" title="Mark as Read">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
+                        @endif
+                        <form method="POST" action="{{ route('midwife.notifications.delete', $notification->id) }}" class="d-inline"
+                              onsubmit="return confirm('Delete this notification?')">
+                            @csrf
+                            <button type="submit" class="notif-btn danger" title="Delete">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="d-flex justify-content-center p-4 border-top" style="border-color:var(--mw-border)!important;">
+            {{ $notifications->links('pagination::bootstrap-5') }}
+        </div>
+    @else
+        <div class="text-center py-5">
+            <div style="width:60px;height:60px;border-radius:50%;background:var(--mw-primary-subtle);color:var(--mw-primary);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.5rem;">
+                <i class="bi bi-bell-slash"></i>
+            </div>
+            <h6 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:var(--mw-heading);margin-bottom:0.35rem;">No Notifications Found</h6>
+            <p style="color:var(--mw-body);font-size:0.875rem;max-width:300px;margin:0 auto 1.25rem;">
+                @if(request('filter') === 'unread')
+                    No unread notifications — you're all caught up!
+                @elseif(request('filter') === 'read')
+                    No read notifications yet.
+                @else
+                    You haven't created any notifications yet.
+                @endif
+            </p>
+            <a href="{{ route('midwife.notifications.create') }}" class="btn-hero-primary d-inline-flex">
+                <i class="bi bi-plus-circle-fill me-1"></i> Create First Notification
+            </a>
+        </div>
+    @endif
 </div>
 
-<!-- Quick Actions -->
-<div class="row mt-4">
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h6 class="mb-0">Quick Stats</h6>
-            </div>
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span>Total Notifications</span>
-                    <strong>{{ $notifications->total() }}</strong>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span>Unread</span>
-                    <strong class="text-primary">{{ $notifications->where('is_read', false)->count() }}</strong>
-                </div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <span>Read</span>
-                    <strong class="text-success">{{ $notifications->where('is_read', true)->count() }}</strong>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h6 class="mb-0">Notification Templates</h6>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="p-3 bg-light rounded text-center">
-                            <i class="bi bi-info-circle text-info fs-4 mb-2 d-block"></i>
-                            <h6>Information</h6>
-                            <p class="text-muted small mb-0">General announcements and updates</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="p-3 bg-light rounded text-center">
-                            <i class="bi bi-exclamation-triangle text-warning fs-4 mb-2 d-block"></i>
-                            <h6>Warning</h6>
-                            <p class="text-muted small mb-0">Important alerts and warnings</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="p-3 bg-light rounded text-center">
-                            <i class="bi bi-check-circle text-success fs-4 mb-2 d-block"></i>
-                            <h6>Success</h6>
-                            <p class="text-muted small mb-0">Positive updates and achievements</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="p-3 bg-light rounded text-center">
-                            <i class="bi bi-x-circle text-danger fs-4 mb-2 d-block"></i>
-                            <h6>Error</h6>
-                            <p class="text-muted small mb-0">Critical issues and errors</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+@endsection

@@ -10,8 +10,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-chat-heart-fill me-2"></i>Forum Post
+            <div class="page-hero-title">Forum Post
             </div>
             <p class="page-hero-subtitle">
                 <i class="bi bi-calendar3 me-1"></i>{{ $post->created_at->format('l, F j, Y') }}
@@ -28,16 +27,16 @@
 
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert"
-         style="background:rgba(25,135,84,0.1); border:1px solid rgba(25,135,84,0.3); color:var(--success); border-radius:10px;">
+         style="background:color-mix(in srgb, var(--color-success-text) 10%, transparent); border:1px solid color-mix(in srgb, var(--color-success-text) 30%, transparent); color:var(--success); border-radius:10px;">
         <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" style="filter:invert(1);"></button>
     </div>
 @endif
 
-<div class="row">
+<div class="row g-4">
     <div class="col-lg-8">
-        <!-- Post -->
-        <div class="card fade-in-card mb-4" style="border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+        <!-- Post Card -->
+        <div class="card fade-in-card mb-4" style="border:1px solid var(--color-border); border-radius:20px; box-shadow:0 4px 20px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 4%, transparent);">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center">
@@ -45,108 +44,123 @@
                             <img src="{{ $post->user->profile_image_url }}"
                                  alt="{{ $post->user->name }}"
                                  class="rounded-circle me-3"
-                                 style="width: 48px; height: 48px; object-fit: cover; border:2px solid var(--primary);">
+                                 style="width:48px; height:48px; object-fit:cover; border:2px solid var(--color-primary);">
                         @else
                             <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
-                                 style="width: 48px; height: 48px; background:linear-gradient(135deg, var(--primary), var(--accent-violet)); color:#fff; font-size:1.25rem; font-weight:800;">
+                                 style="width:48px; height:48px; background:linear-gradient(135deg, var(--color-primary), var(--color-primary-text)); color:var(--color-on-solid); font-size:1.25rem; font-weight:800; box-shadow:0 4px 12px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 25%, transparent);">
                                 {{ $post->user ? strtoupper(substr($post->user->name, 0, 1)) : '?' }}
                             </div>
                         @endif
                         <div>
-                            <h6 class="mb-0" style="font-weight:800;">{{ $post->user->name ?? 'Unknown User' }}</h6>
-                            <small class="text-muted">{{ $post->created_at->diffForHumans() }}</small>
+                            <h6 class="mb-0 fw-bold" style="color:var(--color-text); font-size:1rem;">{{ $post->user->name ?? 'Unknown User' }}</h6>
+                            <small class="text-muted" style="font-size:0.8rem;">
+                                <i class="bi bi-clock me-1"></i>{{ $post->created_at->diffForHumans() }}
+                            </small>
                         </div>
                     </div>
                     @if($post->user_id === auth()->id() && $post->user_type === 'midwife' && auth()->user()->role === 'midwife')
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown" style="border-radius:8px;">
                                 <i class="bi bi-three-dots"></i>
                             </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ route('forum.edit', $post->id) }}">
-                                    <i class="bi bi-pencil"></i> Edit
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius:12px;">
+                                <li><a class="dropdown-item py-2" href="{{ route('forum.edit', $post->id) }}">
+                                    <i class="bi bi-pencil me-2 text-primary"></i> Edit
                                 </a></li>
-                                <li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); document.getElementById('delete-form-{{ $post->id }}').submit();">
-                                    <i class="bi bi-trash"></i> Delete
+                                <li>
+                                    <hr class="dropdown-divider my-1">
+                                </li>
+                                <li><a class="dropdown-item py-2 text-danger" href="#" onclick="event.preventDefault(); if(confirm('Are you sure you want to delete this post?')) document.getElementById('delete-form-{{ $post->id }}').submit();">
+                                    <i class="bi bi-trash me-2"></i> Delete
                                 </a></li>
                             </ul>
                         </div>
-                        <form id="delete-form-{{ $post->id }}" action="{{ route('forum.destroy', $post->id) }}" method="POST" style="display: none;">
+                        <form id="delete-form-{{ $post->id }}" action="{{ route('forum.destroy', $post->id) }}" method="POST" style="display:none;">
                             @csrf
                             @method('DELETE')
                         </form>
                     @endif
                 </div>
 
-                <p class="mb-3" style="white-space: pre-wrap; line-height: 1.6;">{{ $post->content }}</p>
+                <div class="mb-3" style="color:var(--color-text); font-size:0.96rem; line-height:1.7; white-space:pre-wrap;">{{ $post->content }}</div>
 
                 @if($post->post_image)
                     <div class="mb-3">
                         <img src="{{ $post->post_image_url }}"
                              alt="Post image"
-                             class="img-fluid rounded"
-                             style="max-height: 400px; border-radius:12px;">
+                             class="img-fluid rounded-3 border"
+                             style="max-height:420px; width:100%; object-fit:cover; border-color:var(--color-border) !important;">
                     </div>
                 @endif
 
-                <div class="d-flex align-items-center gap-3 pt-3" style="border-top:1px solid var(--border);">
+                <div class="d-flex align-items-center gap-3 pt-3" style="border-top:1px solid var(--color-border);">
                     <form method="POST" action="{{ route('forum.like', $post->id) }}">
                         @csrf
-                        <button type="submit" class="btn btn-sm {{ $post->likes->where('user_id', auth()->id())->where('user_type', auth()->user()->role)->count() > 0 ? 'btn-danger' : 'btn-outline-danger' }}">
-                            <i class="bi bi-heart{{ $post->likes->where('user_id', auth()->id())->where('user_type', auth()->user()->role)->count() > 0 ? '-fill' : '' }}"></i>
+                        <button type="submit" class="btn btn-sm {{ $post->likes->where('user_id', auth()->id())->where('user_type', auth()->user()->role)->count() > 0 ? 'btn-danger' : 'btn-light border' }}" style="border-radius:20px; font-weight:600; padding:0.35rem 0.85rem;">
+                            <i class="bi bi-heart{{ $post->likes->where('user_id', auth()->id())->where('user_type', auth()->user()->role)->count() > 0 ? '-fill text-white' : ' text-danger' }} me-1"></i>
                             {{ $post->likes_count }}
                         </button>
                     </form>
-                    <span class="text-muted">
-                        <i class="bi bi-chat"></i> {{ $post->comments_count }} comments
+                    <span class="text-muted fw-semibold" style="font-size:0.85rem;">
+                        <i class="bi bi-chat-dots me-1 text-primary"></i> {{ $post->comments_count }} comments
                     </span>
                 </div>
             </div>
         </div>
 
         <!-- Comments Section -->
-        <div class="card fade-in-card" style="border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+        <div class="card fade-in-card" style="border:1px solid var(--color-border); border-radius:20px; box-shadow:0 4px 20px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 4%, transparent);">
             <div class="card-body p-4">
-                <h6 class="mb-3" style="font-weight:800;"><i class="bi bi-chat-dots me-2"></i>Comments</h6>
+                <h6 class="mb-3 fw-bold" style="color:var(--color-text); font-size:1.05rem;">Comments</h6>
 
                 <!-- Add Comment Form -->
                 <form method="POST" action="{{ route('forum.comment', $post->id) }}" class="mb-4">
                     @csrf
                     <div class="mb-3">
                         <textarea class="form-control" name="content" rows="3"
-                                  placeholder="Add a comment..." required>{{ old('content') }}</textarea>
+                                  placeholder="Write a clinical note or supportive reply..." required
+                                  style="border-radius:14px; border:1.5px solid var(--color-border); padding:0.85rem 1rem; font-size:0.92rem;"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="bi bi-send-fill me-1"></i> Comment
-                    </button>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary" style="border-radius:10px; font-weight:700; padding:0.5rem 1.25rem;">
+                            <i class="bi bi-send-fill me-1"></i> Post Comment
+                        </button>
+                    </div>
                 </form>
 
                 <!-- Comments List -->
                 @if($post->comments->count() > 0)
-                    @foreach($post->comments as $comment)
-                        <div class="pb-3 mb-3" style="border-bottom:1px solid var(--border);">
-                            <div class="d-flex align-items-start mb-2">
-                                @if($comment->user->profile_image_url)
-                                    <img src="{{ $comment->user->profile_image_url }}"
-                                         alt="{{ $comment->user->name }}"
-                                         class="rounded-circle me-3"
-                                         style="width: 40px; height: 40px; object-fit: cover;">
-                                @else
-                                    <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
-                                         style="width: 40px; height: 40px; background:linear-gradient(135deg, var(--accent-violet), var(--primary)); color:#fff; font-size:1rem; font-weight:800;">
-                                        {{ strtoupper(substr($comment->user->name, 0, 1)) }}
+                    <div class="d-flex flex-column gap-3">
+                        @foreach($post->comments as $comment)
+                            <div class="p-3 rounded-3" style="background:var(--color-bg); border:1px solid var(--color-border);">
+                                <div class="d-flex align-items-start gap-3">
+                                    @if($comment->user->profile_image_url)
+                                        <img src="{{ $comment->user->profile_image_url }}"
+                                             alt="{{ $comment->user->name }}"
+                                             class="rounded-circle"
+                                             style="width:38px; height:38px; object-fit:cover;">
+                                    @else
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                             style="width:38px; height:38px; background:var(--color-primary-soft); color:var(--color-primary-text); border:1px solid var(--color-border); font-size:0.9rem; font-weight:700;">
+                                            {{ strtoupper(substr($comment->user->name, 0, 1)) }}
+                                        </div>
+                                    @endif
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <h6 class="mb-0 fw-bold" style="color:var(--color-text); font-size:0.9rem;">{{ $comment->user->name }}</h6>
+                                            <small class="text-muted" style="font-size:0.75rem;">{{ $comment->created_at->diffForHumans() }}</small>
+                                        </div>
+                                        <p class="mb-0" style="color:var(--color-info-text); font-size:0.88rem; line-height:1.5; white-space:pre-wrap;">{{ $comment->content }}</p>
                                     </div>
-                                @endif
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-0" style="font-weight:800;">{{ $comment->user->name }}</h6>
-                                    <small class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
-                                    <p class="mb-0 mt-1" style="white-space: pre-wrap;">{{ $comment->content }}</p>
                                 </div>
                             </div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
                 @else
-                    <p class="text-muted text-center">No comments yet. Be the first to comment!</p>
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-chat-heart" style="font-size:2rem; color:var(--color-border);"></i>
+                        <p class="mt-2 mb-0" style="font-size:0.88rem;">No comments yet. Be the first to start the discussion!</p>
+                    </div>
                 @endif
             </div>
         </div>
@@ -154,30 +168,30 @@
 
     <!-- Sidebar -->
     <div class="col-lg-4">
-        <div class="card fade-in-card mb-4" style="border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+        <div class="card fade-in-card mb-4" style="border:1px solid var(--color-border); border-radius:20px; box-shadow:0 4px 20px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 4%, transparent);">
             <div class="card-body p-4">
-                <h6 class="mb-3" style="font-weight:800;"><i class="bi bi-info-circle me-2"></i>Forum Guidelines</h6>
-                <ul class="small" style="padding-left:1.2rem;">
-                    <li>Be respectful and supportive</li>
-                    <li>Share helpful information</li>
-                    <li>Keep posts relevant to maternal health</li>
-                    <li>No medical advice - consult professionals</li>
+                <h6 class="mb-3 fw-bold" style="color:var(--color-text);">Forum Guidelines</h6>
+                <ul class="small d-flex flex-column gap-2 mb-0" style="padding-left:1.2rem; color:var(--color-text-muted);">
+                    <li>Be respectful, empathetic, and supportive.</li>
+                    <li>Share verified clinical and maternal health advice.</li>
+                    <li>Keep patient privacy protected at all times.</li>
+                    <li>Refer critical emergencies directly to RHU/CHO.</li>
                 </ul>
             </div>
         </div>
 
-        <div class="card fade-in-card" style="border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+        <div class="card fade-in-card" style="border:1px solid var(--color-border); border-radius:20px; box-shadow:0 4px 20px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 4%, transparent);">
             <div class="card-body p-4">
-                <h6 class="mb-3" style="font-weight:800;"><i class="bi bi-lightning me-2"></i>Quick Actions</h6>
+                <h6 class="mb-3 fw-bold" style="color:var(--color-text);">Quick Actions</h6>
                 <div class="d-grid gap-2">
-                    <a href="{{ route('forum.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <a href="{{ route('forum.index') }}" class="btn btn-hero-secondary btn-sm text-center">
                         <i class="bi bi-arrow-left me-1"></i> Back to Forum
                     </a>
                     @if(auth()->check() && auth()->user()->role === 'midwife' && ($post->user_id !== auth()->id() || $post->user_type !== \App\Models\User::class))
                         <form action="{{ route('forum.destroy', $post->id) }}" method="POST">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-outline-warning btn-sm w-100" onclick="return confirm('Moderate and delete this post?');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100" style="border-radius:10px; font-weight:700;" onclick="return confirm('Moderate and delete this post?');">
                                 <i class="bi bi-shield-exclamation me-1"></i> Moderate Post
                             </button>
                         </form>

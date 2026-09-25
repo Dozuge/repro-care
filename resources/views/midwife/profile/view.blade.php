@@ -5,43 +5,43 @@
 @section('midwife-content')
 <style>
     .profile-view-card {
-        border: 0;
-        border-radius: 1rem;
-        overflow: hidden;
+        border:0;
+        border-radius:1rem;
+        overflow:hidden;
     }
 
     .profile-view-header {
-        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        background:linear-gradient(135deg, var(--primary), var(--primary-light));
     }
 
     .profile-view-avatar {
-        width: 160px;
-        height: 160px;
-        object-fit: cover;
-        border: 5px solid var(--bg-card);
-        box-shadow: var(--shadow-md);
+        width:160px;
+        height:160px;
+        object-fit:cover;
+        border:5px solid var(--bg-card);
+        box-shadow:var(--shadow-md);
     }
 
     .profile-info-item {
-        border: 1px solid var(--border);
-        border-radius: 0.85rem;
-        padding: 1rem;
-        height: 100%;
-        background: var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:0.85rem;
+        padding:1rem;
+        height:100%;
+        background:var(--bg-card);
     }
 
     .profile-info-label {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-muted);
-        margin-bottom: 0.35rem;
+        font-size:0.8rem;
+        text-transform:uppercase;
+        letter-spacing:0.04em;
+        color:var(--text-muted);
+        margin-bottom:0.35rem;
     }
 
     .profile-info-value {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text);
+        font-size:1rem;
+        font-weight:600;
+        color:var(--text);
     }
 </style>
 <div class="py-4">
@@ -59,9 +59,7 @@
                 <div class="card-body">
                     <div class="row align-items-center g-4 mb-4">
                         <div class="col-md-4 text-center">
-                            <img src="{{ $user->profile_image_url }}"
-                                 alt="Profile Picture"
-                                 class="rounded-circle profile-view-avatar">
+                            <x-patient-avatar :patient="$user" :size="160" />
                         </div>
                         <div class="col-md-8">
                             <h3 class="mb-1">{{ $user->name }}</h3>

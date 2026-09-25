@@ -2,128 +2,140 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Menstrual Cycle Report - {{ $user->name }}</title>
     <style>
         body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            line-height: 1.6;
-            color: #1f2937;
-            margin: 0;
-            background: #f5f3ff;
-            padding: 28px;
+            font-family:"Segoe UI", Arial, sans-serif;
+            line-height:1.6;
+            color:var(--color-text);
+            margin:0;
+            background:var(--color-primary-soft);
+            padding:28px;
         }
         .page {
-            max-width: 980px;
-            margin: 0 auto;
-            background: #ffffff;
-            border-radius: 24px;
-            box-shadow: 0 24px 60px rgba(91, 33, 182, 0.12);
-            overflow: hidden;
+            max-width:980px;
+            margin:0 auto;
+            background:var(--color-surface);
+            border-radius:24px;
+            box-shadow:0 24px 60px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 12%, transparent);
+            overflow:hidden;
         }
         .header {
-            text-align: left;
-            padding: 32px;
-            background: linear-gradient(135deg, #6d28d9 0%, #9333ea 58%, #ec4899 100%);
-            color: #fff;
+            text-align:left;
+            padding:32px;
+            background:linear-gradient(135deg, var(--color-primary-text) 0%, var(--color-primary) 58%, var(--color-secondary) 100%);
+            color:var(--color-on-solid);
         }
         .header h1 {
-            margin: 0;
-            font-size: 28px;
-            letter-spacing: -0.03em;
+            margin:0;
+            font-size:28px;
+            letter-spacing:-0.03em;
         }
         .header p {
-            margin: 6px 0 0;
-            color: rgba(255, 255, 255, 0.86);
+            margin:6px 0 0;
+            color:color-mix(in srgb, var(--color-on-solid) 86%, transparent);
         }
         .content {
-            padding: 28px 32px 36px;
+            padding:28px 32px 36px;
         }
         .info-box {
-            background: #f8f5ff;
-            border: 1px solid #e9ddff;
-            padding: 18px 20px;
-            border-radius: 18px;
-            margin-bottom: 20px;
+            background:var(--color-secondary-soft);
+            border:none;
+            padding:18px 20px;
+            border-radius:18px;
+            margin-bottom:20px;
         }
         .info-box h3 {
-            margin-top: 0;
-            color: #6d28d9;
-            font-size: 16px;
+            margin-top:0;
+            color:var(--color-secondary-text);
+            font-size:16px;
         }
         .stats-grid {
-            display: flex;
-            justify-content: space-between;
-            gap: 14px;
-            margin-bottom: 30px;
+            display:flex;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:14px;
+            margin-bottom:30px;
+        }
+        .table-scroll { overflow-x:auto; margin-bottom:20px; border-radius:16px; }
+        .table-scroll table { margin-bottom:0; }
+        @media (max-width: 640px) {
+            body { padding:14px; }
+            .header { padding:24px 20px; }
+            .header h1 { font-size:22px; }
+            .content { padding:20px 18px 28px; }
+            .stat-item { flex:1 1 140px; }
+            th, td { padding:9px 8px; font-size:13px; }
         }
         .stat-item {
-            text-align: center;
-            padding: 18px 16px;
-            background: linear-gradient(180deg, #faf7ff 0%, #f4edff 100%);
-            border: 1px solid #eadcff;
-            border-radius: 18px;
-            flex: 1;
+            text-align:center;
+            padding:18px 16px;
+            background:linear-gradient(180deg, var(--color-secondary-soft) 0%, var(--color-secondary-soft) 100%);
+            border:none;
+            border-radius:18px;
+            flex:1;
         }
         .stat-value {
-            font-size: 30px;
-            font-weight: 700;
-            color: #6d28d9;
+            font-size:30px;
+            font-weight:700;
+            color:var(--color-primary-text);
         }
         .stat-label {
-            font-size: 12px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            font-size:12px;
+            color:var(--color-text-muted);
+            text-transform:uppercase;
+            letter-spacing:0.08em;
         }
         table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            overflow: hidden;
-            border-radius: 16px;
+            width:100%;
+            border-collapse:collapse;
+            margin-bottom:20px;
+            overflow:hidden;
+            border-radius:16px;
         }
         th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
+            padding:12px;
+            text-align:left;
+            border-bottom:1px solid var(--color-border);
         }
         th {
-            background-color: #6d28d9;
-            color: white;
-            font-weight: bold;
+            background-color:var(--color-primary-text);
+            color:var(--color-on-solid);
+            font-weight:bold;
         }
         .normal {
-            color: #16a34a;
-            font-weight: bold;
+            color:var(--color-success-text);
+            font-weight:bold;
         }
         .abnormal {
-            color: #dc2626;
-            font-weight: bold;
+            color:var(--color-danger-text);
+            font-weight:bold;
         }
         .section-title {
-            background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
-            color: white;
-            padding: 12px 16px;
-            margin: 30px 0 15px 0;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 14px;
+            background:linear-gradient(135deg, var(--color-primary-text) 0%, var(--color-primary) 100%);
+            color:var(--color-on-solid);
+            padding:12px 16px;
+            margin:30px 0 15px 0;
+            font-size:16px;
+            font-weight:bold;
+            border-radius:14px;
         }
         .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 12px;
-            color: #666;
+            text-align:center;
+            margin-top:40px;
+            padding-top:20px;
+            border-top:1px solid var(--color-border);
+            font-size:12px;
+            color:var(--color-text-muted);
         }
         .note {
-            background-color: #fffbeb;
-            border: 1px solid #fde68a;
-            border-left: 4px solid #f59e0b;
-            padding: 12px 15px;
-            margin: 15px 0;
-            border-radius: 12px;
+            background-color:var(--color-warning-soft);
+            border:1px solid var(--color-warning);
+            border-left:4px solid var(--color-warning);
+            padding:12px 15px;
+            margin:15px 0;
+            border-radius:12px;
         }
     </style>
 </head>
@@ -159,6 +171,7 @@
     </div>
 
     <div class="section-title">Cycle History (Last 6 Periods)</div>
+    <div class="table-scroll">
     <table>
         <thead>
             <tr>
@@ -182,7 +195,7 @@
                     <td>{{ $records->count() - $index }}</td>
                     <td>{{ $record->period_start_date->format('M d, Y') }}</td>
                     <td>{{ $record->period_end_date ? $record->period_end_date->format('M d, Y') : 'Ongoing' }}</td>
-                    <td>{{ $record->duration }} days</td>
+                    <td>{{ $record->period_length ?? '-' }} {{ $record->period_length ? ($record->period_length != 1 ? 'days' : 'day') : '' }}</td>
                     <td>{{ $cycleLength ? $cycleLength . ' days' : '-' }}</td>
                     <td>
                         @if($isNormal === null)
@@ -197,6 +210,7 @@
             @endforeach
         </tbody>
     </table>
+    </div>
 
     <div class="note">
         <strong>Note:</strong> Normal menstrual cycle length ranges from 21 to 35 days. Cycles outside this range may indicate hormonal irregularities or other health conditions requiring medical attention.
@@ -204,6 +218,7 @@
 
     <div class="section-title">Daily Tracking Summary (Last 3 Months)</div>
     @if($dailyData->count() > 0)
+        <div class="table-scroll">
         <table>
             <thead>
                 <tr>
@@ -222,11 +237,12 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
         @if($dailyData->count() > 20)
-            <p style="text-align: center; color: #666; font-style: italic;">... and {{ $dailyData->count() - 20 }} more entries</p>
+            <p style="text-align:center; color:var(--color-text-muted); font-style:italic;">... and {{ $dailyData->count() - 20 }} more entries</p>
         @endif
     @else
-        <p style="text-align: center; color: #666;">No daily tracking data recorded in the last 3 months.</p>
+        <p style="text-align:center; color:var(--color-text-muted);">No daily tracking data recorded in the last 3 months.</p>
     @endif
 
     <div class="section-title">Medical Interpretation</div>
@@ -248,7 +264,7 @@
         @endif
 
         @if($averagePeriod)
-            <p style="margin-top: 15px;"><strong>Average Period Duration:</strong> {{ $averagePeriod }} days</p>
+            <p style="margin-top:15px;"><strong>Average Period Duration:</strong> {{ $averagePeriod }} days</p>
             <p>
                 @if($averagePeriod >= 2 && $averagePeriod <= 7)
                     <span class="normal">✓ Normal period duration (2-7 days)</span>
@@ -264,7 +280,7 @@
     <div class="footer">
         <p>This report was generated by ReproCare Health System</p>
         <p>For medical advice, please consult with your healthcare provider</p>
-        <p style="margin-top: 10px;"><strong>Report ID:</strong> MCR-{{ $user->id }}-{{ now()->format('Ymd') }}</p>
+        <p style="margin-top:10px;"><strong>Report ID:</strong> MCR-{{ $user->id }}-{{ now()->format('Ymd') }}</p>
     </div>
     </div>
     </div>

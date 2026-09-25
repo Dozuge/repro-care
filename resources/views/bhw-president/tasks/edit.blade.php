@@ -2,21 +2,22 @@
 
 @section('title', 'Edit Task - BHW President Portal | ReproCare')
 
-@section('content')
-<div class="page-header">
-    <div class="page-header-content">
-        <div>
-            <h1 class="page-title">Edit Task</h1>
-            <p class="page-subtitle">{{ $task->title }}</p>
+@section('bhw-president-content')
+<div class="py-4">
+    <div class="page-hero fade-in-card mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
+            <div>
+                <div class="page-hero-title">Edit Task</div>
+                <p class="page-hero-subtitle mb-0">{{ $task->title }}</p>
+            </div>
+            <a href="{{ route('bhw-president.tasks.index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back
+            </a>
         </div>
-        <a href="{{ route('bhw-president.tasks.index') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back
-        </a>
     </div>
-</div>
 
-<div class="card">
-    <div class="card-body">
+    <div class="card fade-in-card">
+    <div class="card-body p-4">
         <form action="{{ route('bhw-president.tasks.update', $task->id) }}" method="POST">
             @csrf
             @method('PUT')
@@ -75,13 +76,14 @@
                     </div>
                 </div>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check-lg me-1"></i> Update Task
                 </button>
                 <a href="{{ route('bhw-president.tasks.show', $task->id) }}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
+    </div>
     </div>
 </div>
 @endsection

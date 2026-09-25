@@ -69,7 +69,7 @@ class Midwife extends Authenticatable
      */
     public function scheduledCheckups()
     {
-        return $this->hasMany(Checkup::class, 'scheduled_by_midwife_id');
+        return $this->hasMany(Checkup::class, 'scheduled_by_id');
     }
 
     /**

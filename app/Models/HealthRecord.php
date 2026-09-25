@@ -37,12 +37,29 @@ class HealthRecord extends Model
         'risk_notes',
         'recommendations',
         'recorded_by_id',
+        'recorded_by_user_id',
         'bhw_president_id',
+        'bhw_president_reviewed_at',
+        'bhw_president_notes',
         'workflow_status',
         'submitted_to_bhw_president_at',
         'submitted_to_midwife_at',
         'midwife_accepted_at',
         'workflow_notes',
+        // 1. Rejection Feedback Loop — correction & resubmission state
+        'revision_count',
+        'rejected_by_id',
+        'rejected_at',
+        'rejection_reason',
+        'resubmitted_at',
+        // 3. Emergency fast-lane flag
+        'is_emergency',
+    ];
+
+    protected $casts = [
+        'rejected_at' => 'datetime',
+        'resubmitted_at' => 'datetime',
+        'is_emergency' => 'boolean',
     ];
 
     // Relationships
@@ -110,6 +127,27 @@ class HealthRecord extends Model
     public function getPatientBarangayAttribute(): ?string
     {
         return $this->woman?->barangay ?? $this->walkInPatient?->barangay;
+    }
+
+    // ── 1. Rejection Feedback Loop helpers ─────────────────────────────
+    public function scopeNeedsRevision($query)
+    {
+        return $query->whereIn('workflow_status', ['needs_revision', 'bhw_president_rejected']);
+    }
+
+    public function getIsNeedsRevisionAttribute(): bool
+    {
+        return in_array($this->workflow_status, ['needs_revision', 'bhw_president_rejected'], true);
+    }
+
+    public function getReviewerNoteAttribute(): ?string
+    {
+        return $this->rejection_reason ?? $this->workflow_notes;
+    }
+
+    public function rejectedBy()
+    {
+        return $this->belongsTo(User::class, 'rejected_by_id');
     }
 
 

@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-pencil-fill me-2" style="color:var(--warning);"></i>Edit Near-Miss Event
+            <div class="page-hero-title">Edit Near-Miss Event
             </div>
             <p class="page-hero-subtitle">
                 Modify maternal near-miss surveillance data.
@@ -22,7 +21,7 @@
 
 @if ($errors->any())
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-radius:12px;">
-        <h6 class="alert-heading fw-bold mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Please resolve the following errors:</h6>
+        <h6 class="alert-heading fw-bold mb-2">Please resolve the following errors:</h6>
         <ul class="mb-0 text-xs">
             @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -39,15 +38,13 @@
             @method('PUT')
 
             <!-- Patient Identification -->
-            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color:var(--text);">
-                <i class="bi bi-person-fill me-2" style="color:var(--primary);"></i>
-                Patient Details
+            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom:1px solid var(--border); padding-bottom:0.5rem; color:var(--text);">Patient Details
             </h5>
 
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label class="form-label text-muted">Patient Name</label>
-                    <input type="text" class="form-control" value="{{ $morbidity->patient_name }}" readonly style="background-color: var(--border);">
+                    <input type="text" class="form-control" value="{{ $morbidity->patient_name }}" readonly style="background-color:var(--border);">
                 </div>
 
                 <div class="col-md-6">
@@ -64,9 +61,7 @@
             </div>
 
             <!-- Complication details -->
-            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color:var(--text);">
-                <i class="bi bi-shield-fill-exclamation me-2" style="color:var(--danger);"></i>
-                Clinical Complication Details
+            <h5 class="fw-700 mb-4" style="font-family:'Plus Jakarta Sans',sans-serif; border-bottom:1px solid var(--border); padding-bottom:0.5rem; color:var(--text);">Clinical Complication Details
             </h5>
 
             <div class="row g-3 mb-4">
@@ -127,7 +122,7 @@
             </div>
 
             <div class="mb-4 d-none" id="maternalDeathCol">
-                <label class="form-label required-label">Link Registered Maternal Death Case</label>
+                <label class="form-label required-label">Link Enrolled Maternal Death Case</label>
                 <select name="maternal_death_id" id="maternalDeathSelect" class="form-select">
                     <option value="">-- Select Death Record --</option>
                     @foreach($deaths as $death)

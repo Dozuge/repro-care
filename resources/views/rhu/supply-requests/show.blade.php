@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-box-seam-fill me-2" style="color:var(--primary-light);"></i>Supply Request Details
+            <div class="page-hero-title">Supply Request Details
             </div>
             <p class="page-hero-subtitle">
                 Track status and view audit feedback from City Health Office.
@@ -24,9 +23,7 @@
     <div class="col-lg-8 mx-auto">
         <div class="card fade-in-card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">
-                    <i class="bi bi-info-circle me-2" style="color:var(--primary-light);"></i>
-                    Request Details
+                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text);">Request Details
                 </h5>
                 <span class="badge bg-{{ $supplyRequest->status === 'approved' ? 'success' : ($supplyRequest->status === 'declined' ? 'danger' : 'warning') }} text-white text-xs py-1.5 px-3 rounded-pill">
                     Status: {{ ucfirst($supplyRequest->status) }}

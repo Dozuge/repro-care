@@ -1,495 +1,262 @@
-@extends('cho.layout')
+@extends(($portal ?? 'cho').'.layout')
 
-@section('title', 'Strategic Analytics & AI Policy Engine - CHO | ReproCare')
+@section('title', 'Analytics | ReproCare')
 
-@section('cho-content')
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/cho-analytics.css') }}?v={{ filemtime(public_path('css/cho-analytics.css')) }}">
+@endpush
 
-{{-- Header Banner --}}
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-    <div>
-        <h2 class="fw-800 mb-1" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text); letter-spacing:-0.5px;">
-            <i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>Strategic Analytics &amp; Policy Action Engine
-        </h2>
-        <p class="text-muted mb-0" style="font-size:0.9rem;">
-            City-wide reproductive health surveillance, dynamic threshold triggers, and automated intervention strategies.
-        </p>
-    </div>
-    <div class="d-flex gap-2">
-        <button class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1.5" onclick="window.print()" style="border-radius:10px;">
-            <i class="bi bi-printer-fill"></i> Export Surveillance Report
-        </button>
-        <a href="{{ route('cho.sms.index') }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1.5" style="border-radius:10px;">
-            <i class="bi bi-broadcast"></i> SMS Alert Hub
-        </a>
-    </div>
-</div>
-
-{{-- 1. Top KPI Metric Strip --}}
-<div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-        <div class="card shadow-sm border p-3.5 h-100" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
-            <div class="d-flex align-items-center justify-content-between">
-                <span class="text-xs text-muted fw-700 text-uppercase" style="letter-spacing:0.5px;">Active Pregnancies</span>
-                <div class="rounded-circle p-2" style="background:var(--primary-subtle); color:var(--primary);">
-                    <i class="bi bi-person-heart fs-6"></i>
-                </div>
-            </div>
-            <h2 class="fw-800 mb-0 mt-2 text-dark" style="font-size:2rem; font-family:'Plus Jakarta Sans',sans-serif;">{{ $totalPregnant }}</h2>
-            <small class="text-muted mt-1 d-block"><i class="bi bi-check2-circle text-success me-1"></i>Active monitored cases</small>
-        </div>
-    </div>
-
-    <div class="col-6 col-lg-3">
-        <div class="card shadow-sm border p-3.5 h-100" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
-            <div class="d-flex align-items-center justify-content-between">
-                <span class="text-xs text-muted fw-700 text-uppercase" style="letter-spacing:0.5px;">High-Risk Proportion</span>
-                <div class="rounded-circle p-2" style="background:var(--badge-critical-bg); color:var(--badge-critical-text);">
-                    <i class="bi bi-exclamation-triangle-fill fs-6"></i>
-                </div>
-            </div>
-            @php $highRiskPct = $totalPregnant > 0 ? round(($highRiskCount / $totalPregnant) * 100, 1) : 0; @endphp
-            <h2 class="fw-800 mb-0 mt-2 text-danger" style="font-size:2rem; font-family:'Plus Jakarta Sans',sans-serif;">{{ $highRiskCount }} <span class="fs-6 text-muted fw-600">({{ $highRiskPct }}%)</span></h2>
-            <small class="text-muted mt-1 d-block"><i class="bi bi-shield-exclamation text-danger me-1"></i>Requiring specialist triage</small>
-        </div>
-    </div>
-
-    <div class="col-6 col-lg-3">
-        <div class="card shadow-sm border p-3.5 h-100" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
-            <div class="d-flex align-items-center justify-content-between">
-                <span class="text-xs text-muted fw-700 text-uppercase" style="letter-spacing:0.5px;">Teenage Pregnancies</span>
-                <div class="rounded-circle p-2" style="background:var(--badge-warning-bg); color:var(--badge-warning-text);">
-                    <i class="bi bi-person-exclamation fs-6"></i>
-                </div>
-            </div>
-            @php $teenPct = $totalPregnant > 0 ? round(($teenPregnancies / $totalPregnant) * 100, 1) : 0; @endphp
-            <h2 class="fw-800 mb-0 mt-2 text-warning" style="font-size:2rem; font-family:'Plus Jakarta Sans',sans-serif;">{{ $teenPregnancies }} <span class="fs-6 text-muted fw-600">({{ $teenPct }}%)</span></h2>
-            <small class="text-muted mt-1 d-block"><i class="bi bi-flag-fill text-warning me-1"></i>Adolescents &lt;19 years</small>
-        </div>
-    </div>
-
-    <div class="col-6 col-lg-3">
-        <div class="card shadow-sm border p-3.5 h-100" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
-            <div class="d-flex align-items-center justify-content-between">
-                <span class="text-xs text-muted fw-700 text-uppercase" style="letter-spacing:0.5px;">Maternal Mortality / Near-Miss</span>
-                <div class="rounded-circle p-2" style="background:rgba(100,116,139,0.12); color:#475569;">
-                    <i class="bi bi-journal-x fs-6"></i>
-                </div>
-            </div>
-            <h2 class="fw-800 mb-0 mt-2 text-dark" style="font-size:2rem; font-family:'Plus Jakarta Sans',sans-serif;">{{ $totalDeaths }} <span class="fs-6 text-muted fw-600">/ {{ $totalNearMiss }} Near-Miss</span></h2>
-            <small class="text-muted mt-1 d-block"><i class="bi bi-clipboard-check text-primary me-1"></i>Under maternal audit review</small>
-        </div>
-    </div>
-</div>
-
-{{-- 2. Dynamic Strategy Card ("AI Policy & Action Engine") --}}
-<div class="card shadow-sm border mb-4" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important; border-left: 5px solid var(--primary) !important;">
-    <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">
+@section(($portal ?? 'cho').'-content')
+<div class="analytics">
+    <header class="an-card an-heading an-page-header-card">
         <div>
-            <h5 class="fw-800 mb-0 text-dark d-flex align-items-center gap-2">
-                <i class="bi bi-cpu-fill text-primary"></i> AI Policy &amp; Strategic Action Engine
-            </h5>
-            <small class="text-muted">Automated surveillance threshold triggers and recommended CHO policy directives</small>
+            <div class="an-eyebrow">{{ strtoupper($portal ?? 'cho') }} / Maternal health intelligence</div>
+            <h1>Analytics</h1>
+            <p class="an-page-subtitle mb-0" style="font-weight:600;">A live operational view of maternal care, risk flags, and barangay workloads.</p>
         </div>
-        <span class="badge" style="background:var(--primary-subtle); color:var(--primary); font-size:0.75rem; font-weight:700;">
-            Surveillance Rule Engine Active
-        </span>
-    </div>
-    <div class="card-body p-4">
-        <div class="row g-3">
-            @forelse($strategicInterventions as $item)
-                @php
-                    $severity = $item['severity'] ?? 'info';
-                    $borderStyle = match($severity) {
-                        'critical' => 'border-danger-subtle bg-danger-subtle text-danger-emphasis',
-                        'warning'  => 'border-warning-subtle bg-warning-subtle text-warning-emphasis',
-                        default    => 'border-info-subtle bg-info-subtle text-info-emphasis',
-                    };
-                    $icon = match($severity) {
-                        'critical' => 'bi-exclamation-octagon-fill text-danger',
-                        'warning'  => 'bi-exclamation-triangle-fill text-warning',
-                        default    => 'bi-info-circle-fill text-info',
-                    };
-                @endphp
-                <div class="col-lg-6">
-                    <div class="p-3.5 rounded-3 border h-100 d-flex flex-column justify-content-between {{ $borderStyle }}" style="border-radius:14px;">
-                        <div>
-                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                                <h6 class="fw-800 mb-0 d-flex align-items-center gap-1.5" style="font-size:0.95rem;">
-                                    <i class="bi {{ $icon }}"></i> {{ $item['title'] }}
-                                </h6>
-                                <span class="badge bg-dark text-white text-xs px-2 py-1">{{ $item['badge'] }}</span>
-                            </div>
-                            <p class="text-xs text-muted mb-2.5">
-                                <i class="bi bi-flag-fill me-1"></i><strong>Trigger:</strong> {{ $item['trigger'] }}
-                            </p>
-                            <div class="text-xs text-uppercase fw-700 mb-1.5" style="letter-spacing:0.5px;">Recommended Strategic Directives:</div>
-                            <ul class="ps-3 mb-3" style="font-size:0.84rem; line-height:1.5;">
-                                @foreach($item['actions'] as $action)
-                                    <li>{{ $action }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
+        <button type="button" id="analytics-print" class="an-quiet-button an-no-print"><i class="bi bi-printer" aria-hidden="true"></i> Print report</button>
+    </header>
 
-                        {{-- Interactive Policy Action Buttons --}}
-                        <div class="pt-2 border-top d-flex gap-2 flex-wrap">
-                            @if(str_contains(strtolower($item['id'] ?? ''), 'teen'))
-                                <a href="{{ route('cho.patients.index', ['age_group' => 'teen']) }}" class="btn btn-sm btn-dark text-xs fw-700 d-inline-flex align-items-center gap-1" style="border-radius:8px;">
-                                    <i class="bi bi-people-fill"></i> Deploy Adolescent Health Drive
-                                </a>
-                                <a href="{{ route('learning.index', ['category' => 'pregnancy-guide']) }}" class="btn btn-sm btn-outline-dark text-xs fw-600 d-inline-flex align-items-center gap-1" style="border-radius:8px;">
-                                    <i class="bi bi-book-half"></i> Youth Counseling Kits
-                                </a>
-                            @elseif(str_contains(strtolower($item['id'] ?? ''), 'maternal') || str_contains(strtolower($item['id'] ?? ''), 'mortality'))
-                                <a href="{{ route('cho.maternal-deaths.index') }}" class="btn btn-sm btn-danger text-xs fw-700 d-inline-flex align-items-center gap-1" style="border-radius:8px;">
-                                    <i class="bi bi-journal-medical"></i> Open Clinical Audit
-                                </a>
-                                <a href="{{ route('cho.supply-requests.index') }}" class="btn btn-sm btn-outline-danger text-xs fw-600 d-inline-flex align-items-center gap-1" style="border-radius:8px;">
-                                    <i class="bi bi-box-seam"></i> Audit Emergency Supplies
-                                </a>
-                            @elseif(str_contains(strtolower($item['id'] ?? ''), 'anc') || str_contains(strtolower($item['id'] ?? ''), 'high_risk'))
-                                <a href="{{ route('cho.patients.index', ['risk_level' => 'high_risk_only']) }}" class="btn btn-sm btn-primary text-xs fw-700 d-inline-flex align-items-center gap-1" style="border-radius:8px;">
-                                    <i class="bi bi-shield-check"></i> High-Risk Home Visits
-                                </a>
-                                <a href="{{ route('cho.sms.index') }}" class="btn btn-sm btn-outline-primary text-xs fw-600 d-inline-flex align-items-center gap-1" style="border-radius:8px;">
-                                    <i class="bi bi-chat-dots-fill"></i> Broadcast Prenatal Reminders
-                                </a>
-                            @else
-                                <a href="{{ route('cho.patients.index') }}" class="btn btn-sm btn-secondary text-xs fw-700" style="border-radius:8px;">
-                                    Maintain Active Protocol
-                                </a>
-                            @endif
+    <form method="get" action="{{ route(($portal ?? 'cho').'.analytics') }}" class="an-card an-panel an-no-print">
+        <div class="an-filter-title"><i class="bi bi-sliders2" aria-hidden="true"></i><span>Report filters</span></div>
+        <div class="an-filter-grid">
+            <div>
+                <label for="analytics-from" class="form-label small fw-bold">From</label>
+                <input type="date" id="analytics-from" name="from" class="form-control" value="{{ $report['filters']['from'] }}" max="{{ today()->toDateString() }}" required>
+            </div>
+            <div>
+                <label for="analytics-to" class="form-label small fw-bold">To</label>
+                <input type="date" id="analytics-to" name="to" class="form-control" value="{{ $report['filters']['to'] }}" max="{{ today()->toDateString() }}" required>
+            </div>
+            <div>
+                <label for="analytics-rhu" class="form-label small fw-bold">RHU scope</label>
+                @if(($portal ?? 'cho') === 'cho')
+                    <select id="analytics-rhu" name="rhu" class="form-select">
+                        <option value="">City-wide · All RHUs</option>
+                        @foreach($rhuOptions as $rhu)<option value="{{ $rhu }}" @selected(($report['filters']['rhu'] ?? null) === $rhu)>{{ $rhu }}</option>@endforeach
+                    </select>
+                @else
+                    <input id="analytics-rhu" class="form-control" value="{{ $report['scope_label'] }}" readonly>
+                @endif
+            </div>
+            <div class="an-filter-area">
+                <label for="analytics-area" class="form-label small fw-bold">Barangay</label>
+                <select id="analytics-area" name="barangay" class="form-select">
+                    <option value="">All barangays</option>
+                    @if($report['filters']['barangay'] && !array_key_exists($report['filters']['barangay'], $areaOptions))
+                        <option value="{{ $report['filters']['barangay'] }}" selected>{{ $report['area_label'] }} (no matching area records)</option>
+                    @endif
+                    @foreach($areaOptions as $key => $label)
+                        <option value="{{ $key }}" @selected($report['filters']['barangay'] === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="an-filter-actions">
+                <button class="an-button" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> Apply filters</button>
+                <a href="{{ route(($portal ?? 'cho').'.analytics') }}" class="text-secondary small">Reset</a>
+            </div>
+        </div>
+    </form>
+    @if(($portal ?? 'cho') === 'cho')
+        <script>
+            document.getElementById('analytics-rhu')?.addEventListener('change', function () {
+                document.getElementById('analytics-area').value = '';
+                this.form.submit();
+            });
+        </script>
+    @endif
+    @if($errors->any())
+        <div class="alert alert-danger" role="alert">{{ $errors->first() }}</div>
+    @endif
+
+    <div class="an-report-meta">
+        <span><i class="bi bi-geo-alt" aria-hidden="true"></i> <strong>{{ $report['area_label'] }}</strong></span>
+        <span><i class="bi bi-calendar3" aria-hidden="true"></i> {{ $report['filters']['from'] }} to {{ $report['filters']['to'] }}</span>
+        <span><i class="bi bi-clock" aria-hidden="true"></i> Updated {{ $report['generated_at'] }} ({{ config('app.timezone') }})</span>
+    </div>
+    <div class="an-report-links an-no-print"><a href="#risk-map" class="an-quiet-button"><i class="bi bi-geo-alt" aria-hidden="true"></i> Risk heat map</a><a href="#analytics-trends" class="an-quiet-button"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Trends</a></div>
+    <div class="an-metrics">
+        @foreach([
+            ['Open pregnancies', 'open', 'Current records, including overdue', 'people'],
+            ['High / Critical risk', 'high_risk', 'Current stored risk flags', 'exclamation-triangle'],
+            ['New registrations', 'registrations', 'In the selected period', 'person-plus'],
+            ['Maternal deaths', 'deaths', 'By date of death, selected period', 'clipboard2-pulse'],
+            ['Complication events', 'complications', 'By event date, selected period', 'activity'],
+        ] as [$label, $key, $hint, $icon])
+            <div class="an-card an-metric" data-metric="{{ $key }}">
+                <div class="an-metric-top">
+                    <div class="an-metric-label">{{ $label }}</div>
+                    <span class="an-icon"><i class="bi bi-{{ $icon }}" aria-hidden="true"></i></span>
+                </div>
+                <div class="an-number">{{ number_format($report['totals'][$key]) }}</div>
+                <div class="an-subtitle">{{ $hint }}</div>
+            </div>
+        @endforeach
+    </div>
+    @include('cho.partials.analytics-risk-map')
+
+    <div class="an-overview">
+        <div class="an-overview-column">
+            <section class="an-card an-panel" aria-labelledby="analytics-suggestions-title">
+                <div class="an-section-heading">
+                    <div class="an-title-group">
+                        <span class="an-icon"><i class="bi bi-list-check" aria-hidden="true"></i></span>
+                        <div>
+                            <h2 id="analytics-suggestions-title">Suggested next steps</h2>
+                            <p class="an-subtitle mb-0">Based on recorded data, for your team's review.</p>
                         </div>
                     </div>
+                    <span class="an-badge">Free local rules</span>
                 </div>
-            @empty
-                <div class="col-12 text-center py-4">
-                    <i class="bi bi-check-circle-fill text-success fs-1"></i>
-                    <h6 class="fw-700 mt-2">All Surveillance Parameters Optimal</h6>
-                    <p class="text-muted text-xs">Maternal care compliance meets or exceeds regional targets.</p>
+                <div class="an-suggestions">
+                    @foreach($suggestions as $suggestion)
+                        <article class="an-suggestion {{ $suggestion['severity'] }}">
+                            <div class="an-suggestion-title">
+                                <i class="bi bi-{{ $suggestion['severity'] === 'danger' ? 'exclamation-octagon' : ($suggestion['severity'] === 'warning' ? 'exclamation-circle' : 'info-circle') }}" aria-hidden="true"></i>
+                                <h3>{{ $suggestion['title'] }}</h3>
+                            </div>
+                            <p>{{ $suggestion['evidence'] }}</p>
+                            <div class="an-suggestion-action"><i class="bi bi-arrow-return-right" aria-hidden="true"></i><p>{{ $suggestion['action'] }}</p></div>
+                        </article>
+                    @endforeach
                 </div>
-            @endforelse
+            </section>
         </div>
-    </div>
-</div>
+        <section class="an-card an-panel an-assistant" aria-labelledby="analytics-assistant-title">
+            <div class="an-section-heading">
+                <div class="an-title-group">
+                    <span class="an-icon"><i class="bi bi-stars" aria-hidden="true"></i></span>
+                    <div>
+                        <h2 id="analytics-assistant-title">Ask about this report</h2>
+                        <p class="an-subtitle mb-0">Explore priorities, patterns and area workloads.</p>
+                    </div>
+                </div>
+                <span id="analytics-provider-status" class="an-badge">{{ $aiStatus['label'] }}</span>
+            </div>
+            <p class="an-subtitle mb-3">{{ $aiStatus['description'] }} Apply your filters before asking.</p>
+            @if(config('services.analytics_ai.provider') === 'groq')
+                <details class="an-assistant-details">
+                    <summary>What is shared with online AI?</summary>
+                    <p>Your question and grouped report statistics go to Groq. Do not include names, patient identifiers, contacts, or private notes. Patient records, area names, exact dates and exact report counts are excluded.</p>
+                </details>
+            @endif
+            <form id="analytics-chat" action="{{ route(($portal ?? 'cho').'.analytics.chat') }}" class="an-no-print">
+                @csrf
+                <label for="analytics-question" class="form-label small fw-bold">Your question</label>
+                <p id="analytics-question-help" class="an-subtitle">Ask about maternal or reproductive health, ReproCare, or this report. Online AI receives your question; do not include patient details. Unrelated questions are outside its scope.</p>
+                <textarea id="analytics-question" aria-describedby="analytics-question-help" name="question" rows="3" maxlength="500" class="form-control mb-2" placeholder="Ask about maternal health, reproductive health, ReproCare, or this report?" required></textarea>
+                <div class="an-topics" role="group" aria-label="Suggested report questions">
+                    <button type="button" class="an-topic" aria-pressed="false" data-analytics-question="Which records need priority review?">Priorities</button>
+                    <button type="button" class="an-topic" aria-pressed="false" data-analytics-question="Summarize maternal deaths.">Maternal deaths</button>
+                    <button type="button" class="an-topic" aria-pressed="false" data-analytics-question="Summarize the monthly registration trend.">Trends</button>
+                    <button type="button" class="an-topic" aria-pressed="false" data-analytics-question="Which barangays need follow-up planning?">Areas</button>
+                </div>
+                <button id="analytics-ask" class="an-button" type="submit">Ask assistant</button>
+            </form>
+            <div id="analytics-chat-result" class="an-result" role="status" aria-live="polite" hidden>
+                <div id="analytics-chat-notice" class="an-subtitle mb-2"></div>
+                <div id="analytics-chat-answer" class="an-answer small"></div>
+                <div id="analytics-chat-context" class="an-subtitle mt-3"></div>
+            </div>
 
-{{-- 3. Visual Trend Analytics & Distribution Graphs --}}
-<div class="row g-4 mb-4">
-    {{-- Monthly Pregnancy Trend (Line Chart) --}}
-    <div class="col-lg-8">
-        <div class="card shadow-sm border h-100" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
-            <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom">
+        </section>
+    </div>
+
+    <div class="an-risk-events">
+        <section class="an-card an-panel" aria-labelledby="analytics-risk-title">
+            <div class="an-section-heading">
                 <div>
-                    <h6 class="fw-800 mb-0 text-dark"><i class="bi bi-graph-up me-2 text-primary"></i>Maternal Registration &amp; Surveillance Trend</h6>
-                    <small class="text-muted">Monthly new pregnancy registrations over the last 12 months</small>
+                    <h2 id="analytics-risk-title">Recorded risk distribution</h2>
+                    <p class="an-subtitle mb-0">Current open pregnancies by stored risk.</p>
                 </div>
-                <span class="badge bg-light text-dark border">Monthly Cohort</span>
+                <span class="an-badge">{{ $report['totals']['open'] }} open now</span>
             </div>
-            <div class="card-body p-3">
-                <div style="position: relative; height: 280px;">
-                    <canvas id="monthlyTrendChart"></canvas>
-                </div>
+            <div class="an-risk-list">
+                @foreach($report['risk_counts'] as $risk => $count)
+                    <div class="an-risk-row an-risk-color {{ $risk }}">
+                        <span class="an-risk-label"><span class="an-risk-dot" aria-hidden="true"></span>{{ $risk }}</span>
+                        <div class="an-meter" aria-hidden="true"><span style="width:{{ $report['totals']['open'] ? round($count / $report['totals']['open'] * 100, 2) : 0 }}%"></span></div>
+                        <strong>{{ $count }}</strong>
+                    </div>
+                @endforeach
             </div>
-        </div>
+        </section>
+        <section class="an-card an-panel">
+            <h2>Maternal deaths &amp; complications</h2>
+            <p class="an-subtitle">Recorded events by month. Complications may overlap with deaths.</p>
+            @include('cho.partials.analytics-chart', [
+                'chartId' => 'deaths', 'chartTitle' => 'Monthly recorded maternal deaths and complications',
+                'chartLabels' => array_column($report['monthly'], 'label'),
+                'chartSeries' => [
+                    ['label' => 'Deaths', 'color' => 'var(--color-danger)', 'values' => array_column($report['monthly'], 'deaths')],
+                    ['label' => 'Complications', 'color' => 'var(--color-warning)', 'values' => array_column($report['monthly'], 'complications')],
+                ],
+            ])
+        </section>
     </div>
 
-    {{-- Causes Breakdown / Distribution --}}
-    <div class="col-lg-4">
-        <div class="card shadow-sm border h-100" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
-            <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom">
-                <div>
-                    <h6 class="fw-800 mb-0 text-dark"><i class="bi bi-pie-chart-fill me-2 text-danger"></i>Risk &amp; Complication Tiers</h6>
-                    <small class="text-muted">Proportion by clinical classification</small>
-                </div>
-            </div>
-            <div class="card-body p-3 d-flex flex-column align-items-center justify-content-center">
-                <div style="position: relative; width: 220px; height: 220px;">
-                    <canvas id="riskDoughnutChart"></canvas>
-                </div>
-                <div class="d-flex justify-content-center gap-3 mt-3 text-xs text-muted">
-                    <span><span class="d-inline-block rounded-circle me-1" style="width:8px;height:8px;background:#6C5CE7;"></span>Low Risk</span>
-                    <span><span class="d-inline-block rounded-circle me-1" style="width:8px;height:8px;background:#F59E0B;"></span>Moderate</span>
-                    <span><span class="d-inline-block rounded-circle me-1" style="width:8px;height:8px;background:#EF4444;"></span>High Risk</span>
-                </div>
-            </div>
-        </div>
+    <div class="an-charts an-single-chart">
+        <section class="an-card an-panel">
+            <h2 id="analytics-trends">Pregnancy registration trend</h2>
+            <p class="an-subtitle">New records by registration month. First and last months may be partial.</p>
+            @include('cho.partials.analytics-chart', [
+                'chartId' => 'registrations', 'chartTitle' => 'Monthly pregnancy registrations',
+                'chartLabels' => array_column($report['monthly'], 'label'),
+                'chartSeries' => [['label' => 'Registrations', 'color' => 'var(--color-purple)', 'values' => array_column($report['monthly'], 'registrations')]],
+            ])
+        </section>
     </div>
 
-    {{-- Teenage Pregnancies by Barangay (Horizontal Bar Chart) --}}
-    <div class="col-lg-6">
-        <div class="card shadow-sm border h-100" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
-            <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom">
-                <div>
-                    <h6 class="fw-800 mb-0 text-dark"><i class="bi bi-geo-alt-fill me-2 text-warning"></i>Adolescent Cases by Barangay (&lt;19 yrs)</h6>
-                    <small class="text-muted">Barangays with highest adolescent pregnancy incidence</small>
-                </div>
-            </div>
-            <div class="card-body p-3">
-                <div style="position: relative; height: 240px;">
-                    <canvas id="teenBarangayChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- High-Risk Pregnancy Concentration by Barangay --}}
-    <div class="col-lg-6">
-        <div class="card shadow-sm border h-100" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
-            <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom">
-                <div>
-                    <h6 class="fw-800 mb-0 text-dark"><i class="bi bi-hospital me-2 text-danger"></i>High-Risk Density by Barangay</h6>
-                    <small class="text-muted">Preeclampsia, severe anemia, &amp; obstetric risk clusters</small>
-                </div>
-            </div>
-            <div class="card-body p-3">
-                <div style="position: relative; height: 240px;">
-                    <canvas id="highRiskBarangayChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Prioritized High-Risk Patient Queue --}}
-<div class="card shadow-sm border mb-4" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
-    <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom">
-        <div>
-            <h6 class="fw-800 mb-0 text-dark"><i class="bi bi-sort-numeric-down me-2 text-primary"></i>High-Risk Patient Prioritization Queue (Top 10)</h6>
-            <small class="text-muted">Ranked by multi-attribute triage urgency score</small>
-        </div>
-        <a href="{{ route('cho.patients.index', ['risk_level' => 'high_risk_only']) }}" class="btn btn-sm btn-outline-primary" style="border-radius:8px;">
-            View All {{ $highRiskCount }} High-Risk Cases
-        </a>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" style="font-size:0.875rem;">
-                <thead class="table-light">
-                    <tr>
-                        <th class="px-3 py-2.5">Priority Rank &amp; Patient</th>
-                        <th class="py-2.5">Age Bracket</th>
-                        <th class="py-2.5">Risk Level</th>
-                        <th class="py-2.5">Priority Score</th>
-                        <th class="py-2.5">Location</th>
-                        <th class="py-2.5 text-end px-3">Actions</th>
-                    </tr>
-                </thead>
+    <details class="an-card an-panel an-data-notes an-barangay-comparison mb-4">
+        <summary>
+            <span><span class="an-summary-title">Barangay comparison</span><small>Compare registrations, open pregnancies, risk flags, deaths, and complications by area.</small></span>
+            <span class="an-badge">{{ count($report['areas']) }} barangays</span>
+        </summary>
+        <div class="an-collapsible-content">
+        @php
+            $chartedAreas = array_slice($report['areas'], 0, 10);
+        @endphp
+        @include('cho.partials.analytics-chart', [
+            'chartId' => 'areas', 'chartTitle' => 'Current high-risk pregnancies and selected-period maternal deaths by barangay',
+            'chartLabels' => array_column($chartedAreas, 'label'),
+            'emptyDescription' => 'No High/Critical records or deaths match this chart. Other area counts are listed below.',
+            'chartSeries' => [
+                ['label' => 'High/Critical now', 'color' => 'var(--color-danger)', 'values' => array_column($chartedAreas, 'high_risk')],
+                ['label' => 'Deaths in period (striped)', 'striped' => true, 'color' => 'var(--color-danger-text)', 'values' => array_column($chartedAreas, 'deaths')],
+            ],
+        ])
+        <div class="table-responsive mt-3">
+            <table class="table an-table an-table-numeric mb-0">
+                <thead><tr><th>Barangay</th><th>Registrations<br>in period</th><th>Open<br>now</th><th>High/Critical<br>now</th><th>Deaths<br>in period</th><th>Complications<br>in period</th></tr></thead>
                 <tbody>
-                    @forelse($prioritized as $index => $item)
-                        @php
-                            $pt = $item['patient'];
-                            $risk = $item['risk_level'] ?? 'High';
-                            $badgeClass = match(strtolower($risk)) {
-                                'critical' => 'badge-critical',
-                                'high'     => 'badge-critical',
-                                'medium'   => 'badge-warning',
-                                default    => 'badge-success',
-                            };
-                        @endphp
-                        <tr>
-                            <td class="px-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-dark rounded-circle" style="width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; font-size:0.75rem;">
-                                        {{ $index + 1 }}
-                                    </span>
-                                    <div>
-                                        <div class="fw-700 text-dark">{{ $pt->first_name }} {{ $pt->last_name }}</div>
-                                        <small class="text-muted">ID: #{{ $pt->id }}</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                {{ $pt->age ? $pt->age . ' yrs' : 'N/A' }}
-                                @if($pt->isTeenage())
-                                    <span class="badge bg-danger-subtle text-danger ms-1 fw-700" style="font-size:0.68rem;">Teen &lt;19</span>
-                                @endif
-                            </td>
-                            <td>
-                                <span class="pill-badge {{ $badgeClass }}">{{ $risk }}</span>
-                            </td>
-                            <td>
-                                <div class="fw-800 text-primary">{{ $item['priority_score'] }} pts</div>
-                            </td>
-                            <td>{{ $pt->barangay ?? 'N/A' }}</td>
-                            <td class="text-end px-3">
-                                <a href="{{ route('cho.patients.show', $pt->id) }}" class="btn btn-sm btn-outline-primary" style="border-radius:8px; font-size:0.8rem;">
-                                    <i class="bi bi-eye me-1"></i> Review Case
-                                </a>
-                            </td>
-                        </tr>
+                    @forelse($report['areas'] as $area)
+                        <tr><td>{{ $area['label'] }}</td><td>{{ $area['registrations'] }}</td><td>{{ $area['open'] }}</td><td>{{ $area['high_risk'] }}</td><td>{{ $area['deaths'] }}</td><td>{{ $area['complications'] }}</td></tr>
                     @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">No high-risk patients prioritized at this time.</td>
-                        </tr>
+                        <tr><td colspan="6" class="text-center text-muted py-4">No records for this selection.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-    </div>
-{{-- ═══════════════════════════════════════════════════════
-     GEOGRAPHIC FACILITY MAPPING (SAN CARLOS CITY RHU)
-═══════════════════════════════════════════════════════ --}}
-<div class="card shadow-sm border mb-4" style="border-radius:16px; background:var(--bg-card); border-color:var(--border) !important;">
-    <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">
-        <div>
-            <h6 class="fw-800 mb-0 text-dark d-flex align-items-center gap-2">
-                <i class="bi bi-geo-alt-fill text-danger"></i> Geographic Facility Mapping — San Carlos City, Pangasinan
-            </h6>
-            <small class="text-muted">Interactive map for Rural Health Unit catchment and referral network</small>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <span class="badge" style="background:var(--primary-subtle); color:var(--primary); font-size:0.75rem; font-weight:700;">
-                <i class="bi bi-hospital me-1"></i> RHU Facility Location
-            </span>
-            <a href="https://www.google.com/maps?q=Rural+Health+Unit+San+Carlos+CIty+Pangasinan%2C+Philippines" target="_blank" class="btn btn-xs btn-outline-secondary" style="border-radius:8px; font-size:0.75rem;">
-                <i class="bi bi-box-arrow-up-right me-1"></i> Open Google Maps
-            </a>
+    </details>
+
+
+    <details class="an-card an-panel an-data-notes mb-4">
+        <summary>Monthly data &amp; how to read this report</summary>
+        <div class="table-responsive mt-3">
+            <table class="table an-table an-table-numeric">
+                <thead><tr><th>Month</th><th>Registrations</th><th>Maternal deaths</th><th>Complication events</th></tr></thead>
+                <tbody>@foreach($report['monthly'] as $month)<tr><td>{{ $month['label'] }}</td><td>{{ $month['registrations'] }}</td><td>{{ $month['deaths'] }}</td><td>{{ $month['complications'] }}</td></tr>@endforeach</tbody>
+            </table>
         </div>
-    </div>
-    <div class="card-body p-0 overflow-hidden" style="border-radius:0 0 16px 16px;">
-        <div class="ratio ratio-21x9" style="min-height:360px;">
-            <iframe src="https://www.google.com/maps?q=Rural+Health+Unit+San+Carlos+CIty+Pangasinan%2C+Philippines&amp;z=14&amp;t=p&amp;hl=en&amp;output=embed" 
-                    class="w-100 h-100 border-0" 
-                    loading="lazy" 
-                    allowfullscreen 
-                    referrerpolicy="no-referrer-when-downgrade">
-            </iframe>
-        </div>
-    </div>
+        <p class="small">A zero means no matching records were found, not that no event occurred. This report excludes archived records. Event counts are not mortality ratios, incidence rates or forecasts; those require verified definitions, reporting completeness and suitable denominators.</p>
+        <p class="small">Open pregnancies have no recorded end, delivery date or outcome. Known deceased patients are excluded from the current queue. Old open records may need an outcome update. Historical risk records from other pregnancies are excluded; unlinked appointments cannot be assigned to a pregnancy automatically.</p>
+        <p class="small mb-0">Online AI receives your question, count ranges, numbered months and area aliases. Do not include patient details in your question. Local Ollama receives aggregate figures and your question. Neither can change risk classifications, create appointments, or send messages. Staff must verify any generated summary.</p>
+    </details>
 </div>
+@endsection
 
 @push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Monthly Pregnancy Trend
-    const monthlyCtx = document.getElementById('monthlyTrendChart');
-    if (monthlyCtx) {
-        const monthlyData = @json($monthlyPregnancies);
-        new Chart(monthlyCtx, {
-            type: 'line',
-            data: {
-                labels: Object.keys(monthlyData),
-                datasets: [{
-                    label: 'New Pregnancies Registered',
-                    data: Object.values(monthlyData),
-                    borderColor: '#6C5CE7',
-                    backgroundColor: 'rgba(108, 92, 231, 0.08)',
-                    fill: true,
-                    tension: 0.35,
-                    borderWidth: 2.5,
-                    pointBackgroundColor: '#6C5CE7',
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 }
-                    }
-                }
-            }
-        });
-    }
-
-    // 2. Risk Distribution Doughnut
-    const riskCtx = document.getElementById('riskDoughnutChart');
-    if (riskCtx) {
-        new Chart(riskCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Routine / Low', 'Moderate', 'High / Critical'],
-                datasets: [{
-                    data: [
-                        Math.max(0, {{ $totalPregnant - $highRiskCount }}),
-                        Math.max(0, {{ (int)($totalPregnant * 0.2) }}),
-                        {{ $highRiskCount }}
-                    ],
-                    backgroundColor: ['#6C5CE7', '#F59E0B', '#EF4444'],
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '72%',
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-    }
-
-    // 3. Teenage Pregnancies by Barangay
-    const teenCtx = document.getElementById('teenBarangayChart');
-    if (teenCtx) {
-        const teenData = @json($teenByBarangay);
-        new Chart(teenCtx, {
-            type: 'bar',
-            data: {
-                labels: Object.keys(teenData).length > 0 ? Object.keys(teenData) : ['Padlan', 'Poblacion', 'San Roque', 'Tuburan'],
-                datasets: [{
-                    label: 'Adolescent Cases',
-                    data: Object.keys(teenData).length > 0 ? Object.values(teenData) : [4, 3, 2, 1],
-                    backgroundColor: '#F59E0B',
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 }
-                    }
-                }
-            }
-        });
-    }
-
-    // 4. High Risk Concentration by Barangay
-    const highRiskCtx = document.getElementById('highRiskBarangayChart');
-    if (highRiskCtx) {
-        const highRiskData = @json($highRiskByBarangay);
-        new Chart(highRiskCtx, {
-            type: 'bar',
-            data: {
-                labels: Object.keys(highRiskData).length > 0 ? Object.keys(highRiskData) : ['Padlan', 'Poblacion', 'San Roque', 'Tuburan'],
-                datasets: [{
-                    label: 'High-Risk Cases',
-                    data: Object.keys(highRiskData).length > 0 ? Object.values(highRiskData) : [5, 3, 2, 1],
-                    backgroundColor: '#EF4444',
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 }
-                    }
-                }
-            }
-        });
-    }
-});
-</script>
+<script src="{{ asset('js/analytics-support.js') }}?v={{ filemtime(public_path('js/analytics-support.js')) }}" defer></script>
+<script type="application/json" id="analytics-filter-data">{!! \Illuminate\Support\Js::encode($report['filters']) !!}</script>
 @endpush
-
-@endsection

@@ -5,11 +5,11 @@
 @push('styles')
 <style>
     .forum-admin-preview {
-        width: 100%;
-        max-height: 320px;
-        object-fit: cover;
-        border-radius: 18px;
-        border: 1px solid var(--border);
+        width:100%;
+        max-height:320px;
+        object-fit:cover;
+        border-radius:18px;
+        border:1px solid var(--border);
     }
 </style>
 @endpush
@@ -19,7 +19,7 @@
     <div class="page-hero fade-in-card">
         <div class="workspace-toolbar" style="position:relative;z-index:1;">
             <div>
-                <div class="page-hero-title"><i class="bi bi-pencil-fill me-2"></i>Edit Forum Post</div>
+                <div class="page-hero-title">Edit Forum Post</div>
                 <p class="page-hero-subtitle">Update the message, attachment, or details before the community sees the latest version.</p>
             </div>
             <div class="workspace-toolbar-actions">
@@ -31,7 +31,7 @@
 
     <div class="workspace-panel fade-in-card">
         <div class="workspace-panel-header">
-            <h2 class="workspace-panel-title"><i class="bi bi-pencil-square"></i>Edit Details</h2>
+            <h2 class="workspace-panel-title">Edit Details</h2>
         </div>
         <div class="workspace-panel-body">
             <form method="POST" action="{{ route('midwife.forum.admin.update', $post->id) }}" enctype="multipart/form-data">

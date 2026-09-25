@@ -1,520 +1,154 @@
-@extends('layouts.app')
+@extends('layouts.public')
 
-@section('title', 'Sign In - ReproCare')
-
-@push('scripts')
-<script>
-    // Clear any session storage on login page
-    sessionStorage.clear();
-
-    // Prevent browser autofill
-    window.addEventListener('load', function() {
-        setTimeout(function() {
-            const email = document.getElementById('email');
-            const password = document.getElementById('password');
-            if (email && !email.value.includes('@')) email.value = '';
-            if (password) password.value = '';
-        }, 100);
-    });
-
-    window.toggleLoginPassword = function() {
-        const input = document.getElementById('password');
-        const icon = document.getElementById('passwordToggleIcon');
-
-        if (!input || !icon) {
-            return;
-        }
-
-        const showPassword = input.type === 'password';
-        input.type = showPassword ? 'text' : 'password';
-        icon.className = showPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
-    };
-</script>
-@endpush
+@section('title', 'Welcome back — ReproCare')
+@section('page-class', 'login-page')
 
 @push('styles')
 <style>
-    /* ── Auth layout: no sidebar, no padding-top body offset ── */
-    body { padding-top: 0 !important; background: var(--bg-main) !important; }
-    nav.navbar { display: none !important; }
-    footer.footer { display: none !important; }
-
-    .login-wrapper {
-        min-height: 100vh;
-        display: flex;
-        align-items: stretch;
-        overflow: hidden;
-    }
-
-    /* ── LEFT DECORATIVE PANEL ── */
-    .login-left {
-        flex: 1;
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 4rem 3rem;
-    }
-
-    [data-theme="dark"] .login-left {
-        background: linear-gradient(160deg, #0d0420 0%, #1e0840 45%, #2a0a5a 100%);
-    }
-    [data-theme="light"] .login-left {
-        background: linear-gradient(160deg, #f3e8ff 0%, #e9d5ff 45%, #ddd6fe 100%);
-    }
-
-    /* Animated orbs */
-    .orb {
-        position: absolute;
-        border-radius: 50%;
-        pointer-events: none;
-    }
-    .orb-1 {
-        width: 480px; height: 480px;
-        top: -160px; right: -120px;
-        animation: floatOrb1 10s ease-in-out infinite;
-    }
-    [data-theme="dark"]  .orb-1 { background: radial-gradient(circle, rgba(218,54,255,0.30) 0%, transparent 70%); }
-    [data-theme="light"] .orb-1 { background: radial-gradient(circle, rgba(218,54,255,0.18) 0%, transparent 70%); }
-
-    .orb-2 {
-        width: 360px; height: 360px;
-        bottom: -120px; left: -80px;
-        animation: floatOrb2 13s ease-in-out infinite;
-    }
-    [data-theme="dark"]  .orb-2 { background: radial-gradient(circle, rgba(244,63,142,0.22) 0%, transparent 70%); }
-    [data-theme="light"] .orb-2 { background: radial-gradient(circle, rgba(244,63,142,0.15) 0%, transparent 70%); }
-
-    .orb-3 {
-        width: 200px; height: 200px;
-        top: 50%; left: 40%;
-        transform: translate(-50%, -50%);
-        animation: floatOrb3 8s ease-in-out infinite;
-    }
-    [data-theme="dark"]  .orb-3 { background: radial-gradient(circle, rgba(155,54,255,0.18) 0%, transparent 70%); }
-    [data-theme="light"] .orb-3 { background: radial-gradient(circle, rgba(155,54,255,0.12) 0%, transparent 70%); }
-
-    @keyframes floatOrb1 {
-        0%,100% { transform: translate(0,0) scale(1); }
-        33%     { transform: translate(-30px, 30px) scale(1.08); }
-        66%     { transform: translate(20px,-20px) scale(0.95); }
-    }
-    @keyframes floatOrb2 {
-        0%,100% { transform: translate(0,0) scale(1); }
-        40%     { transform: translate(40px,-25px) scale(1.12); }
-        70%     { transform: translate(-15px, 15px) scale(0.92); }
-    }
-    @keyframes floatOrb3 {
-        0%,100% { transform: translate(-50%,-50%) scale(1); }
-        50%     { transform: translate(-50%,-55%) scale(1.15); }
-    }
-
-    /* Left content */
-    .left-content {
-        position: relative;
-        z-index: 2;
-        text-align: center;
-        max-width: 400px;
-    }
-
-    .brand-logo-hero {
-        width: 108px; height: 108px;
-        border-radius: 30px;
-        background: rgba(255,255,255,0.18);
-        display: grid;
-        place-items: center;
-        padding: 0.75rem;
-        margin: 0 auto 1.5rem;
-        box-shadow: 0 12px 40px rgba(105, 50, 164, 0.18), 0 0 80px rgba(218,54,255,0.16);
-        backdrop-filter: blur(14px);
-        animation: heroFloat 3.5s ease-in-out infinite;
-    }
-    .brand-logo-hero img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        border-radius: 22px;
-    }
-    @keyframes heroFloat {
-        0%,100% { transform: translateY(0) rotate(0deg); }
-        50%     { transform: translateY(-10px) rotate(-2deg); }
-    }
-
-    [data-theme="dark"]  .left-content h1 { color: #fff; }
-    [data-theme="light"] .left-content h1 { color: var(--text); }
-    .left-content h1 {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-size: 2.6rem;
-        font-weight: 800;
-        letter-spacing: -1px;
-        margin-bottom: 0.5rem;
-    }
-
-    [data-theme="dark"]  .left-content p { color: rgba(255,255,255,0.72); }
-    [data-theme="light"] .left-content p { color: var(--text-muted); }
-    .left-content p {
-        font-size: 1rem;
-        max-width: 300px;
-        margin: 0 auto 2.5rem;
-        line-height: 1.6;
-    }
-
-    /* Feature list */
-    .feature-list { list-style: none; padding: 0; text-align: left; display: inline-block; }
-    .feature-list li {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        margin-bottom: 0.85rem;
-        font-size: 0.9rem;
-        animation: featureFadeIn 0.5s ease both;
-    }
-    .feature-list li:nth-child(1) { animation-delay: 0.1s; }
-    .feature-list li:nth-child(2) { animation-delay: 0.2s; }
-    .feature-list li:nth-child(3) { animation-delay: 0.3s; }
-    .feature-list li:nth-child(4) { animation-delay: 0.4s; }
-    .feature-list li:nth-child(5) { animation-delay: 0.5s; }
-    @keyframes featureFadeIn {
-        from { opacity: 0; transform: translateX(-12px); }
-        to   { opacity: 1; transform: translateX(0); }
-    }
-
-    .feature-icon {
-        width: 34px; height: 34px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.95rem;
-        flex-shrink: 0;
-        background: linear-gradient(135deg, var(--primary), var(--accent-violet));
-        color: #fff;
-        box-shadow: 0 3px 10px var(--primary-glow);
-    }
-
-    [data-theme="dark"]  .feature-list li span { color: rgba(255,255,255,0.85); }
-    [data-theme="light"] .feature-list li span { color: var(--text); }
-    .feature-list li span { font-weight: 500; }
-
-    /* ── RIGHT FORM PANEL ── */
-    .login-right {
-        width: 480px;
-        flex-shrink: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 3rem 2.5rem;
-        overflow-y: auto;
-        position: relative;
-    }
-
-    [data-theme="dark"]  .login-right {
-        background: var(--bg-card);
-        border-left: 1px solid var(--border-glass);
-    }
-    [data-theme="light"] .login-right {
-        background: rgba(255,255,255,0.92);
-        border-left: 1px solid var(--border);
-        backdrop-filter: blur(20px);
-    }
-
-    .login-form-wrap { width: 100%; max-width: 380px; }
-
-    .login-form-title {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        font-size: 1.8rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        margin-bottom: 0.3rem;
-        color: var(--text);
-    }
-    .login-form-sub {
-        font-size: 0.875rem;
-        color: var(--text-muted);
-        margin-bottom: 2rem;
-        line-height: 1.5;
-    }
-
-    /* Icon input */
-    .field-group { margin-bottom: 1.2rem; }
-
-    .input-icon-wrap {
-        position: relative;
-    }
-    .input-icon-wrap .field-icon {
-        position: absolute;
-        left: 0.95rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        font-size: 1rem;
-        pointer-events: none;
-        z-index: 2;
-        transition: color 0.2s ease;
-    }
-    .input-icon-wrap:focus-within .field-icon { color: var(--primary); }
-
-    .input-icon-wrap input {
-        padding-left: 2.65rem;
-        padding-right: 3.25rem;
-        width: 100%;
-        height: 50px;
-        background: var(--bg-input);
-        border: 1.5px solid var(--border);
-        border-radius: 14px;
-        color: var(--text);
-        font-size: 0.9rem;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
-        outline: none;
-    }
-    .input-icon-wrap input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px var(--primary-glow);
-        background: var(--bg-input);
-    }
-    .input-icon-wrap input::placeholder { color: var(--text-muted); opacity: 0.65; }
-    .password-toggle {
-        position: absolute;
-        right: 0.7rem;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 36px;
-        height: 36px;
-        border: none;
-        border-radius: 10px;
-        background: transparent;
-        color: var(--text-muted);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 3;
-        transition: all 0.18s ease;
-    }
-    .password-toggle:hover {
-        background: var(--primary-subtle);
-        color: var(--primary);
-    }
-
-    /* Login button */
-    .btn-login {
-        width: 100%;
-        height: 50px;
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        border: none;
-        border-radius: 14px;
-        color: #fff;
-        font-size: 0.95rem;
-        font-weight: 700;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        box-shadow: 0 6px 24px var(--primary-glow);
-        position: relative;
-        overflow: hidden;
-        margin-top: 0.5rem;
-    }
-    .btn-login::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        transform: translateX(-100%);
-        transition: transform 0.5s ease;
-    }
-    .btn-login:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 36px var(--primary-glow);
-    }
-    .btn-login:hover::after { transform: translateX(100%); }
-    .btn-login:active { transform: scale(0.97); }
-
-    /* Divider */
-    .auth-divider {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin: 1.5rem 0;
-    }
-    .auth-divider::before, .auth-divider::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: var(--border);
-    }
-    .auth-divider span { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
-
-    /* Register link */
-    .register-link-wrap {
-        text-align: center;
-        font-size: 0.875rem;
-        color: var(--text-muted);
-    }
-    .register-link-wrap a {
-        color: var(--primary-light);
-        font-weight: 600;
-        text-decoration: none;
-        transition: color 0.15s ease;
-    }
-    .register-link-wrap a:hover { color: var(--primary); }
-
-    @media (max-width: 768px) {
-        .login-left { display: none; }
-        .login-right { width: 100%; border-left: none; padding: 2.5rem 1.5rem; }
-    }
-    @media (max-width: 480px) {
-        .login-right { padding: 2rem 1.25rem; }
-        .login-form-title { font-size: 1.5rem; }
+    /* ── Facebook-style split auth, ReproCare rose palette ── */
+    .fb-auth { display:grid; grid-template-columns:1.05fr 1fr; min-height:calc(100vh - 166px); }
+    .fb-hero { position:relative; overflow:hidden; padding:64px 56px; display:flex; flex-direction:column; justify-content:center; background:var(--color-secondary-soft); }
+    .fb-hero-logo { display:flex; align-items:center; gap:10px; font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:1.5rem; color:var(--color-text); margin-bottom:28px; }
+    .fb-hero-logo span span { color:var(--color-secondary-text); }
+    .fb-hero h1 { font-size:clamp(2.4rem,4vw,3.6rem); line-height:1.08; color:var(--color-text); margin:0 0 32px; max-width:440px; }
+    .fb-hero h1 span { color:var(--color-secondary-text); }
+    .fb-collage { position:relative; width:100%; height:430px; max-width:660px; margin-left:auto; transform:translateX(18px); }
+    .fb-shot { position:absolute; border-radius:22px; overflow:hidden; box-shadow:0 18px 48px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 22%, transparent); border:4px solid var(--color-border); }
+    .fb-shot img { display:block; width:100%; height:100%; object-fit:cover; }
+    .fb-shot-a { width:86%; height:94%; left:9%; top:0; }
+    .fb-float { position:absolute; display:flex; align-items:center; gap:8px; background:var(--color-surface); border-radius:999px; padding:9px 16px 9px 10px; font-size:.78rem; font-weight:700; color:var(--color-text); box-shadow:0 10px 28px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 16%, transparent); z-index:2; }
+    .fb-float .fb-ico { width:30px; height:30px; border-radius:50%; display:grid; place-items:center; color:#111; background:transparent; border:1.5px solid #111; font-size:.95rem; flex-shrink:0; }
+    .fb-f1 { left:0; top:0; } .fb-f1 .fb-ico { background:transparent; }
+    .fb-f2 { right:0; bottom:1%; } .fb-f2 .fb-ico { background:transparent; }
+    .fb-f3 { left:8%; bottom:0; } .fb-f3 .fb-ico { background:transparent; }
+    .fb-f4 { right:0; top:14%; } .fb-f4 .fb-ico { background:transparent; }
+    .fb-side { display:flex; align-items:center; justify-content:center; padding:56px 40px; background:var(--color-surface); }
+    .fb-card { width:100%; max-width:420px; }
+    .fb-card h2 { font-size:1.45rem; margin:0 0 22px; text-align:center; }
+    .fb-field { margin-bottom:14px; }
+    .fb-input-wrap { position:relative; }
+    .fb-input-wrap > i { position:absolute; top:50%; left:20px; transform:translateY(-50%); color:var(--color-text-muted); font-size:1rem; }
+    .fb-card input[type="email"], .fb-card input[type="password"], .fb-card input[type="text"] { width:100%; height:56px; border-radius:999px; border:1.5px solid var(--color-border); background:var(--color-surface); padding:12px 52px 12px 48px; font-size:.92rem; color:var(--color-text); outline:none; transition:border-color .2s, box-shadow .2s; }
+    .fb-card input:focus { border-color:var(--color-secondary-text); box-shadow:0 0 0 4px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 12%, transparent); }
+    .fb-card input:focus + i, .fb-input-wrap:focus-within > i { color:var(--color-secondary-text); }
+    .fb-btn-primary { width:100%; height:54px; border-radius:999px; border:none; background:linear-gradient(135deg,var(--color-secondary-text),var(--color-secondary-text)); color:var(--color-on-solid); font-weight:700; font-size:1rem; cursor:pointer; box-shadow:0 8px 22px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 35%, transparent); transition:all .2s; display:flex; align-items:center; justify-content:center; gap:10px; }
+    .fb-btn-primary:hover { transform:translateY(-2px); box-shadow:0 12px 30px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 45%, transparent); }
+    .fb-btn-outline { width:100%; height:52px; border-radius:999px; background:var(--color-surface); border:1.5px solid var(--color-secondary-text); color:var(--color-secondary-text); font-weight:700; font-size:.95rem; display:flex; align-items:center; justify-content:center; text-decoration:none; transition:all .2s; }
+    .fb-btn-outline:hover { background:var(--color-secondary-soft); transform:translateY(-2px); }
+    .fb-center { text-align:center; }
+    .fb-forgot { display:inline-block; margin:16px 0 20px; font-size:.86rem; font-weight:600; color:var(--color-text); }
+    .fb-forgot:hover { color:var(--color-secondary-text); }
+    .fb-divider { display:flex; align-items:center; gap:12px; color:var(--color-text-muted); font-size:.75rem; margin:22px 0; }
+    .fb-divider::before, .fb-divider::after { content:''; flex:1; height:1px; background:var(--color-border); }
+    .fb-remember { display:flex; align-items:center; gap:9px; font-size:.82rem; color:var(--color-text-muted); margin:2px 0 18px; cursor:pointer; }
+    .fb-remember input { accent-color:var(--color-secondary-text); width:16px; height:16px; }
+    .fb-input-wrap .password-toggle { top:50%; transform:translateY(-50%); right:8px; }
+    .fb-demo { margin-top:22px; border:1px dashed var(--color-border); border-radius:18px; padding:14px 16px; background:var(--color-bg); }
+    .fb-demo summary { cursor:pointer; font-size:.8rem; font-weight:700; color:var(--color-text-muted); }
+    .fb-demo .demo-options { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .fb-demo .demo-options button { background:var(--color-surface); border:1px solid var(--color-border); border-radius:999px; padding:7px 14px; font-size:.76rem; font-weight:600; color:var(--color-text-muted); cursor:pointer; transition:all .18s; }
+    .fb-demo .demo-options button:hover { border-color:var(--color-secondary-text); color:var(--color-secondary-text); }
+    @media (max-width:900px) {
+        .fb-auth { grid-template-columns:1fr; }
+        .fb-hero { padding:44px 28px 56px; }
+        .fb-collage { height:340px; max-width:580px; margin-inline:auto; transform:none; }
+        .fb-side { padding:36px 22px 56px; }
     }
 </style>
 @endpush
 
 @section('content')
-<div class="login-wrapper">
-
-    {{-- ── LEFT PANEL ── --}}
-    <div class="login-left">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-
-        <div class="left-content">
-            <div class="brand-logo-hero">
-                <img src="{{ asset('images/brand/reprocare-logo.svg') }}" alt="ReproCare logo">
-            </div>
-            <h1>ReproCare</h1>
-            <p>Your comprehensive maternal &amp; reproductive health companion</p>
-
-            <ul class="feature-list">
-                <li>
-                    <span class="feature-icon"><i class="bi bi-calendar-heart"></i></span>
-                    <span>Period &amp; Cycle Tracking</span>
-                </li>
-                <li>
-                    <span class="feature-icon"><i class="bi bi-heart-pulse"></i></span>
-                    <span>Pregnancy Monitoring</span>
-                </li>
-                <li>
-                    <span class="feature-icon"><i class="bi bi-graph-up-arrow"></i></span>
-                    <span>Health Analytics &amp; Reports</span>
-                </li>
-                <li>
-                    <span class="feature-icon"><i class="bi bi-chat-dots"></i></span>
-                    <span>Community &amp; Learning Hub</span>
-                </li>
-                <li>
-                    <span class="feature-icon"><i class="bi bi-shield-check"></i></span>
-                    <span>Secure &amp; Private Records</span>
-                </li>
-            </ul>
+<div class="fb-auth">
+    <aside class="fb-hero" aria-label="Care for every chapter">
+        <h1>Care for the ones <span>you love.</span></h1>
+        <div class="fb-collage" aria-hidden="true">
+            <div class="fb-float fb-f1"><span class="fb-ico"><i class="bi bi-clipboard2-pulse"></i></span> Checkups on track</div>
+            <div class="fb-shot fb-shot-a"><img src="{{ asset('images/maternal-care-bright.jpg') }}" alt=""></div>
+            <div class="fb-float fb-f2"><span class="fb-ico"><i class="bi bi-alarm"></i></span> Reminders that care</div>
+            <div class="fb-float fb-f3"><span class="fb-ico"><i class="bi bi-calendar-heart"></i></span> Period tracking</div>
+            <div class="fb-float fb-f4"><span class="fb-ico"><i class="bi bi-journal-medical"></i></span> Health learning</div>
         </div>
-    </div>
-
-    {{-- ── RIGHT FORM PANEL ── --}}
-    <div class="login-right">
-        <div class="login-form-wrap">
-
-            <div class="mb-3">
-                <a href="{{ url('/') }}" class="d-inline-flex align-items-center gap-1 text-decoration-none text-muted" style="font-size: 0.85rem; font-weight: 600; transition: color 0.15s ease;">
-                    <i class="bi bi-arrow-left"></i> Back to ReproCare
-                </a>
+    </aside>
+    <section class="fb-side">
+    <div class="fb-card" aria-labelledby="login-title">
+        <a class="auth-back-plain" href="{{ route('home') }}" aria-label="Back to Home"><span aria-hidden="true">&larr;</span></a>
+        <h2 id="login-title">Log into ReproCare</h2>
+        @if ($errors->any())
+            <div class="public-alert" role="alert">
+                @foreach ($errors->all() as $error)<div>{{ $error }}</div>@endforeach
             </div>
-
-            <h2 class="login-form-title">Welcome back! 👋</h2>
-            <p class="login-form-sub">Sign in to continue to your health dashboard</p>
-
-            {{-- Error Messages --}}
-            @if ($errors->any())
-                <div class="alert alert-danger mb-3 d-flex align-items-start gap-2">
-                    <i class="bi bi-exclamation-circle-fill mt-1 flex-shrink-0"></i>
-                    <div>
-                        @foreach ($errors->all() as $error)
-                            <div>{{ $error }}</div>
-                        @endforeach
-                    </div>
+        @endif
+        @if(session('success'))
+            <div class="public-alert public-alert-success" role="status">{{ session('success') }}</div>
+        @endif
+        @if(session('pending_registration'))
+            <div class="public-alert public-alert-pending" role="status"><strong>Verification in progress</strong><br>RHU is verifying your account. You will receive an SMS once approved.</div>
+        @endif
+        @if(session('status'))
+            <div class="public-alert public-alert-success" role="status">{{ session('status') }}</div>
+        @endif
+        <form id="loginForm" method="POST" action="{{ route('login.post') }}">
+            @csrf
+            <div class="fb-field">
+                <div class="fb-input-wrap">
+                    <i class="bi bi-envelope" aria-hidden="true"></i>
+                    <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="Email address" aria-label="Email address" autocomplete="email" required @if($errors->has('email')) aria-invalid="true" @endif>
                 </div>
-            @endif
-
-            @if(session('success'))
-                <div class="alert alert-success mb-3 d-flex align-items-center gap-2">
-                    <i class="bi bi-check-circle-fill flex-shrink-0"></i>
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            @if(session('pending_registration'))
-                <div class="alert mb-3 d-flex align-items-start gap-2" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.4);border-radius:14px;color:var(--text);">
-                    <i class="bi bi-hourglass-split flex-shrink-0 mt-1" style="color:#f59e0b;font-size:1.1rem;"></i>
-                    <div>
-                        <div style="font-weight:700;font-size:0.9rem;color:#f59e0b;margin-bottom:0.2rem;">Registration Submitted!</div>
-                        <div style="font-size:0.82rem;color:var(--text-muted);">
-                            Your account is <strong>pending approval</strong> by your Barangay Health Worker (BHW).
-                            You will be able to log in once it is approved. Please check back later.
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            {{-- Login Form --}}
-            <form method="POST" action="{{ route('login.post') }}">
-                @csrf
-
-                <div class="field-group">
-                    <label class="form-label" for="email">Email Address</label>
-                    <div class="input-icon-wrap">
-                        <i class="bi bi-envelope field-icon"></i>
-                        <input type="email"
-                               id="email"
-                               name="email"
-                               value="{{ old('email') }}"
-                               placeholder="your@email.com"
-                               required
-                               autofocus
-                               autocomplete="off"
-                               readonly
-                               onfocus="this.removeAttribute('readonly')">
-                    </div>
-                </div>
-
-                <div class="field-group">
-                    <label class="form-label" for="password">Password</label>
-                    <div class="input-icon-wrap">
-                        <i class="bi bi-lock field-icon"></i>
-                        <input type="password"
-                               id="password"
-                               name="password"
-                               placeholder="••••••••"
-                               required
-                               autocomplete="new-password"
-                               readonly
-                               onfocus="this.removeAttribute('readonly')">
-                        <button type="button" class="password-toggle" onclick="toggleLoginPassword()" aria-label="Show or hide password">
-                            <i class="bi bi-eye" id="passwordToggleIcon"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-login">
-                    <i class="bi bi-box-arrow-in-right"></i>
-                    Sign In
-                </button>
-            </form>
-
-            <div class="auth-divider"><span>or</span></div>
-
-            <div class="register-link-wrap">
-                Don't have an account?
-                <a href="{{ route('register') }}">Create one free</a>
             </div>
-
-        </div>
+            <div class="fb-field">
+                <div class="fb-input-wrap">
+                    <i class="bi bi-lock" aria-hidden="true"></i>
+                    <input type="password" id="password" name="password" placeholder="Password" aria-label="Password" autocomplete="current-password" required>
+                    <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false"><i class="bi bi-eye" id="passwordToggleIcon" aria-hidden="true"></i></button>
+                </div>
+            </div>
+            <label class="fb-remember"><input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}><span>Remember this device</span></label>
+            <button type="submit" id="btnSubmitLogin" class="fb-btn-primary">Log in</button>
+        </form>
+        <div class="fb-center"><a class="fb-forgot" href="{{ route('password.request') }}">Forgot password?</a></div>
+        <div class="fb-divider">new to ReproCare?</div>
+        <a class="fb-btn-outline" href="{{ route('register') }}">Create new account</a>
+        <details class="fb-demo">
+            <summary>Demo access</summary>
+            <div class="demo-options">
+                <button type="button" data-demo-email="mariasanta@gmail.com">Patient</button>
+                <button type="button" data-demo-email="midwife@reprocare.com">Midwife</button>
+                <button type="button" data-demo-email="ana@gmail.com">BHW</button>
+                <button type="button" data-demo-email="rhu@reprocare.com">RHU 1</button>
+                <button type="button" data-demo-email="cho@reprocare.com">CHO</button>
+                <button type="button" data-demo-email="pres@gmail.com">BHW President</button>
+            </div>
+            <p id="demoFeedback" role="status"></p>
+        </details>
     </div>
-
+    </section>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.getElementById('passwordToggle').addEventListener('click', function () {
+        const input = document.getElementById('password');
+        const showing = input.type === 'password';
+        input.type = showing ? 'text' : 'password';
+        this.setAttribute('aria-label', showing ? 'Hide password' : 'Show password');
+        this.setAttribute('aria-pressed', String(showing));
+        document.getElementById('passwordToggleIcon').className = showing ? 'bi bi-eye-slash' : 'bi bi-eye';
+    });
+    document.querySelectorAll('[data-demo-email]').forEach(button => {
+        button.addEventListener('click', () => {
+            document.getElementById('email').value = button.dataset.demoEmail;
+            document.getElementById('password').value = 'password123';
+            document.getElementById('demoFeedback').textContent = button.textContent + ' demo selected. Log in to continue.';
+            document.getElementById('email').focus();
+        });
+    });
+    // Modern loading feedback: disable + spinner while signing in (stops double-submit)
+    document.getElementById('loginForm').addEventListener('submit', function () {
+        var btn = document.getElementById('btnSubmitLogin');
+        btn.classList.add('is-loading');
+        btn.disabled = true;
+        btn.innerHTML = 'Signing in…';
+    });
+</script>
+@endpush

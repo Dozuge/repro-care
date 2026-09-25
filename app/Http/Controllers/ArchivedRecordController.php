@@ -129,52 +129,46 @@ class ArchivedRecordController extends Controller
 
     /**
      * Restore an archived record with a single action.
+     * All restores flow through ArchiveService so status flags,
+     * archive metadata, and audit logs stay consistent.
      */
     public function restore(string $type, int $id)
     {
-        $name = '';
-        switch ($type) {
-            case 'patient':
-            case 'staff':
-            case 'user':
-                $record = User::onlyTrashed()->findOrFail($id);
-                $name = $record->name;
-                $record->restore();
-                if ($record->status === 'archived') {
-                    $record->update(['status' => 'approved', 'rejection_reason' => null]);
-                }
-                break;
+        $service = app(\App\Services\ArchiveService::class);
 
-            case 'health-record':
-                $record = HealthRecord::onlyTrashed()->findOrFail($id);
-                $name = "Health Record #" . $record->id;
-                $record->restore();
-                break;
-
-            case 'learning-material':
-            case 'video':
-                $record = LearningMaterial::onlyTrashed()->findOrFail($id);
-                $name = $record->title;
-                $record->restore();
-                break;
-
-            case 'pregnancy':
-                $record = Pregnancy::onlyTrashed()->findOrFail($id);
-                $name = "Pregnancy Record #" . $record->id;
-                $record->restore();
-                break;
-
-            case 'supply-request':
-                $record = SupplyRequest::onlyTrashed()->findOrFail($id);
-                $name = "Supply Request: " . $record->supply_name;
-                $record->restore();
-                break;
-
-            default:
-                return back()->with('error', 'Invalid record type specified for restoration.');
+        try {
+            $name = match ($type) {
+                'patient', 'staff', 'user' => $service->restoreUser($id, auth()->user())->name,
+                'health-record' => $service->restoreRecord(
+                    HealthRecord::onlyTrashed()->findOrFail($id), auth()->user()
+                )->patient_name ?? "Health Record #{$id}",
+                'learning-material', 'video' => $service->restoreRecord(
+                    LearningMaterial::onlyTrashed()->findOrFail($id), auth()->user()
+                )->title,
+                'pregnancy' => "Pregnancy Record #{$service->restoreRecord(
+                    Pregnancy::onlyTrashed()->findOrFail($id), auth()->user()
+                )->id}",
+                'supply-request' => 'Supply Request: ' . $service->restoreRecord(
+                    SupplyRequest::onlyTrashed()->findOrFail($id), auth()->user()
+                )->supply_name,
+                'referral' => 'Referral #' . $service->restoreRecord(
+                    \App\Models\CheckupReferral::onlyTrashed()->findOrFail($id), auth()->user()
+                )->id,
+                'maternal-death' => 'Maternal death case #' . $service->restoreRecord(
+                    MaternalDeath::onlyTrashed()->findOrFail($id), auth()->user()
+                )->id,
+                'maternal-morbidity' => 'Morbidity record #' . $service->restoreRecord(
+                    MaternalMorbidity::onlyTrashed()->findOrFail($id), auth()->user()
+                )->id,
+                default => null,
+            };
+        } catch (\RuntimeException | \InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
-        ActivityLog::log('restore', "CHO restored archived {$type}: {$name}");
+        if ($name === null) {
+            return back()->with('error', 'Invalid record type specified for restoration.');
+        }
 
         return back()->with('success', "Archived {$type} '{$name}' restored successfully.");
     }

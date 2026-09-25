@@ -5,7 +5,7 @@
 @section('midwife-content')
 <div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-calendar-check"></i> Checkup Details</h1>
+        <h1>Checkup Details</h1>
         <div>
             <a href="{{ route('midwife.checkups.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Back to Checkups
@@ -20,7 +20,7 @@
         <div class="col-md-8">
             <div class="card shadow mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-calendar-check-fill"></i> Checkup Information</h5>
+                    <h5 class="mb-0">Checkup Information</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -79,7 +79,7 @@
         <div class="col-md-4">
             <div class="card shadow mb-4">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="bi bi-people-fill"></i> People Involved</h5>
+                    <h5 class="mb-0">People Involved</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -88,10 +88,10 @@
                             @if($checkup->patient_record)
                                 <div class="mb-2 p-2 border bg-light rounded">
                                     <div class="d-flex align-items-center">
-                                        <i class="bi bi-person-circle text-primary me-2" style="font-size: 1.5rem;"></i>
+                                        <i class="bi bi-person-circle text-primary me-2" style="font-size:1.5rem;"></i>
                                         <div class="ms-2 flex-grow-1">
                                             <div class="fw-bold">{{ $checkup->patient_name }}</div>
-                                            <div class="text-muted small">{{ $checkup->woman?->email ?? $checkup->walkInPatient?->contact_number ?? 'Walk-in woman' }}</div>
+                                            <div class="text-muted small">{{ $checkup->woman?->email ?? $checkup->walkInPatient?->contact_number ?? 'Unlinked woman' }}</div>
                                             @if($checkup->walkInPatient)
                                                 <div class="text-muted small">{{ $checkup->walkInPatient->barangay ?? 'No barangay set' }}</div>
                                             @endif
@@ -107,7 +107,7 @@
                             @if($checkup->midwife)
                                 <div class="mb-2 p-2 border bg-light rounded">
                                     <div class="d-flex align-items-center">
-                                        <i class="bi bi-person-badge text-success me-2" style="font-size: 1.5rem;"></i>
+                                        <i class="bi bi-person-badge text-success me-2" style="font-size:1.5rem;"></i>
                                         <div class="ms-2 flex-grow-1">
                                             <div class="fw-bold">{{ $checkup->midwife->name }}</div>
                                             <div class="text-muted small">{{ $checkup->midwife->email }}</div>
@@ -125,7 +125,7 @@
             @if(in_array($checkup->status, ['scheduled', 'Scheduled']))
                 <div class="card shadow">
                     <div class="card-header bg-warning text-white">
-                        <h5 class="mb-0"><i class="bi bi-gear-fill"></i> Actions</h5>
+                        <h5 class="mb-0">Actions</h5>
                     </div>
                     <div class="card-body">
                         <form action="{{ route('midwife.checkups.complete', $checkup->id) }}" method="POST" class="mb-2">

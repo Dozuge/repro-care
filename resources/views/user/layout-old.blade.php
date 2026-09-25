@@ -13,173 +13,173 @@
     <!-- Custom CSS -->
     <style>
         :root {
-            --primary-color: #6d28d9;
-            --primary-dark: #5b21b6;
-            --primary-light: #7c3aed;
-            --secondary-color: #ec4899;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --info-color: #3b82f6;
+            --primary-color:var(--color-primary-text);
+
+
+            --secondary-color:var(--color-secondary);
+            --success-color:var(--color-success);
+            --warning-color:var(--color-warning);
+            --danger-color:var(--color-danger);
+            --info-color:var(--color-info);
         }
         
         body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color:var(--color-surface-soft);
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         .navbar-brand {
-            font-weight: bold;
-            color: var(--primary-color) !important;
+            font-weight:bold;
+            color:var(--primary-color) !important;
         }
         
         .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            background-color:var(--primary-color);
+            border-color:var(--primary-color);
         }
         
         .btn-primary:hover {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
+            background-color:var(--primary-dark);
+            border-color:var(--primary-dark);
         }
         
         .card-header {
-            background-color: var(--primary-color);
-            color: white;
+            background-color:var(--primary-color);
+            color:var(--color-on-solid);
         }
         
         .sidebar {
-            background-color: white;
-            border-right: 1px solid #dee2e6;
-            min-height: calc(100vh - 56px);
-            position: fixed;
-            top: 56px;
-            left: 0;
-            width: 240px;
-            z-index: 100;
+            background-color:var(--color-surface);
+            border-right:1px solid var(--color-border);
+            min-height:calc(100vh - 56px);
+            position:fixed;
+            top:56px;
+            left:0;
+            width:240px;
+            z-index:100;
         }
         
         .sidebar .nav-link {
-            color: #495057;
-            padding: 0.75rem 1rem;
-            border-radius: 0;
-            display: flex;
-            align-items: center;
+            color:var(--color-text-muted);
+            padding:0.75rem 1rem;
+            border-radius:0;
+            display:flex;
+            align-items:center;
         }
         
         .sidebar .nav-link:hover {
-            background-color: #f8f9fa;
-            color: var(--primary-color);
+            background-color:var(--color-surface-soft);
+            color:var(--primary-color);
         }
         
         .sidebar .nav-link.active {
-            background-color: var(--primary-color);
-            color: white;
+            background-color:var(--primary-color);
+            color:var(--color-on-solid);
         }
         
         .sidebar .nav-link i {
-            margin-right: 0.5rem;
+            margin-right:0.5rem;
         }
         
         .main-content {
-            margin-left: 240px;
-            padding: 1rem;
+            margin-left:240px;
+            padding:1rem;
         }
         
         @media (max-width: 768px) {
             .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
+                transform:translateX(-100%);
+                transition:transform 0.3s ease;
             }
             
             .sidebar.show {
-                transform: translateX(0);
+                transform:translateX(0);
             }
             
             .main-content {
-                margin-left: 0;
+                margin-left:0;
             }
         }
         
         .status-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            font-weight: 500;
+            padding:0.25rem 0.5rem;
+            border-radius:0.375rem;
+            font-size:0.875rem;
+            font-weight:500;
         }
         
         .status-scheduled {
-            background-color: #dbeafe;
-            color: #1e40af;
+            background-color:var(--color-info-soft);
+            color:var(--color-primary-text);
         }
         
         .status-completed {
-            background-color: #d1fae5;
-            color: #065f46;
+            background-color:var(--color-success-soft);
+            color:var(--color-success-text);
         }
         
         .status-missed {
-            background-color: #fee2e2;
-            color: #991b1b;
+            background-color:var(--color-danger-soft);
+            color:var(--color-danger-text);
         }
         
         .risk-low {
-            background-color: #d1fae5;
-            color: #065f46;
+            background-color:var(--color-success-soft);
+            color:var(--color-success-text);
         }
         
         .risk-medium {
-            background-color: #fed7aa;
-            color: #92400e;
+            background-color:var(--color-warning-soft);
+            color:var(--color-warning-text);
         }
         
         .risk-high {
-            background-color: #fee2e2;
-            color: #991b1b;
+            background-color:var(--color-danger-soft);
+            color:var(--color-danger-text);
         }
         
         .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--danger-color);
-            color: white;
-            border-radius: 50%;
-            padding: 0.125rem 0.375rem;
-            font-size: 0.75rem;
-            min-width: 1.25rem;
-            text-align: center;
+            position:absolute;
+            top:-5px;
+            right:-5px;
+            background-color:var(--danger-color);
+            color:var(--color-on-solid);
+            border-radius:50%;
+            padding:0.125rem 0.375rem;
+            font-size:0.75rem;
+            min-width:1.25rem;
+            text-align:center;
         }
         
         .stats-card {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-            color: white;
-            border: none;
+            background:linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color:var(--color-on-solid);
+            border:none;
         }
         
         .stats-card .card-body {
-            padding: 1.5rem;
+            padding:1.5rem;
         }
         
         .stats-number {
-            font-size: 2rem;
-            font-weight: bold;
+            font-size:2rem;
+            font-weight:bold;
         }
         
         .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(109, 40, 217, 0.25);
+            border-color:var(--primary-color);
+            box-shadow:0 0 0 0.2rem color-mix(in srgb, rgb(var(--color-shadow-rgb)) 25%, transparent);
         }
         
         .table-hover tbody tr:hover {
-            background-color: #f8f9fa;
+            background-color:var(--color-surface-soft);
         }
         
         .footer {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1rem 0;
-            margin-top: auto;
+            background-color:var(--primary-color);
+            color:var(--color-on-solid);
+            padding:1rem 0;
+            margin-top:auto;
         }
     </style>
 </head>
@@ -230,7 +230,7 @@
     </nav>
     
     <!-- Logout Form -->
-    <form id="user-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+    <form id="user-logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
         @csrf
         @method('POST')
     </form>

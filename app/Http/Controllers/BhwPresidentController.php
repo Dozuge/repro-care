@@ -30,29 +30,32 @@ class BhwPresidentController extends Controller
     // Dashboard
     public function dashboard()
     {
-        // Cache dashboard statistics for 5 minutes
-        $cacheKey = 'bhw_president_dashboard_stats';
-        $stats = Cache::remember($cacheKey, 300, function () {
+        $barangay = auth()->user()->barangay;
+        // Per-president cache key + barangay scoping so presidents see their barangay, not the city.
+        $cacheKey = 'bhw_president_dashboard_stats_'.auth()->id();
+        $stats = Cache::remember($cacheKey, 300, function () use ($barangay) {
             return [
-                'totalPatients' => User::where('role', 'user')->count(),
-                'totalBhws' => User::where('role', 'bhw')->count(),
-                'activePregnancies' => Pregnancy::active()->count(),
-                'highRiskPregnancies' => Pregnancy::active()->highRisk()->count(),
-                'scheduledCheckups' => Checkup::scheduled()->count(),
-                'missedCheckups' => Checkup::missed()->count(),
-                'completedCheckups' => Checkup::where('status', 'Completed')->count(),
-                'totalHealthRecords' => HealthRecord::count(),
-                'monthlyReports' => BhwMonthlyReport::count(),
+                'totalPatients' => User::where('role', 'user')->where('barangay', $barangay)->count(),
+                'totalBhws' => User::where('role', 'bhw')->where('barangay', $barangay)->count(),
+                'activePregnancies' => Pregnancy::active()->whereHas('woman', fn ($q) => $q->where('barangay', $barangay))->count(),
+                'highRiskPregnancies' => Pregnancy::active()->highRisk()->whereHas('woman', fn ($q) => $q->where('barangay', $barangay))->count(),
+                'scheduledCheckups' => Checkup::scheduled()->whereHas('woman', fn ($q) => $q->where('barangay', $barangay))->count(),
+                'missedCheckups' => Checkup::missed()->whereHas('woman', fn ($q) => $q->where('barangay', $barangay))->count(),
+                'completedCheckups' => Checkup::where('status', 'Completed')->whereHas('woman', fn ($q) => $q->where('barangay', $barangay))->count(),
+                'totalHealthRecords' => HealthRecord::whereHas('woman', fn ($q) => $q->where('barangay', $barangay))->count(),
+                'monthlyReports' => BhwMonthlyReport::whereHas('bhw', fn ($q) => $q->where('barangay', $barangay))->count(),
             ];
         });
 
         // Recent activity
         $recentCheckups = Checkup::with(['woman', 'scheduledByBhw'])
+            ->whereHas('woman', fn ($q) => $q->where('barangay', $barangay))
             ->latest('scheduled_date')
             ->limit(10)
             ->get();
 
         $recentHealthRecords = HealthRecord::with(['woman', 'recordedBy'])
+            ->whereHas('woman', fn ($q) => $q->where('barangay', $barangay))
             ->latest()
             ->limit(10)
             ->get();
@@ -60,6 +63,7 @@ class BhwPresidentController extends Controller
         // High-risk pregnancies needing attention
         $highRiskPregnancies = Pregnancy::active()
             ->highRisk()
+            ->whereHas('woman', fn ($q) => $q->where('barangay', $barangay))
             ->with(['woman', 'checkups' => function ($query) {
                 $query->latest('scheduled_date');
             }])
@@ -77,66 +81,13 @@ class BhwPresidentController extends Controller
         )));
     }
 
-    public function pendingPatients()
-    {
-        $search = request('search');
-
-        $query = User::where('role', 'user')->where('status', 'pending');
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', '%' . $search . '%')
-                    ->orWhere('middle_initial', 'like', '%' . $search . '%')
-                    ->orWhere('last_name', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%')
-                    ->orWhere('barangay', 'like', '%' . $search . '%');
-            });
-        }
-
-        $pending = $query->latest()->paginate(10)->withQueryString();
-
-        return view('bhw-president.pending-patients', compact('pending'));
-    }
-
-    public function approvePatient($id)
-    {
-        $woman = User::where('role', 'user')->findOrFail($id);
-        $woman->update([
-            'status' => 'approved',
-            'rejection_reason' => null,
-        ]);
-
-        \App\Models\Notification::createNotification(
-            $woman->id,
-            'Your registration has been approved. You can now log in to ReproCare.',
-            'Registration Approved',
-            'success',
-            route('user.dashboard')
-        );
-
-        return redirect()->route('bhw-president.pending-patients')
-            ->with('success', $woman->name . ' has been approved.');
-    }
-
-    public function rejectPatient(Request $request, $id)
-    {
-        $request->validate(['reason' => 'nullable|string|max:500']);
-
-        $woman = User::where('role', 'user')->findOrFail($id);
-        $womanName = $woman->name;
-        $woman->delete();
-
-        return redirect()->route('bhw-president.pending-patients')
-            ->with('success', $womanName . ' has been rejected and deleted.');
-    }
-
     // BHW Management
     public function bhws()
     {
         $search = request('search');
         $status = request('status');
 
-        $query = User::where('role', 'bhw')->with(['purok', 'activeBhwAssignment.purok']);
+        $query = User::where('role', 'bhw')->where('barangay', auth()->user()->barangay)->with(['purok', 'activeBhwAssignment.purok']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -167,9 +118,7 @@ class BhwPresidentController extends Controller
     // Create BHW Form
     public function createBhw()
     {
-        $puroks = Purok::orderBy('barangay')->orderBy('name')->get();
-
-        return view('bhw-president.create-bhw', compact('puroks'));
+        return view('bhw-president.create-bhw');
     }
 
     // Store BHW
@@ -181,7 +130,8 @@ class BhwPresidentController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'purok_id' => 'nullable|exists:puroks,id',
+            'purok' => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:500',
             'date_of_birth' => 'required|date|before:today',
             'gender' => 'required|in:male,female',
             'phone' => 'required|string|max:20',
@@ -191,15 +141,22 @@ class BhwPresidentController extends Controller
         ]);
 
         $data = $validated;
+        unset($data['purok']);
         $data['password'] = Hash::make($validated['password']);
         $data['role'] = 'bhw';
         $data['status'] = 'approved';
         $data['contact_number'] = $validated['phone'];
         $data['phone'] = $validated['phone'];
-        $data['address'] = null;
+        $data['address'] = $request->address ?: implode(', ', array_filter([
+            $request->filled('purok') ? $request->purok : null,
+            auth()->user()->barangay,
+            'San Carlos City, Pangasinan',
+        ]));
 
-        $selectedPurok = $request->filled('purok_id') ? Purok::find($request->purok_id) : null;
-        $data['barangay'] = $selectedPurok?->barangay ?? 'Burgos';
+        // New BHWs belong to the president's own barangay; typed Sitio / Street / Purok
+        // entries are added to the registry automatically.
+        $data['barangay'] = auth()->user()->barangay;
+        $data['purok_id'] = \App\Models\Purok::resolveIdFromText($request->purok, auth()->user()->barangay);
 
         if ($request->hasFile('profile_image')) {
             $imageName = time() . '.' . $request->profile_image->extension();
@@ -207,9 +164,10 @@ class BhwPresidentController extends Controller
             $data['profile_image'] = 'uploads/profile/' . $imageName;
         }
 
-        User::create($data);
+        $bhw = User::create($data);
+        \App\Models\ActivityLog::log('create', "BHW President created BHW {$bhw->name} in ".auth()->user()->barangay);
 
-        Cache::forget('bhw_president_dashboard_stats');
+        Cache::forget('bhw_president_dashboard_stats_'.auth()->id());
 
         return redirect()->route('bhw-president.bhws.index')
             ->with('success', 'BHW created successfully.');
@@ -262,42 +220,6 @@ class BhwPresidentController extends Controller
         return view('bhw-president.health-records.index', compact('healthRecords'));
     }
 
-    public function editHealthRecord($id)
-    {
-        $healthRecord = HealthRecord::with(['woman', 'walkInPatient', 'recordedBy'])->findOrFail($id);
-
-        return view('bhw-president.health-records.edit', compact('healthRecord'));
-    }
-
-    public function updateHealthRecord(Request $request, $id)
-    {
-        $healthRecord = HealthRecord::findOrFail($id);
-
-        $validated = $request->validate([
-            'bp' => 'required|string|max:20',
-            'weight' => 'nullable|numeric|min:0|max:300',
-            'heart_rate' => 'nullable|integer|min:0|max:250',
-            'temperature' => 'nullable|numeric|min:30|max:45',
-            'notes' => 'nullable|string|max:1000',
-            'risk_level' => 'required|in:Low,Medium,High',
-            'workflow_notes' => 'nullable|string|max:1000',
-        ]);
-
-        $healthRecord->update([
-            'bp' => $validated['bp'],
-            'weight' => $validated['weight'],
-            'heart_rate' => $validated['heart_rate'],
-            'temperature' => $validated['temperature'],
-            'notes' => $validated['notes'],
-            'risk_level' => $validated['risk_level'],
-            'workflow_notes' => $validated['workflow_notes'],
-            'bhw_president_id' => auth()->id(),
-        ]);
-
-        return redirect()->route('bhw-president.health-records.index')
-            ->with('success', 'Health record updated successfully.');
-    }
-
     public function passHealthRecordToMidwife(Request $request, $id)
     {
         $healthRecord = HealthRecord::with('recordedBy')->findOrFail($id);
@@ -320,6 +242,7 @@ class BhwPresidentController extends Controller
                 route('midwife.health-records.show', $healthRecord->id)
             );
         }
+        \App\Models\ActivityLog::log('update', "BHW President passed health record #{$healthRecord->id} ({$healthRecord->patient_name}) to midwife");
 
         return redirect()->route('bhw-president.health-records.index')
             ->with('success', 'Health record passed to the midwife.');
@@ -366,30 +289,41 @@ class BhwPresidentController extends Controller
             'info',
             route('bhw.dashboard')
         );
+        \App\Models\ActivityLog::log('update', "BHW President assigned {$bhw->name} to {$purok->name}");
 
         return redirect()->route('bhw-president.bhws.details', $bhw->id)
             ->with('success', $bhw->name . ' is now assigned to ' . $purok->name . '.');
     }
 
-    // Archive BHW
-    public function archiveBhw($id)
+    // Archive BHW (status flag + soft delete — retained for audit with a reason)
+    public function archiveBhw(\Illuminate\Http\Request $request, $id)
     {
         $bhw = User::where('role', 'bhw')->findOrFail($id);
-        $bhw->update([
-            'status' => 'archived',
-            'archived_at' => now(),
-        ]);
+        $reason = trim((string) $request->input('reason', ''));
+        if ($reason === '') {
+            $reason = 'BHW archived by BHW President via console';
+        }
+
+        try {
+            app(\App\Services\ArchiveService::class)->archiveUser($bhw, $reason, auth()->user());
+        } catch (\InvalidArgumentException | \RuntimeException $e) {
+            return back()->withErrors(['handover' => $e->getMessage()])->withInput();
+        }
 
         Cache::forget('bhw_president_dashboard_stats');
 
         return redirect()->route('bhw-president.bhws.index')
-            ->with('success', 'BHW ' . $bhw->name . ' has been archived.');
+            ->with('success', 'BHW ' . $bhw->name . ' has been archived. Records are retained for audit.');
     }
 
     // Mark BHW as Inactive
     public function markInactive($id)
     {
         $bhw = User::where('role', 'bhw')->findOrFail($id);
+
+        if ($block = app(\App\Services\WorkflowService::class)->guardOffboarding($bhw)) {
+            return $block;
+        }
         $bhw->update(['status' => 'inactive']);
 
         Cache::forget('bhw_president_dashboard_stats');
@@ -410,14 +344,19 @@ class BhwPresidentController extends Controller
             ->with('success', 'BHW ' . $bhw->name . ' has been activated.');
     }
 
-    // Delete BHW
-    public function deleteBhw($id)
+    // Archive BHW (soft-delete only — the account stays in archives for audit)
+    public function deleteBhw(\Illuminate\Http\Request $request, $id)
     {
         $bhw = User::where('role', 'bhw')->findOrFail($id);
 
         if (($bhw->status ?? 'approved') === 'approved') {
             return redirect()->route('bhw-president.bhws.details', $bhw->id)
-                ->withErrors(['delete' => 'Active BHW accounts cannot be deleted. Mark the BHW inactive first.']);
+                ->withErrors(['delete' => 'Active BHW accounts cannot be archived directly. Mark the BHW inactive first.']);
+        }
+
+        $reason = trim((string) $request->input('reason', ''));
+        if ($reason === '') {
+            $reason = 'BHW archived by BHW President via console';
         }
 
         // Delete profile image if exists
@@ -428,12 +367,16 @@ class BhwPresidentController extends Controller
             }
         }
 
-        $bhw->delete();
+        $bhw->update(['archived_reason' => $reason, 'archived_at' => now(), 'archived_by' => auth()->id()]);
+        if (! $bhw->trashed()) {
+            $bhw->delete();
+        }
+        \App\Models\ActivityLog::logProtected('archive', "BHW President archived BHW {$bhw->name}. Reason: {$reason}", $bhw);
 
         Cache::forget('bhw_president_dashboard_stats');
 
         return redirect()->route('bhw-president.bhws.index')
-            ->with('success', 'BHW ' . $bhw->name . ' has been deleted.');
+            ->with('success', 'BHW ' . $bhw->name . ' has been archived. Records are retained for audit.');
     }
 
     // Analytics Dashboard
@@ -478,10 +421,60 @@ class BhwPresidentController extends Controller
             ];
         }
 
+        // Risk distribution across active pregnancies (for the risk chart).
+        // Keys are matched case-insensitively for the same reason as above.
+        $riskCounts = Pregnancy::active()
+            ->selectRaw('LOWER(COALESCE(risk_level, ?)) as level, COUNT(*) as total', ['Low'])
+            ->groupBy('level')
+            ->pluck('total', 'level')
+            ->all();
+        $riskDistribution = [
+            'labels' => ['Low', 'Medium', 'High', 'Critical'],
+            'values' => [
+                (int) ($riskCounts['low'] ?? 0),
+                (int) ($riskCounts['medium'] ?? 0),
+                (int) ($riskCounts['high'] ?? 0),
+                (int) ($riskCounts['critical'] ?? 0),
+            ],
+        ];
+
+        // Checkup outcomes (for the outcomes chart).
+        // Keys are matched case-insensitively: stored values vary ('scheduled' vs 'Scheduled').
+        $statusCounts = Checkup::selectRaw('LOWER(status) as status_key, COUNT(*) as total')
+            ->groupBy('status_key')
+            ->pluck('total', 'status_key')
+            ->all();
+        $checkupOutcomes = [
+            'labels' => ['Scheduled', 'Completed', 'Missed', 'Cancelled'],
+            'values' => [
+                (int) ($statusCounts['scheduled'] ?? 0),
+                (int) ($statusCounts['completed'] ?? 0),
+                (int) ($statusCounts['missed'] ?? 0),
+                (int) ($statusCounts['cancelled'] ?? 0),
+            ],
+        ];
+
+        // BHW workload: records filed per BHW, top 8 (for the workload chart)
+        $workload = HealthRecord::selectRaw('recorded_by_id, COUNT(*) as total')
+            ->whereNotNull('recorded_by_id')
+            ->whereHas('recordedBy', fn ($q) => $q->where('role', 'bhw'))
+            ->groupBy('recorded_by_id')
+            ->orderByDesc('total')
+            ->limit(8)
+            ->with('recordedBy:id,first_name,last_name')
+            ->get();
+        $bhwWorkload = [
+            'labels' => $workload->map(fn ($row) => trim(($row->recordedBy?->first_name ?? '') . ' ' . mb_substr((string) $row->recordedBy?->last_name, 0, 1)) ?: ('BHW #' . $row->recorded_by_id))->all(),
+            'values' => $workload->map(fn ($row) => (int) $row->total)->all(),
+        ];
+
         return view('bhw-president.analytics', compact(
             'maternalStats',
             'serviceStats',
-            'monthlyTrends'
+            'monthlyTrends',
+            'riskDistribution',
+            'checkupOutcomes',
+            'bhwWorkload'
         ));
     }
 
@@ -594,6 +587,39 @@ class BhwPresidentController extends Controller
         return view('bhw-president.high-risk', compact('highRiskPregnancies'));
     }
 
+    // Pregnancies Review Queue (missing method referenced by bhw-president.pregnancies.index)
+    public function pregnancies(Request $request)
+    {
+        $search = $request->input('search');
+        $filter = $request->input('filter', 'pending');
+
+        $query = Pregnancy::active()
+            ->with(['woman', 'walkInPatient', 'healthRecords']);
+
+        if ($filter === 'pending') {
+            $query->where('workflow_status', 'submitted_to_bhw_president');
+        } elseif ($filter === 'high-risk') {
+            $query->highRisk();
+        }
+
+        if ($search) {
+            $query->where(function ($outer) use ($search) {
+                $outer->whereHas('woman', fn ($q) => $q->where(function ($w) use ($search) {
+                    $w->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                }))->orWhereHas('walkInPatient', fn ($q) => $q->where(function ($w) use ($search) {
+                    $w->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                }));
+            });
+        }
+
+        $pregnancies = $query->latest()->paginate(20)->withQueryString();
+        $pendingCount = Pregnancy::active()->where('workflow_status', 'submitted_to_bhw_president')->count();
+
+        return view('bhw-president.pregnancies.index', compact('pregnancies', 'search', 'filter', 'pendingCount'));
+    }
+
     // Reports Index
     public function reports()
     {
@@ -696,6 +722,15 @@ class BhwPresidentController extends Controller
             'submitted_to_midwife_at' => now(),
         ]);
 
+        // 5. Transparency: BHW is told their report advanced.
+        app(\App\Services\WorkflowService::class)->notifyAction(
+            (int) $report->bhw_id,
+            '✅ Monthly Report Approved',
+            'Your report "' . ($report->title ?? "#{$report->id}") . '" was approved and forwarded to the midwife.',
+            'success',
+            route('bhw.reports.index')
+        );
+
         return redirect()->route('bhw-president.reports.index')
             ->with('success', 'Report approved and submitted to Midwife successfully.');
     }
@@ -714,15 +749,123 @@ class BhwPresidentController extends Controller
                 ->with('error', 'This report cannot be rejected at this stage.');
         }
 
-        $report->rejectByPresident(auth()->id(), $request->input('notes'));
+        // 1. Rejection Feedback Loop: mandatory note → Needs Revision queue + notify BHW.
+        app(\App\Services\WorkflowService::class)->sendBackForRevision(
+            'bhw_report',
+            $report,
+            auth()->id(),
+            $request->input('notes')
+        );
 
         return redirect()->route('bhw-president.reports.index')
-            ->with('success', 'Report rejected and returned to BHW.');
+            ->with('success', 'Report sent back to the BHW Needs Revision queue with your note.');
     }
 
-    // Settings
+    // Settings — Barangay & team level
     public function settings()
     {
-        return view('bhw-president.settings');
+        $me = auth()->user()->fresh();
+        $barangay = (string) ($me->barangay ?? '');
+
+        $inJurisdiction = function ($value) use ($barangay) {
+            $a = \App\Services\BhwPresidentAssignmentService::normalizeBarangay($barangay);
+            $b = \App\Services\BhwPresidentAssignmentService::normalizeBarangay((string) $value);
+            return $a !== '' && $b !== '' && ($a === $b || str_contains($a, $b) || str_contains($b, $a));
+        };
+
+        $teamBhws = User::where('role', 'bhw')->where('status', 'approved')->get()->filter(
+            fn ($bhw) => $inJurisdiction($bhw->barangay)
+        );
+
+        $puroks = \App\Models\Purok::orderBy('name')->get()->filter(
+            fn ($purok) => $inJurisdiction($purok->barangay)
+        );
+        $assignedPurokIds = \App\Models\BhwAssignment::where('is_active', true)->pluck('purok_id')->all();
+        $unassignedPuroks = $puroks->reject(fn ($purok) => in_array($purok->id, $assignedPurokIds));
+
+        $pendingReports = \App\Models\BhwMonthlyReport::where('submission_status', 'submitted_to_president')
+            ->whereIn('bhw_id', $teamBhws->pluck('id')->all())
+            ->count();
+
+        $highRiskCount = Pregnancy::active()->highRisk()->count();
+
+        $midwife = User::where('role', 'midwife')->where('status', 'approved')->first();
+
+        $deadlineDay = (int) \App\Models\Setting::get("president.{$me->id}.report_deadline_day", \App\Models\Setting::get('reports.deadline_day', 25));
+
+        $alertPrefs = [
+            'unassigned_puroks' => \App\Models\Setting::get("president.{$me->id}.alert_unassigned_puroks", '1') === '1',
+            'pending_reports' => \App\Models\Setting::get("president.{$me->id}.alert_pending_reports", '1') === '1',
+            'high_risk' => \App\Models\Setting::get("president.{$me->id}.alert_high_risk", '1') === '1',
+        ];
+
+        return view('bhw-president.settings', compact(
+            'barangay', 'teamBhws', 'puroks', 'unassignedPuroks',
+            'pendingReports', 'highRiskCount', 'midwife', 'deadlineDay', 'alertPrefs'
+        ));
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $section = $request->input('section', 'profile');
+        $me = auth()->user();
+
+        // ── Personal profile (contact + photo for team coordination) ──
+        if ($section === 'profile') {
+            $data = $request->validate([
+                'contact_number' => 'nullable|string|max:20',
+                'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+            $me->contact_number = $data['contact_number'] ?? $me->contact_number;
+            if ($request->hasFile('profile_image')) {
+                $me->profile_image = $request->file('profile_image')->store('uploads/profile', 'public');
+            }
+            $me->save();
+
+            return back()->with('success', 'Profile updated.');
+        }
+
+        // ── Password ──────────────────────────────────────────────────
+        if ($section === 'password') {
+            $request->validate([
+                'current_password' => 'required|string',
+                'new_password' => 'required|string|min:8',
+                'confirm_password' => 'required|string|same:new_password',
+            ]);
+            if (!\Illuminate\Support\Facades\Hash::check($request->input('current_password'), $me->password)) {
+                return back()->withErrors(['current_password' => 'Current password is incorrect.'])->withInput();
+            }
+            $me->password = \Illuminate\Support\Facades\Hash::make($request->input('new_password'));
+            $me->save();
+
+            return back()->with('success', 'Password updated successfully.');
+        }
+
+        // ── Two-factor flag ───────────────────────────────────────────
+        if ($section === '2fa') {
+            $me->pref_2fa_enabled = $request->boolean('pref_2fa_enabled');
+            $me->save();
+
+            return back()->with('success', $me->pref_2fa_enabled ? 'Two-factor authentication enabled.' : 'Two-factor authentication disabled.');
+        }
+
+        // ── Team reporting deadline (day of month for BHW submissions) ─
+        if ($section === 'deadline') {
+            $data = $request->validate(['deadline_day' => 'required|integer|min:1|max:28']);
+            \App\Models\Setting::set("president.{$me->id}.report_deadline_day", $data['deadline_day'], $me->id);
+
+            return back()->with('success', "Monthly BHW submission deadline set to day {$data['deadline_day']}.");
+        }
+
+        // ── Barangay alert preferences ────────────────────────────────
+        if ($section === 'alerts') {
+            \App\Models\Setting::set("president.{$me->id}.alert_unassigned_puroks", $request->boolean('alert_unassigned_puroks') ? '1' : '0', $me->id);
+            \App\Models\Setting::set("president.{$me->id}.alert_pending_reports", $request->boolean('alert_pending_reports') ? '1' : '0', $me->id);
+            \App\Models\Setting::set("president.{$me->id}.alert_high_risk", $request->boolean('alert_high_risk') ? '1' : '0', $me->id);
+
+            return back()->with('success', 'Alert preferences saved.');
+        }
+
+        return back()->with('error', 'Unknown settings section.');
     }
 }

@@ -7,7 +7,7 @@
     <!-- Page Header -->
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <div>
-            <h1 class="h2"><i class="bi bi-clock-history me-2"></i>Pregnancy History</h1>
+            <h1 class="h2">Pregnancy History</h1>
             <p class="text-muted mb-0">{{ $woman->name }}</p>
         </div>
         <div class="btn-toolbar mb-2 mb-md-0">
@@ -25,7 +25,7 @@
         <div class="col-12">
             <div class="card border-primary">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-heart-pulse-fill me-2"></i>Current Pregnancy Details</h5>
+                    <h5 class="mb-0">Current Pregnancy Details</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -96,7 +96,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Checkups History</h5>
+                    <h5 class="mb-0">Checkups History</h5>
                 </div>
                 <div class="card-body">
                     @if($pregnancy->checkups && $pregnancy->checkups->count() > 0)
@@ -146,7 +146,7 @@
                         </div>
                     @else
                         <div class="text-center py-4">
-                            <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+                            <i class="bi bi-calendar-x text-muted" style="font-size:2rem;"></i>
                             <p class="text-muted mt-2 mb-0">No checkups recorded for this pregnancy.</p>
                         </div>
                     @endif
@@ -160,7 +160,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>All Pregnancies Timeline</h5>
+                    <h5 class="mb-0">All Pregnancies Timeline</h5>
                 </div>
                 <div class="card-body">
                     @if($pregnancyHistory->count() > 0)
@@ -168,7 +168,7 @@
                             @foreach($pregnancyHistory as $index => $historyPregnancy)
                                 <div class="d-flex mb-4">
                                     <div class="flex-shrink-0">
-                                        <div class="rounded-circle {{ $historyPregnancy->id === $pregnancy->id ? 'bg-primary' : 'bg-secondary' }} text-white d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                                        <div class="rounded-circle {{ $historyPregnancy->id === $pregnancy->id ? 'bg-primary' : 'bg-secondary' }} text-white d-flex align-items-center justify-content-center" style="width:50px; height:50px; font-size:1.5rem;">
                                             {{ $pregnancyHistory->count() - $index }}
                                         </div>
                                     </div>
@@ -220,7 +220,7 @@
                         </div>
                     @else
                         <div class="text-center py-4">
-                            <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+                            <i class="bi bi-inbox text-muted" style="font-size:2rem;"></i>
                             <p class="text-muted mt-2 mb-0">No pregnancy history available.</p>
                         </div>
                     @endif

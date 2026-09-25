@@ -4,67 +4,65 @@
 
 @push('styles')
 <style>
-    .filter-pills { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .filter-pills { display:flex; gap:0.75rem; flex-wrap:wrap; }
     .filter-pill {
-        display: inline-flex; align-items: center; gap: 0.45rem;
-        padding: 0.7rem 1rem; border-radius: 999px; text-decoration: none;
-        border: 1px solid var(--border); color: var(--text-muted); background: var(--bg-card2);
-        font-weight: 700; transition: all 0.18s ease;
+        display:inline-flex; align-items:center; gap:0.45rem;
+        padding:0.7rem 1rem; border-radius:999px; text-decoration:none;
+        border:1px solid var(--border); color:var(--text-muted); background:var(--bg-card2);
+        font-weight:700; transition:all 0.18s ease;
     }
-    .filter-pill:hover { border-color: var(--primary); color: var(--primary-light); background: var(--primary-subtle); }
-    .filter-pill.active { border-color: var(--primary); color: var(--primary-light); background: var(--primary-subtle); box-shadow: 0 0 0 3px var(--focus-ring); }
+    .filter-pill:hover { border-color:var(--primary); color:var(--primary-light); background:var(--primary-subtle); }
+    .filter-pill.active { border-color:var(--primary); color:var(--primary-light); background:var(--primary-subtle); box-shadow:0 0 0 3px var(--focus-ring); }
     .patient-avatar {
-        width: 36px; height: 36px; border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary), var(--accent-violet));
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.82rem; font-weight: 800; color: #fff;
-        flex-shrink: 0; box-shadow: 0 2px 6px var(--primary-glow);
+        width:36px; height:36px; border-radius:50%;
+        background:linear-gradient(135deg, var(--primary), var(--accent-violet));
+        display:flex; align-items:center; justify-content:center;
+        font-size:0.82rem; font-weight:800; color:var(--color-on-solid);
+        flex-shrink:0; box-shadow:0 2px 6px var(--primary-glow);
     }
-    .patient-name-cell { display: flex; align-items: center; gap: 0.75rem; }
-    .patient-name-cell .name { font-weight: 700; color: var(--text); font-size: 0.9rem; line-height: 1.3; }
-    .patient-name-cell .sub  { font-size: 0.75rem; color: var(--text-muted); }
+    .patient-name-cell { display:flex; align-items:center; gap:0.75rem; }
+    .patient-name-cell .name { font-weight:700; color:var(--text); font-size:0.9rem; line-height:1.3; }
+    .patient-name-cell .sub  { font-size:0.75rem; color:var(--text-muted); }
     .search-bar {
-        display: flex; gap: 0.5rem; align-items: center;
-        background: var(--bg-card2); border: 1px solid var(--border);
-        border-radius: 12px; padding: 0.4rem 0.6rem; flex: 1; max-width: 320px;
-        transition: border-color 0.2s ease;
+        display:flex; gap:0.5rem; align-items:center;
+        background:var(--bg-card2); border:1px solid var(--border);
+        border-radius:12px; padding:0.4rem 0.6rem; flex:1; max-width:320px;
+        transition:border-color 0.2s ease;
     }
-    .search-bar:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--focus-ring); }
+    .search-bar:focus-within { border-color:var(--primary); box-shadow:0 0 0 3px var(--focus-ring); }
     .search-bar input {
-        border: none; background: transparent; color: var(--text);
-        font-size: 0.875rem; outline: none; flex: 1; min-width: 0;
+        border:none; background:transparent; color:var(--text);
+        font-size:0.875rem; outline:none; flex:1; min-width:0;
     }
-    .search-bar input::placeholder { color: var(--placeholder); }
+    .search-bar input::placeholder { color:var(--placeholder); }
     .search-bar button {
-        border: none; background: transparent; color: var(--text-muted);
-        cursor: pointer; padding: 0.2rem 0.35rem; border-radius: 8px;
-        transition: background 0.15s ease, color 0.15s ease;
+        border:none; background:transparent; color:var(--text-muted);
+        cursor:pointer; padding:0.2rem 0.35rem; border-radius:8px;
+        transition:background 0.15s ease, color 0.15s ease;
     }
-    .search-bar button:hover { background: var(--primary-subtle); color: var(--primary-light); }
+    .search-bar button:hover { background:var(--primary-subtle); color:var(--primary-light); }
     .btn-action {
-        width: 32px; height: 32px; border-radius: 8px;
-        display: inline-flex; align-items: center; justify-content: center;
-        font-size: 0.8rem; text-decoration: none; border: 1px solid var(--border);
-        background: var(--bg-card2); color: var(--text-muted);
-        transition: all 0.15s ease; cursor: pointer; flex-shrink: 0;
+        width:32px; height:32px; border-radius:8px;
+        display:inline-flex; align-items:center; justify-content:center;
+        font-size:0.8rem; text-decoration:none; border:1px solid var(--border);
+        background:var(--bg-card2); color:var(--text-muted);
+        transition:all 0.15s ease; cursor:pointer; flex-shrink:0;
     }
-    .btn-action:hover { transform: scale(1.12); }
-    .btn-action-view { color: var(--primary-light); border-color: var(--border-glass); }
-    .btn-action-view:hover { background: var(--primary-subtle); border-color: var(--primary); color: var(--primary-light); }
-    .btn-action-add { color: var(--success); }
-    .btn-action-add:hover { background: rgba(16,185,129,0.12); border-color: var(--success); color: var(--success); }
+    .btn-action:hover { transform:scale(1.12); }
+    .btn-action-view { color:var(--primary-light); border-color:var(--border-glass); }
+    .btn-action-view:hover { background:var(--primary-subtle); border-color:var(--primary); color:var(--primary-light); }
+    .btn-action-add { color:var(--success); }
+    .btn-action-add:hover { background:color-mix(in srgb, var(--color-success) 12%, transparent); border-color:var(--success); color:var(--success); }
 </style>
 @endpush
 
 @section('bhw-content')
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 fade-in-card">
     <div>
-        <h1 class="page-title">
-            <i class="bi bi-people-fill me-2" style="color:var(--primary-light);"></i>
-            All Women
+        <h1 class="page-title">All Women
         </h1>
         <p class="page-subtitle">
-            All registered and unregistered women under your care
+            Enrolled Accounts (Portal-Active · Authenticated Patients) and Unlinked Profiles (BHW-Managed · Field Records) under your care
         </p>
     </div>
     <div class="d-flex gap-2 align-items-center flex-wrap">
@@ -77,6 +75,15 @@
         </form>
         <a href="{{ route('bhw.patients.create') }}" class="btn btn-primary">
             <i class="bi bi-person-plus-fill me-1"></i> Add Woman
+        </a>
+        <a href="{{ route('bhw.walk-in-patients.create') }}" class="btn btn-outline-primary">
+            <i class="bi bi-person-add me-1"></i> Record Walk-in
+        </a>
+        <a href="{{ route('bhw.walk-in-patients.trash') }}" class="btn btn-outline-secondary position-relative" title="Deleted walk-in profiles">
+            <i class="bi bi-trash3 me-1"></i> Trash
+            @if(($trashCount ?? 0) > 0)
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ $trashCount }}</span>
+            @endif
         </a>
     </div>
 </div>
@@ -95,13 +102,13 @@
             <i class="bi bi-people"></i>
             All: {{ $patients->total() }}
         </a>
-        <a href="{{ route('bhw.patients', ['filter' => 'registered']) }}" class="filter-pill {{ request('filter') === 'registered' ? 'active' : '' }}">
+        <a href="{{ route('bhw.patients', ['filter' => 'registered']) }}" class="filter-pill {{ request('filter') === 'registered' ? 'active' : '' }}" title="Authenticated Patients with portal login (Direct Access)">
             <i class="bi bi-person-heart"></i>
-            Registered: {{ $registeredCount }}
+            Enrolled: {{ $registeredCount }}
         </a>
-        <a href="{{ route('bhw.patients', ['filter' => 'unregistered']) }}" class="filter-pill {{ request('filter') === 'unregistered' ? 'active' : '' }}">
+        <a href="{{ route('bhw.patients', ['filter' => 'unregistered']) }}" class="filter-pill {{ request('filter') === 'unregistered' ? 'active' : '' }}" title="Managed Beneficiaries without login (Field Record Only)">
             <i class="bi bi-person-plus"></i>
-            Unregistered: {{ $unregisteredCount }}
+            Unlinked: {{ $unregisteredCount }}
         </a>
     </div>
     <span class="summary-chip chip-success">
@@ -130,6 +137,7 @@
                         <th>Woman</th>
                         <th>Contact Number</th>
                         <th>Barangay</th>
+                        <th>Account Type</th>
                         <th>Pregnancy</th>
                         <th style="text-align:center;">Actions</th>
                     </tr>
@@ -139,9 +147,7 @@
                     <tr>
                         <td>
                             <div class="patient-name-cell">
-                                <div class="patient-avatar">
-                                    {{ strtoupper(substr($patient->type === 'unregistered' ? $patient->full_name : $patient->name, 0, 1)) }}
-                                </div>
+                                <x-patient-avatar :patient="$patient" :size="36" />
                                 <div>
                                     <div class="name">{{ $patient->type === 'unregistered' ? $patient->full_name : $patient->name }}</div>
                                     @if($patient->pregnancies && $patient->pregnancies->count() > 0)
@@ -171,6 +177,13 @@
                         </td>
                         <td>
                             @if($patient->type === 'unregistered')
+                                <span class="badge bg-warning" title="Managed Beneficiary · Field Record Only · no portal login">Unlinked · BHW-Managed</span>
+                            @else
+                                <span class="badge bg-success" title="Authenticated Patient · Direct Access · portal login active">Enrolled · Portal-Active</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($patient->type === 'unregistered')
                                 <span style="font-size:0.8rem;color:var(--text-muted);">
                                     Not Pregnant
                                 </span>
@@ -188,26 +201,20 @@
                         </td>
                         <td>
                             <div class="d-flex gap-1 justify-content-center">
-                                <a href="{{ $patient->type === 'unregistered' ? route('bhw.walk-in-patients.show', $patient->id) : route('bhw.patient-details', $patient->id) }}"
+                                <a href="{{ $patient->type === 'unregistered' ? route('bhw.walk-in-patients.show', [$patient->id, 'from' => 'women']) : route('bhw.patient-details', $patient->id) }}"
                                    class="btn-action btn-action-view" title="View Details">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 @if($patient->type === 'unregistered')
-                                    <a href="{{ route('bhw.walk-in-patients.edit', $patient->id) }}"
+                                    <a href="{{ route('bhw.walk-in-patients.edit', [$patient->id, 'from' => 'women']) }}"
                                        class="btn-action btn-action-add" title="Edit Patient">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <a href="{{ route('bhw.walk-in-patients.convert', $patient->id) }}"
-                                       class="btn-action btn-action-add" title="Convert to Registered">
+                                       class="btn-action btn-action-add" title="Activate portal account (Unlinked → Enrolled)">
                                         <i class="bi bi-person-check"></i>
                                     </a>
-                                    <form method="POST" action="{{ route('bhw.walk-in-patients.destroy', $patient->id) }}" onsubmit="return confirm('Are you sure you want to delete this walk-in patient?');" style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-action" title="Delete Patient" style="color:var(--danger);">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+
                                 @else
                                     <a href="{{ route('bhw.checkups.create', $patient->id) }}"
                                        class="btn-action btn-action-add" title="Schedule Checkup">
@@ -234,7 +241,7 @@
                     No women match "{{ request('search') }}".
                     <a href="{{ route('bhw.patients', ['filter' => request('filter', 'all')]) }}">Clear search</a>
                 @else
-                    No {{ request('filter') === 'registered' ? 'registered' : (request('filter') === 'unregistered' ? 'unregistered' : '') }} women found.
+                    No {{ request('filter') === 'registered' ? 'enrolled (Portal-Active)' : (request('filter') === 'unregistered' ? 'unlinked (BHW-Managed)' : '') }} women found.
                     @if(request('filter') !== 'all')
                         <a href="{{ route('bhw.patients', ['filter' => 'all']) }}">View all women</a>
                     @endif

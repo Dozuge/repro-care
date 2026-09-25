@@ -5,40 +5,40 @@
 @section('bhw-president-content')
 <style>
     .profile-show-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 1rem;
-        overflow: hidden;
-        box-shadow: var(--shadow-md);
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:1rem;
+        overflow:hidden;
+        box-shadow:var(--shadow-md);
     }
     .profile-show-header {
-        background: linear-gradient(135deg, #7c3aed, #a855f7);
+        background:linear-gradient(135deg, var(--color-primary), var(--color-primary));
     }
     .profile-show-avatar {
-        width: 160px;
-        height: 160px;
-        object-fit: cover;
-        border: 5px solid var(--bg-card);
-        box-shadow: var(--shadow-md);
+        width:160px;
+        height:160px;
+        object-fit:cover;
+        border:5px solid var(--bg-card);
+        box-shadow:var(--shadow-md);
     }
     .profile-info-item {
-        border: 1px solid var(--border);
-        border-radius: 0.85rem;
-        padding: 1rem;
-        height: 100%;
-        background: var(--bg-card2);
+        border:1px solid var(--border);
+        border-radius:0.85rem;
+        padding:1rem;
+        height:100%;
+        background:var(--bg-card2);
     }
     .profile-info-label {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-muted);
-        margin-bottom: 0.35rem;
+        font-size:0.8rem;
+        text-transform:uppercase;
+        letter-spacing:0.04em;
+        color:var(--text-muted);
+        margin-bottom:0.35rem;
     }
     .profile-info-value {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text);
+        font-size:1rem;
+        font-weight:600;
+        color:var(--text);
     }
 </style>
 
@@ -61,7 +61,7 @@
                             <h3 class="mb-1">{{ $user->name }}</h3>
                             <p class="text-muted mb-3">{{ $user->email }}</p>
                             <div class="d-flex flex-wrap gap-2">
-                                <span class="badge px-3 py-2" style="background:#8b5cf6;">BHW President</span>
+                                <span class="badge px-3 py-2" style="background:var(--color-primary);">BHW President</span>
                                 @if($user->age)
                                     <span class="badge text-bg-light border px-3 py-2">Age: {{ $user->age }}</span>
                                 @endif

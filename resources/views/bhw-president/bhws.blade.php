@@ -5,210 +5,210 @@
 @push('styles')
 <style>
     .bhw-search-bar {
-        display: flex;
-        gap: 0.65rem;
-        align-items: center;
-        flex-wrap: wrap;
+        display:flex;
+        gap:0.65rem;
+        align-items:center;
+        flex-wrap:wrap;
     }
     .bhw-search-field,
     .bhw-filter-field {
-        display: flex;
-        align-items: center;
-        gap: 0.55rem;
-        background: var(--bg-card2);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 0.75rem 0.95rem;
-        min-height: 48px;
+        display:flex;
+        align-items:center;
+        gap:0.55rem;
+        background:var(--bg-card2);
+        border:1px solid var(--border);
+        border-radius:14px;
+        padding:0.75rem 0.95rem;
+        min-height:48px;
     }
     .bhw-search-field {
-        flex: 1 1 280px;
-        min-width: 240px;
+        flex:1 1 280px;
+        min-width:240px;
     }
     .bhw-filter-field {
-        flex: 0 0 190px;
+        flex:0 0 190px;
     }
     .bhw-search-field input,
     .bhw-filter-field select {
-        border: none;
-        background: transparent;
-        color: var(--text);
-        outline: none;
-        width: 100%;
-        font-size: 0.9rem;
+        border:none;
+        background:transparent;
+        color:var(--text);
+        outline:none;
+        width:100%;
+        font-size:0.9rem;
     }
     .bhw-search-field input::placeholder {
-        color: var(--placeholder);
+        color:var(--placeholder);
     }
     .bhw-search-actions {
-        display: flex;
-        gap: 0.65rem;
-        flex-wrap: wrap;
+        display:flex;
+        gap:0.65rem;
+        flex-wrap:wrap;
     }
     .bhw-avatar {
-        width: 44px;
-        height: 44px;
-        border-radius: 14px;
-        background: linear-gradient(135deg, #06b6d4, #3b82f6);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.92rem;
-        font-weight: 800;
-        flex-shrink: 0;
-        box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
-        overflow: hidden;
+        width:44px;
+        height:44px;
+        border-radius:14px;
+        background:linear-gradient(135deg, var(--color-info), var(--color-info));
+        color:var(--color-on-solid);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:0.92rem;
+        font-weight:800;
+        flex-shrink:0;
+        box-shadow:0 10px 20px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 20%, transparent);
+        overflow:hidden;
     }
     .bhw-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+        width:100%;
+        height:100%;
+        object-fit:cover;
     }
     .metric-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.34rem 0.72rem;
-        border-radius: 999px;
-        border: 1px solid transparent;
-        font-size: 0.78rem;
-        font-weight: 700;
+        display:inline-flex;
+        align-items:center;
+        gap:0.35rem;
+        padding:0.34rem 0.72rem;
+        border-radius:999px;
+        border:1px solid transparent;
+        font-size:0.78rem;
+        font-weight:700;
     }
     .metric-chip-records {
-        background: rgba(34, 211, 238, 0.12);
-        color: #22d3ee;
-        border-color: rgba(34, 211, 238, 0.25);
+        background:color-mix(in srgb, var(--color-info) 12%, transparent);
+        color:var(--color-info-text);
+        border-color:color-mix(in srgb, var(--color-info) 25%, transparent);
     }
     .metric-chip-checkups {
-        background: rgba(16, 185, 129, 0.12);
-        color: #34d399;
-        border-color: rgba(16, 185, 129, 0.25);
+        background:color-mix(in srgb, var(--color-success) 12%, transparent);
+        color:var(--color-success-text);
+        border-color:color-mix(in srgb, var(--color-success) 25%, transparent);
     }
     .metric-chip-reports {
-        background: rgba(245, 158, 11, 0.12);
-        color: #fbbf24;
-        border-color: rgba(245, 158, 11, 0.25);
+        background:color-mix(in srgb, var(--color-warning) 12%, transparent);
+        color:var(--color-warning-text);
+        border-color:color-mix(in srgb, var(--color-warning) 25%, transparent);
     }
     .status-badge-custom {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.35rem 0.75rem;
-        border-radius: 999px;
-        font-size: 0.76rem;
-        font-weight: 700;
-        border: 1px solid transparent;
-        text-transform: capitalize;
+        display:inline-flex;
+        align-items:center;
+        gap:0.35rem;
+        padding:0.35rem 0.75rem;
+        border-radius:999px;
+        font-size:0.76rem;
+        font-weight:700;
+        border:1px solid transparent;
+        text-transform:capitalize;
     }
     .status-approved {
-        background: rgba(16, 185, 129, 0.14);
-        color: #34d399;
-        border-color: rgba(16, 185, 129, 0.22);
+        background:color-mix(in srgb, var(--color-success) 14%, transparent);
+        color:var(--color-success-text);
+        border-color:color-mix(in srgb, var(--color-success) 22%, transparent);
     }
     .status-pending {
-        background: rgba(245, 158, 11, 0.14);
-        color: #fbbf24;
-        border-color: rgba(245, 158, 11, 0.22);
+        background:color-mix(in srgb, var(--color-warning) 14%, transparent);
+        color:var(--color-warning-text);
+        border-color:color-mix(in srgb, var(--color-warning) 22%, transparent);
     }
     .status-inactive {
-        background: rgba(148, 163, 184, 0.16);
-        color: #cbd5e1;
-        border-color: rgba(148, 163, 184, 0.22);
+        background:color-mix(in srgb, var(--color-info) 16%, transparent);
+        color:var(--color-info-text);
+        border-color:color-mix(in srgb, var(--color-info) 22%, transparent);
     }
     .status-archived {
-        background: rgba(59, 130, 246, 0.14);
-        color: #93c5fd;
-        border-color: rgba(59, 130, 246, 0.22);
+        background:color-mix(in srgb, var(--color-info) 14%, transparent);
+        color:var(--color-info-text);
+        border-color:color-mix(in srgb, var(--color-info) 22%, transparent);
     }
     .status-suspended {
-        background: rgba(239, 68, 68, 0.14);
-        color: #fca5a5;
-        border-color: rgba(239, 68, 68, 0.22);
+        background:color-mix(in srgb, var(--color-danger) 14%, transparent);
+        color:var(--color-danger-text);
+        border-color:color-mix(in srgb, var(--color-danger) 22%, transparent);
     }
     .bhw-row:hover {
-        background: var(--row-hover);
+        background:var(--row-hover);
     }
     .bhw-actions {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.45rem;
-        flex-wrap: nowrap;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:0.45rem;
+        flex-wrap:nowrap;
     }
     .bhw-actions form {
-        display: inline-flex;
-        margin: 0;
-        padding: 0;
-        line-height: 0;
+        display:inline-flex;
+        margin:0;
+        padding:0;
+        line-height:0;
     }
     .bhw-action-btn,
     .bhw-action-btn button {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid var(--border);
-        background: var(--bg-card2);
-        color: var(--text-muted);
-        text-decoration: none;
-        transition: all 0.18s ease;
-        padding: 0;
-        margin: 0;
-        line-height: 1;
-        vertical-align: middle;
-        cursor: pointer;
+        width:38px;
+        height:38px;
+        border-radius:10px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        border:1px solid var(--border);
+        background:var(--bg-card2);
+        color:var(--text-muted);
+        text-decoration:none;
+        transition:all 0.18s ease;
+        padding:0;
+        margin:0;
+        line-height:1;
+        vertical-align:middle;
+        cursor:pointer;
     }
     .bhw-action-btn:hover {
-        transform: translateY(-1px) scale(1.05);
+        transform:translateY(-1px) scale(1.05);
     }
     .bhw-action-btn.view:hover {
-        color: #22d3ee;
-        border-color: rgba(34, 211, 238, 0.35);
-        background: rgba(34, 211, 238, 0.1);
+        color:var(--color-info-text);
+        border-color:color-mix(in srgb, var(--color-info) 35%, transparent);
+        background:color-mix(in srgb, var(--color-info) 10%, transparent);
     }
     .bhw-action-btn.inactive:hover,
     .bhw-action-btn.archive:hover {
-        color: #fbbf24;
-        border-color: rgba(251, 191, 36, 0.35);
-        background: rgba(251, 191, 36, 0.1);
+        color:var(--color-warning-text);
+        border-color:color-mix(in srgb, var(--color-warning) 35%, transparent);
+        background:color-mix(in srgb, var(--color-warning) 10%, transparent);
     }
     .bhw-action-btn.activate:hover {
-        color: #34d399;
-        border-color: rgba(52, 211, 153, 0.35);
-        background: rgba(52, 211, 153, 0.1);
+        color:var(--color-success-text);
+        border-color:color-mix(in srgb, var(--color-success) 35%, transparent);
+        background:color-mix(in srgb, var(--color-success) 10%, transparent);
     }
     .table-toolbar {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--border);
+        padding:1.25rem 1.5rem;
+        border-bottom:1px solid var(--border);
     }
     .bhw-actions-col {
-        width: 140px;
-        min-width: 140px;
-        text-align: center !important;
+        width:140px;
+        min-width:140px;
+        text-align:center !important;
     }
     .bhw-actions-col th,
     .bhw-actions-col td {
-        text-align: center !important;
-        vertical-align: middle;
+        text-align:center !important;
+        vertical-align:middle;
     }
     @media (max-width: 768px) {
         .bhw-search-actions {
-            width: 100%;
+            width:100%;
         }
         .bhw-search-actions .btn {
-            flex: 1 1 auto;
+            flex:1 1 auto;
         }
         .bhw-filter-field {
-            flex: 1 1 100%;
+            flex:1 1 100%;
         }
         .bhw-actions {
-            justify-content: center;
+            justify-content:center;
         }
         .bhw-actions-col {
-            min-width: 140px;
+            min-width:140px;
         }
     }
 </style>
@@ -225,9 +225,7 @@
 <div class="page-hero fade-in-card">
     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap" style="position:relative;z-index:1;">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-people-fill me-2"></i>
-                BHW Management
+            <div class="page-hero-title">BHW Management
             </div>
             <p class="page-hero-subtitle">Review, filter, and manage all Barangay Health Workers assigned under your supervision.</p>
         </div>
@@ -410,16 +408,7 @@
                                                 <i class="bi bi-person-x"></i>
                                             </button>
                                         </form>
-                                        <form action="{{ route('bhw-president.bhws.archive', $bhw->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit"
-                                                    class="bhw-action-btn archive"
-                                                    title="Archive"
-                                                    aria-label="Archive {{ $bhw->name }}"
-                                                    onclick="return confirm('Archive {{ $bhw->name }}?')">
-                                                <i class="bi bi-archive"></i>
-                                            </button>
-                                        </form>
+                                        <x-archive-form :action="route('bhw-president.bhws.archive', $bhw->id)" method="POST" label="" title="Archive (retained for audit)" btnClass="bhw-action-btn archive" icon="bi bi-archive" :confirmText="'Archive ' . $bhw->name . '? Sessions are revoked and the account is retained for audit.'" />
                                     @elseif(in_array($bhw->status, ['inactive', 'archived']))
                                         <form action="{{ route('bhw-president.bhws.activate', $bhw->id) }}" method="POST">
                                             @csrf
@@ -432,16 +421,7 @@
                                             </button>
                                         </form>
                                         @if($bhw->status === 'inactive')
-                                            <form action="{{ route('bhw-president.bhws.archive', $bhw->id) }}" method="POST">
-                                                @csrf
-                                                <button type="submit"
-                                                        class="bhw-action-btn archive"
-                                                        title="Archive"
-                                                        aria-label="Archive {{ $bhw->name }}"
-                                                        onclick="return confirm('Archive {{ $bhw->name }}?')">
-                                                    <i class="bi bi-archive"></i>
-                                                </button>
-                                            </form>
+                                            <x-archive-form :action="route('bhw-president.bhws.archive', $bhw->id)" method="POST" label="" title="Archive (retained for audit)" btnClass="bhw-action-btn archive" icon="bi bi-archive" :confirmText="'Archive ' . $bhw->name . '? The account is retained for audit.'" />
                                         @endif
                                     @endif
 

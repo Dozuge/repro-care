@@ -65,7 +65,7 @@
 
 <div class="card fade-in-card">
     <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Health Records</h5>
+        <h5 class="mb-0">Health Records</h5>
     </div>
     <div class="card-body">
         @if($healthRecords->count() > 0)

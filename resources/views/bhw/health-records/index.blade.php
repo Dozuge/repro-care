@@ -4,36 +4,31 @@
 
 @push('styles')
 <style>
-    .health-record-actions-col {
-        width: 290px;
-        min-width: 290px;
+    /* Compact fit-no-scroll table: tighter cells, no wrapping vitals/dates. */
+    #bhw-hr-table > :not(caption) > * > * {
+        padding:0.55rem 0.5rem;
+        font-size:0.85rem;
     }
-    .health-record-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        flex-wrap: nowrap;
+    #bhw-hr-table .hr-nowrap {
+        white-space:nowrap;
     }
-    .health-record-actions form {
-        margin: 0;
+    #bhw-hr-table .hr-date small {
+        display:block;
+        color:var(--color-text-muted);
+        font-size:0.75rem;
+        white-space:nowrap;
     }
-    .health-record-actions .btn {
-        min-width: 86px;
-        border-radius: 12px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.35rem;
-        white-space: nowrap;
+    /* Forced equal action buttons: variant padding/borders can't unbalance them. */
+    #bhw-hr-table .tbl-actions .btn {
+        width:38px;
+        height:38px;
+        padding:0;
+        border-radius:12px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
     }
-    @media (max-width: 768px) {
-        .health-record-actions-col {
-            min-width: 250px;
-        }
-        .health-record-actions .btn {
-            min-width: 74px;
-        }
-    }
+    #bhw-hr-table .tbl-actions .btn > i { line-height:1; }
 </style>
 @endpush
 
@@ -52,8 +47,8 @@
     <div class="page-hero fade-in-card mb-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
             <div>
-                <div class="page-hero-title"><i class="bi bi-clipboard2-pulse-fill me-2"></i>Health Records</div>
-                <p class="page-hero-subtitle">Record vital signs quickly and keep risk screening consistent for both registered and walk-in patients.</p>
+                <div class="page-hero-title">Health Records</div>
+                <p class="page-hero-subtitle">Record vital signs quickly and keep risk screening consistent for both enrolled and unlinked patients.</p>
             </div>
             <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addRecordModal">
                 <i class="bi bi-plus-circle-fill me-1"></i> Add Record
@@ -90,7 +85,7 @@
             <form method="GET" action="{{ route('bhw.health-records.index') }}" class="row g-3 align-items-end">
                 <div class="col-md-6">
                     <label class="form-label">Search Patient</label>
-                    <input type="text" class="form-control" name="search" placeholder="Search registered or walk-in patient..." value="{{ request('search') }}">
+                    <input type="text" class="form-control" name="search" placeholder="Search enrolled or unlinked patient..." value="{{ request('search') }}">
                 </div>
                 <div class="col-md-6 d-flex gap-2">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i> Search</button>
@@ -111,12 +106,12 @@
 
     <div class="card fade-in-card">
         <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Records Added by Me</h5>
+            <h5 class="mb-0">Records Added by Me</h5>
         </div>
         <div class="card-body p-0">
             @if($healthRecords->count() > 0)
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                        <table class="table table-hover mb-0" id="bhw-hr-table">
                         <thead>
                             <tr>
                                 <th>Patient</th>
@@ -127,8 +122,7 @@
                                 <th>Temperature</th>
                                 <th>Risk</th>
                                 <th>Workflow</th>
-                                <th>Recorded By</th>
-                                <th class="health-record-actions-col">Actions</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -136,18 +130,18 @@
                                 @php
                                     $patient = $record->woman ?? $record->walkInPatient;
                                     $patientName = $record->patient_name ?? ($patient?->name ?? $patient?->full_name ?? 'Unknown patient');
-                                    $patientMeta = $record->walkInPatient ? 'Walk-in patient' : ($patient?->email ?? 'Registered patient');
+                                    $patientMeta = $record->walkInPatient ? 'Unlinked patient' : ($patient?->email ?? 'Enrolled patient');
                                 @endphp
                                 <tr>
                                     <td>
                                         <div class="fw-semibold">{{ $patientName }}</div>
                                         <small class="text-muted">{{ $patientMeta }}</small>
                                     </td>
-                                    <td>{{ $record->created_at->format('M j, Y g:i A') }}</td>
-                                    <td>{{ $record->bp }}</td>
-                                    <td>{{ $record->weight }} kg</td>
-                                    <td>{{ $record->heart_rate }} bpm</td>
-                                    <td>{{ $record->temperature }} C</td>
+                                    <td class="hr-date">{{ $record->created_at->format('M j, Y') }}<small>{{ $record->created_at->format('g:i A') }}</small></td>
+                                    <td class="hr-nowrap">{{ $record->bp }}</td>
+                                    <td class="hr-nowrap">{{ $record->weight }} kg</td>
+                                    <td class="hr-nowrap">{{ $record->heart_rate }} bpm</td>
+                                    <td class="hr-nowrap">{{ $record->temperature }} C</td>
                                     <td>
                                         <span class="badge {{ $record->risk_level === 'High' ? 'bg-danger' : ($record->risk_level === 'Medium' ? 'bg-warning text-dark' : 'bg-success') }}">
                                             {{ $record->risk_level }}
@@ -155,35 +149,34 @@
                                     </td>
                                     <td>
                                         @if($record->workflow_status === 'recorded_by_bhw')
-                                            <span class="badge bg-secondary">Draft</span>
+                                            <span class="badge bg-secondary text-nowrap">Draft</span>
                                         @elseif($record->workflow_status === 'submitted_to_bhw_president')
-                                            <span class="badge bg-warning text-dark">Submitted to President</span>
+                                            <span class="badge bg-warning text-dark text-nowrap">Submitted to President</span>
                                         @elseif($record->workflow_status === 'approved_by_bhw_president')
-                                            <span class="badge bg-info text-dark">Approved by President</span>
+                                            <span class="badge bg-info text-dark text-nowrap">Approved by President</span>
                                         @elseif($record->workflow_status === 'submitted_to_midwife')
-                                            <span class="badge bg-primary">With Midwife</span>
+                                            <span class="badge bg-primary text-nowrap">With Midwife</span>
                                         @elseif($record->workflow_status === 'accepted_by_midwife')
-                                            <span class="badge bg-success">Accepted</span>
+                                            <span class="badge bg-success text-nowrap">Accepted</span>
                                         @else
-                                            <span class="badge bg-secondary">{{ str_replace('_', ' ', $record->workflow_status) }}</span>
+                                            <span class="badge bg-secondary text-nowrap">{{ str_replace('_', ' ', $record->workflow_status) }}</span>
                                         @endif
                                     </td>
-                                    <td>{{ $record->recordedBy?->name ?? $record->recordedByUser?->name ?? 'Unknown' }}</td>
-                                    <td class="health-record-actions-col">
-                                        <div class="health-record-actions">
-                                            <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#recordModal{{ $record->id }}">
-                                                <i class="bi bi-eye"></i> View
+                                    <td>
+                                        <div class="d-inline-flex align-items-center gap-1 tbl-actions">
+                                            <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#recordModal{{ $record->id }}" title="View record" aria-label="View record">
+                                                <i class="bi bi-eye"></i>
                                             </button>
                                             @if($record->workflow_status === 'recorded_by_bhw')
                                                 <form method="POST" action="{{ route('bhw.health-records.submit-to-president', $record->id) }}" onsubmit="return confirm('Submit this health record to BHW President for review?')">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-sm btn-outline-success">
-                                                        <i class="bi bi-send"></i> Submit
+                                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Submit to BHW President" aria-label="Submit to BHW President">
+                                                        <i class="bi bi-send"></i>
                                                     </button>
                                                 </form>
                                             @endif
-                                            <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#archiveModal{{ $record->id }}">
-                                                <i class="bi bi-archive"></i> Archive
+                                            <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#archiveModal{{ $record->id }}" title="Archive record" aria-label="Archive record">
+                                                <i class="bi bi-archive"></i>
                                             </button>
                                         </div>
                                     </td>
@@ -211,7 +204,7 @@
     @php
         $patient = $record->woman ?? $record->walkInPatient;
         $patientName = $record->patient_name ?? ($patient?->name ?? $patient?->full_name ?? 'Unknown patient');
-        $patientEmail = $record->walkInPatient ? 'Not available for walk-in patients' : ($patient?->email ?? 'Not available');
+        $patientEmail = $record->walkInPatient ? 'Not available for unlinked patients' : ($patient?->email ?? 'Not available');
         $patientAddress = $patient?->address ?? $patient?->barangay ?? 'Not specified';
     @endphp
     <div class="modal fade" id="recordModal{{ $record->id }}" tabindex="-1">
@@ -227,7 +220,7 @@
                             <h6>Patient Information</h6>
                             <table class="table table-sm">
                                 <tr><td><strong>Name</strong></td><td>{{ $patientName }}</td></tr>
-                                <tr><td><strong>Type</strong></td><td>{{ $record->walkInPatient ? 'Walk-in patient' : 'Registered patient' }}</td></tr>
+                                <tr><td><strong>Type</strong></td><td>{{ $record->walkInPatient ? 'Unlinked patient' : 'Enrolled patient' }}</td></tr>
                                 <tr><td><strong>Email</strong></td><td>{{ $patientEmail }}</td></tr>
                                 <tr><td><strong>Address</strong></td><td>{{ $patientAddress }}</td></tr>
                             </table>
@@ -290,7 +283,7 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Add Health Record</h5>
+                <h5 class="modal-title">Add Health Record</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="addRecordForm" method="POST" action="{{ route('bhw.health-records.store') }}">
@@ -301,17 +294,17 @@
                         <div class="d-flex flex-wrap gap-3">
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="patient_type" id="patientTypeRegistered" value="registered" checked onchange="toggleRecordPatientType()">
-                                <label class="form-check-label" for="patientTypeRegistered">Registered Patient</label>
+                                <label class="form-check-label" for="patientTypeRegistered">Enrolled Patient</label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="patient_type" id="patientTypeWalkIn" value="walk_in" onchange="toggleRecordPatientType()">
-                                <label class="form-check-label" for="patientTypeWalkIn">Walk-in Patient</label>
+                                <label class="form-check-label" for="patientTypeWalkIn">Unlinked Patient</label>
                             </div>
                         </div>
                     </div>
 
                     <div id="registeredPatientSection" class="mb-4">
-                        <label class="form-label fw-semibold">Search Registered Patient</label>
+                                <label class="form-label fw-semibold">Search Enrolled Patient</label>
                         <input type="text" class="form-control mb-2" id="patientSearch" placeholder="Search by name or email..." oninput="filterSelectOptions('patientSearch', 'patientSelect')">
                         <select class="form-select" id="patientSelect" name="user_id">
                             <option value="">Choose a patient...</option>
@@ -322,10 +315,10 @@
                     </div>
 
                     <div id="walkInPatientSection" class="mb-4 d-none">
-                        <label class="form-label fw-semibold">Search Walk-in Patient</label>
+                        <label class="form-label fw-semibold">Search Unlinked Patient</label>
                         <input type="text" class="form-control mb-2" id="walkInSearch" placeholder="Search by name or contact number..." oninput="filterSelectOptions('walkInSearch', 'walkInPatientSelect')">
                         <select class="form-select" id="walkInPatientSelect" name="walk_in_patient_id">
-                            <option value="">Choose a walk-in patient...</option>
+                            <option value="">Choose an unlinked patient...</option>
                             @foreach($walkInPatients as $walkIn)
                                 <option value="{{ $walkIn->id }}">{{ $walkIn->full_name }}{{ $walkIn->contact_number ? ' - ' . $walkIn->contact_number : '' }}</option>
                             @endforeach
@@ -356,6 +349,7 @@
                         <div class="col-md-3">
                             <label for="height" class="form-label">Height (cm)</label>
                             <input type="number" class="form-control" id="height" name="height" min="100" max="250" step="0.1">
+                            <div class="form-text">Below 122 cm (4 ft) flags short-stature risk.</div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">BMI</label>

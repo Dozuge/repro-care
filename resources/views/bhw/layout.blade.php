@@ -2,10 +2,15 @@
 
 @section('title', 'BHW Portal - ReproCare')
 
-@include('includes.sidebar')
+@include('includes.portal-theme')
 
 @section('content')
-<main class="main-content">
-    @yield('bhw-content')
-</main>
+<div class="layout-wrapper">
+    @include('includes.sidebar')
+    <main class="main-content">
+        <div class="mw-container">
+            @yield('bhw-content')
+        </div>
+    </main>
+</div>
 @endsection

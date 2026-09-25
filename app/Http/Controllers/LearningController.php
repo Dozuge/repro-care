@@ -22,13 +22,14 @@ class LearningController extends Controller
 
     private function storePublicUpload(UploadedFile $file, string $directory): string
     {
-        $targetDirectory = public_path('storage/' . $directory);
-        File::ensureDirectoryExists($targetDirectory);
+        return $file->store($directory, 'public');
+    }
 
-        $filename = $file->hashName();
-        $file->move($targetDirectory, $filename);
-
-        return $directory . '/' . $filename;
+    private function deletePublicUpload(?string $path): void
+    {
+        if ($path && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+        }
     }
 
     // Index - View all materials (for users, midwives, BHWs)
@@ -134,17 +135,29 @@ class LearningController extends Controller
             'content'       => 'required|string',
             'material_type' => 'required|in:article,link,file,video,quiz',
             'link_url'      => 'nullable|url|required_if:material_type,link',
-            'video_url'     => 'nullable|required_if:material_type,video',
-            'category'      => 'nullable|in:general,prenatal-care,nutrition,warning-signs,family-planning,postpartum,pregnancy-guide,hcw-training',
+            'video_url'     => [
+                'nullable',
+                'url',
+                'required_if:material_type,video',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->material_type === 'video' && $value && !LearningMaterial::extractYoutubeId($value)) {
+                        $fail('The YouTube Video Link must be a valid YouTube watch, Shorts, share, or embed URL.');
+                    }
+                },
+            ],
+            'category'      => 'nullable|string|max:100',
             'week_number'   => 'nullable|integer|min:1|max:42',
             'quiz_data'     => 'nullable|json',
             'image'         => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
-            'file'          => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov,avi,mp3,wav,pdf,doc,docx,xls,xlsx,ppt,pptx,txt|max:102400', // 100MB max
+            'file'          => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,mp3,wav,pdf,doc,docx,xls,xlsx,ppt,pptx,txt|max:102400', // 100MB max (YouTube embeds replace raw MP4 uploads)
         ]);
 
         $data = $request->except('image', 'file', 'quiz_data');
         $data['category']   = $request->category ?? 'general';
         $data['quiz_data']  = $request->quiz_data ? json_decode($request->quiz_data, true) : null;
+        if ($request->has('video_url')) {
+            $data['youtube_id'] = LearningMaterial::extractYoutubeId($request->video_url);
+        }
 
         if ($request->hasFile('image')) {
             $data['image'] = $this->storePublicUpload($request->file('image'), 'learning_materials');
@@ -186,23 +199,37 @@ class LearningController extends Controller
             'content'       => 'required|string',
             'material_type' => 'required|in:article,link,file,video,quiz',
             'link_url'      => 'nullable|url|required_if:material_type,link',
-            'video_url'     => 'nullable|required_if:material_type,video',
-            'category'      => 'nullable|in:general,prenatal-care,nutrition,warning-signs,family-planning,postpartum,pregnancy-guide,hcw-training',
+            'video_url'     => [
+                'nullable',
+                'url',
+                'required_if:material_type,video',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->material_type === 'video' && $value && !LearningMaterial::extractYoutubeId($value)) {
+                        $fail('The YouTube Video Link must be a valid YouTube watch, Shorts, share, or embed URL.');
+                    }
+                },
+            ],
+            'category'      => 'nullable|string|max:100',
             'week_number'   => 'nullable|integer|min:1|max:42',
             'quiz_data'     => 'nullable|json',
             'image'         => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:4096',
-            'file'          => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov,avi,mp3,wav,pdf,doc,docx,xls,xlsx,ppt,pptx,txt|max:102400', // 100MB max
+            'file'          => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,mp3,wav,pdf,doc,docx,xls,xlsx,ppt,pptx,txt|max:102400', // 100MB max (YouTube embeds replace raw MP4 uploads)
         ]);
 
         $data = $request->except('image', 'file', 'quiz_data');
         $data['category']   = $request->category ?? $material->category;
-        $data['quiz_data']  = $request->quiz_data ? json_decode($request->quiz_data, true) : $material->quiz_data;
+        $data['quiz_data']  = $request->filled('quiz_data') ? json_decode($request->quiz_data, true) : null;
+        if ($request->has('video_url')) {
+            $data['youtube_id'] = LearningMaterial::extractYoutubeId($request->video_url);
+        }
 
         if ($request->hasFile('image')) {
+            $this->deletePublicUpload($material->image);
             $data['image'] = $this->storePublicUpload($request->file('image'), 'learning_materials');
         }
 
         if ($request->hasFile('file')) {
+            $this->deletePublicUpload($material->file);
             $data['file'] = $this->storePublicUpload($request->file('file'), 'learning_files');
         }
 
@@ -223,9 +250,16 @@ class LearningController extends Controller
 
         $material = LearningMaterial::findOrFail($id);
         $title = $material->title;
-        $material->delete(); // Soft delete
+        $reason = trim((string) request()->input('reason', ''));
+        if ($reason === '') {
+            $reason = 'Learning material archived via console';
+        }
 
-        ActivityLog::log('archive', "Archived learning material/video: {$title}");
+        try {
+            app(\App\Services\ArchiveService::class)->archiveRecord($material, $reason, $user);
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['reason' => $e->getMessage()])->withInput();
+        }
 
         return redirect()->route('midwife.learning.index')
             ->with('success', "Learning material '{$title}' moved to archives.");

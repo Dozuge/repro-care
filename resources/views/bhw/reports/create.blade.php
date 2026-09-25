@@ -7,7 +7,7 @@
     <div class="page-hero fade-in-card">
         <div class="workspace-toolbar" style="position:relative;z-index:1;">
             <div>
-                <div class="page-hero-title"><i class="bi bi-file-earmark-plus-fill me-2"></i>Create Monthly Report</div>
+                <div class="page-hero-title">Create Monthly Report</div>
                 <p class="page-hero-subtitle">Build a clean monthly summary from your recorded health records or pregnancy monitoring data.</p>
             </div>
             <a href="{{ route('bhw.reports.index') }}" class="btn-hero-secondary"><i class="bi bi-arrow-left"></i>Back to Reports</a>
@@ -18,7 +18,7 @@
         <div class="col-xl-8">
             <div class="workspace-panel fade-in-card">
                 <div class="workspace-panel-header">
-                    <h2 class="workspace-panel-title"><i class="bi bi-sliders2"></i>Report Configuration</h2>
+                    <h2 class="workspace-panel-title">Report Configuration</h2>
                 </div>
                 <div class="workspace-panel-body">
                     <form action="{{ route('bhw.reports.store') }}" method="POST" id="reportForm">
@@ -157,7 +157,7 @@
         <div class="col-xl-4">
             <div class="workspace-panel fade-in-card">
                 <div class="workspace-panel-header">
-                    <h2 class="workspace-panel-title"><i class="bi bi-eye-fill"></i>Preview</h2>
+                    <h2 class="workspace-panel-title">Preview</h2>
                 </div>
                 <div class="workspace-panel-body">
                     <div id="previewContent" class="text-muted">Calculating preview...</div>

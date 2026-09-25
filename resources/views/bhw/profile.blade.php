@@ -5,84 +5,84 @@
 @section('bhw-content')
 <style>
     .profile-shell {
-        display: grid;
-        gap: 1.5rem;
+        display:grid;
+        gap:1.5rem;
     }
 
     .profile-panel {
-        background: rgba(38, 24, 68, 0.96);
-        border: 1px solid rgba(139, 92, 246, 0.18);
-        border-radius: 1rem;
-        overflow: hidden;
-        box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.2);
+        background:color-mix(in srgb, var(--color-surface-soft) 96%, transparent);
+        border:1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
+        border-radius:1rem;
+        overflow:hidden;
+        box-shadow:0 1rem 2.5rem color-mix(in srgb, rgb(var(--color-shadow-rgb)) 20%, transparent);
     }
 
     .profile-panel-header {
-        background: linear-gradient(135deg, #1f7aff, #2563eb);
-        color: #fff;
-        padding: 1rem 1.25rem;
+        background:linear-gradient(135deg, var(--color-info), var(--color-info-text));
+        color:var(--color-on-solid);
+        padding:1rem 1.25rem;
     }
 
     .profile-panel-body {
-        padding: 1.25rem;
+        padding:1.25rem;
     }
 
     .profile-avatar {
-        width: 132px;
-        height: 132px;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 4px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.25);
+        width:132px;
+        height:132px;
+        object-fit:cover;
+        border-radius:50%;
+        border:4px solid color-mix(in srgb, var(--color-border) 20%, transparent);
+        box-shadow:0 0.75rem 2rem color-mix(in srgb, rgb(var(--color-shadow-rgb)) 25%, transparent);
     }
 
     .profile-kicker {
-        color: #c4b5fd;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+        color:var(--color-primary-text);
+        font-size:0.8rem;
+        text-transform:uppercase;
+        letter-spacing:0.08em;
     }
 
     .stat-card {
-        text-align: center;
-        background: rgba(67, 42, 116, 0.45);
-        border: 1px solid rgba(139, 92, 246, 0.14);
-        border-radius: 0.9rem;
-        padding: 1.25rem 1rem;
-        height: 100%;
+        text-align:center;
+        background:color-mix(in srgb, var(--color-primary-text) 45%, transparent);
+        border:1px solid color-mix(in srgb, var(--color-primary) 14%, transparent);
+        border-radius:0.9rem;
+        padding:1.25rem 1rem;
+        height:100%;
     }
 
     .timeline {
-        position: relative;
-        padding-left: 1.25rem;
+        position:relative;
+        padding-left:1.25rem;
     }
 
     .timeline-item {
-        position: relative;
-        margin-bottom: 1rem;
+        position:relative;
+        margin-bottom:1rem;
     }
 
     .timeline-marker {
-        position: absolute;
-        left: -1.2rem;
-        top: 0.45rem;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
+        position:absolute;
+        left:-1.2rem;
+        top:0.45rem;
+        width:10px;
+        height:10px;
+        border-radius:50%;
     }
 
     .timeline-content {
-        background: rgba(67, 42, 116, 0.35);
-        border: 1px solid rgba(139, 92, 246, 0.12);
-        padding: 1rem;
-        border-radius: 0.9rem;
+        background:color-mix(in srgb, var(--color-primary-text) 35%, transparent);
+        border:1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
+        padding:1rem;
+        border-radius:0.9rem;
     }
 </style>
 
 <div class="page-header mb-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-            <h1 class="page-title"><i class="bi bi-person-circle"></i> My Profile</h1>
+            <h1 class="page-title">My Profile</h1>
             <p class="page-subtitle mb-0">Manage your personal information and account settings</p>
         </div>
         <a href="{{ route('bhw.settings') }}" class="btn btn-outline-primary">

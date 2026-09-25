@@ -102,29 +102,29 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="d-flex align-items-center mb-2">
-                        <div class="bg-success rounded-circle me-2" style="width: 12px; height: 12px;"></div>
+                        <div class="bg-success rounded-circle me-2" style="width:12px; height:12px;"></div>
                         <span class="me-auto">Low Risk</span>
                         <span class="badge bg-success">{{ $riskDistribution['low'] }}</span>
                     </div>
-                    <div class="progress mb-3" style="height: 6px;">
+                    <div class="progress mb-3" style="height:6px;">
                         @php
                             $total = array_sum($riskDistribution);
                             $lowPct = $total > 0 ? ($riskDistribution['low'] / $total) * 100 : 0;
                         @endphp
-                        <div class="progress-bar bg-success" style="width: {{ $lowPct }}%"></div>
+                        <div class="progress-bar bg-success" style="width:{{ $lowPct }}%"></div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="d-flex align-items-center mb-2">
-                        <div class="bg-danger rounded-circle me-2" style="width: 12px; height: 12px;"></div>
+                        <div class="bg-danger rounded-circle me-2" style="width:12px; height:12px;"></div>
                         <span class="me-auto">High Risk</span>
                         <span class="badge bg-danger">{{ $riskDistribution['high'] }}</span>
                     </div>
-                    <div class="progress mb-3" style="height: 6px;">
+                    <div class="progress mb-3" style="height:6px;">
                         @php
                             $highPct = $total > 0 ? ($riskDistribution['high'] / $total) * 100 : 0;
                         @endphp
-                        <div class="progress-bar bg-danger" style="width: {{ $highPct }}%"></div>
+                        <div class="progress-bar bg-danger" style="width:{{ $highPct }}%"></div>
                     </div>
                 </div>
             </div>
@@ -212,13 +212,7 @@
 
     <!-- Footer Actions -->
     <div class="d-flex justify-content-between mt-4">
-        <form action="{{ route('bhw.reports.destroy', $report->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this report?');">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-outline-danger">
-                <i class="bi bi-trash"></i> Delete Report
-            </button>
-        </form>
+        <x-archive-form :action="route('bhw.reports.destroy', $report->id)" label="Archive Report" title="Archive report (retained for audit)" btnClass="btn btn-outline-warning" icon="bi bi-archive" confirmText="Archive this report? It will be retained for audit and can be restored." />
         <a href="{{ route('bhw.reports.print', $report->id) }}" class="btn btn-success" target="_blank">
             <i class="bi bi-printer"></i> Print Report
         </a>

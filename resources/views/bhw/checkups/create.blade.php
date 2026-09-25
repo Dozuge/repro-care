@@ -5,7 +5,7 @@
 @section('bhw-content')
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-calendar-plus"></i> Schedule Checkup</h1>
+        <h1>Schedule Checkup</h1>
         <a href="{{ route('bhw.patients') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back
         </a>
@@ -23,7 +23,8 @@
             <h5 class="mb-0">Schedule Checkup for {{ $woman->name }}</h5>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ route('bhw.checkups.store') }}">
+            {{-- rc-adaptive-form: ≥1024px multi-column (Layout A) · <1024px strictly stacked (Layout B) --}}
+            <form method="POST" action="{{ route('bhw.checkups.store') }}" class="rc-adaptive-form">
                 @csrf
                 
                 <div class="row mb-3">

@@ -23,16 +23,12 @@
     <div class="col-lg-4">
         <div class="card fade-in-card mb-4">
             <div class="card-header bg-transparent py-3">
-                <h5 class="mb-0 fw-700 text-dark">
-                    <i class="bi bi-person-badge-fill me-2" style="color:var(--primary);"></i>Demographics
+                <h5 class="mb-0 fw-700 text-dark">Demographics
                 </h5>
             </div>
             <div class="card-body">
                 <div class="text-center mb-4">
-                    <img src="{{ $woman->profile_image_url ?? '/images/avatars/avatar-default.svg' }}" 
-                         alt="{{ $woman->name }}"
-                         class="rounded-circle border border-primary p-1" 
-                         style="width: 90px; height: 90px; object-fit: cover;">
+                    <x-patient-avatar :patient="$woman" :size="90" />
                     <h5 class="fw-700 mt-3 text-dark mb-1">{{ $woman->name }}</h5>
                     <span class="badge bg-primary-soft text-primary fw-600 text-xs px-2.5 py-1">
                         {{ str_replace('_', ' ', ucfirst($woman->pregnancy_status ?? 'not pregnant')) }}
@@ -78,8 +74,7 @@
         <!-- Pregnancies History -->
         <div class="card fade-in-card mb-4">
             <div class="card-header bg-transparent py-3">
-                <h5 class="mb-0 fw-700 text-dark">
-                    <i class="bi bi-heart-pulse-fill me-2" style="color:var(--danger);"></i>Pregnancy History ({{ $woman->pregnancies->count() }})
+                <h5 class="mb-0 fw-700 text-dark">Pregnancy History ({{ $woman->pregnancies->count() }})
                 </h5>
             </div>
             <div class="card-body p-0">
@@ -141,8 +136,7 @@
         <!-- Checkups Records -->
         <div class="card fade-in-card mb-4">
             <div class="card-header bg-transparent py-3">
-                <h5 class="mb-0 fw-700 text-dark">
-                    <i class="bi bi-clipboard2-pulse-fill me-2" style="color:var(--primary);"></i>Checkups History ({{ $woman->checkups->count() }})
+                <h5 class="mb-0 fw-700 text-dark">Checkups History ({{ $woman->checkups->count() }})
                 </h5>
             </div>
             <div class="card-body p-0">
@@ -164,7 +158,7 @@
                                     <tr>
                                         <td class="px-4 fw-600 text-dark">
                                             {{ $checkup->scheduled_date ? $checkup->scheduled_date->format('M j, Y') : 'N/A' }}
-                                            <div style="font-size: 0.7rem; color:var(--text-muted);">{{ $checkup->scheduled_time ?? 'N/A' }}</div>
+                                            <div style="font-size:0.7rem; color:var(--text-muted);">{{ $checkup->scheduled_time ?? 'N/A' }}</div>
                                         </td>
                                         <td>{{ $checkup->scheduledBy->name ?? 'Unknown' }}</td>
                                         <td class="fw-700 text-dark">{{ $checkup->blood_pressure ?? 'N/A' }}</td>
@@ -192,8 +186,7 @@
         <!-- Clinical Health Records -->
         <div class="card fade-in-card">
             <div class="card-header bg-transparent py-3">
-                <h5 class="mb-0 fw-700 text-dark">
-                    <i class="bi bi-file-earmark-medical-fill me-2" style="color:var(--cyan);"></i>Detailed Clinical Health Records
+                <h5 class="mb-0 fw-700 text-dark">Detailed Clinical Health Records
                 </h5>
             </div>
             <div class="card-body p-0">
@@ -224,7 +217,7 @@
                                                 {{ $record->is_high_risk ? 'High Risk' : 'Normal' }}
                                             </span>
                                         </td>
-                                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $record->notes }}">
+                                        <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ $record->notes }}">
                                             {{ $record->notes ?? 'No comments' }}
                                         </td>
                                     </tr>

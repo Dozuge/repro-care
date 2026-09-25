@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'force.logout' => \App\Http\Middleware\ForceLogout::class,
             'absolute.logout' => \App\Http\Middleware\AbsoluteLogoutProtection::class,
             'midwife.readonly' => \App\Http\Middleware\MidwifeReadOnly::class,
+            'sync' => \App\Http\Middleware\HandleSyncRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

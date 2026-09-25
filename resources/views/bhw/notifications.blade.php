@@ -4,53 +4,53 @@
 
 @push('styles')
 <style>
-    .notif-wrap { max-width: 720px; margin: 0 auto; }
+    .notif-wrap { max-width:720px; margin:0 auto; }
 
     .notif-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 1rem 1.25rem;
-        margin-bottom: 0.75rem;
-        display: flex;
-        align-items: flex-start;
-        gap: 1rem;
-        transition: all 0.2s ease;
-        position: relative;
-        overflow: hidden;
-        text-decoration: none;
-        color: inherit;
+        background:var(--bg-card);
+        border:1px solid var(--border);
+        border-radius:16px;
+        padding:1rem 1.25rem;
+        margin-bottom:0.75rem;
+        display:flex;
+        align-items:flex-start;
+        gap:1rem;
+        transition:all 0.2s ease;
+        position:relative;
+        overflow:hidden;
+        text-decoration:none;
+        color:inherit;
     }
 
     .notif-card:hover {
-        border-color: var(--primary);
-        transform: translateX(4px);
-        box-shadow: var(--shadow-sm);
-        color: inherit;
+        border-color:var(--primary);
+        transform:translateX(4px);
+        box-shadow:var(--shadow-sm);
+        color:inherit;
     }
 
-    .notif-card.unread { border-left: 3px solid var(--primary); background: linear-gradient(90deg, var(--primary-subtle), var(--bg-card)); }
-    .notif-card.type-danger { border-left: 3px solid #ef4444; background: linear-gradient(90deg, rgba(239,68,68,0.05), var(--bg-card)); }
-    .notif-card.type-warning { border-left: 3px solid #f59e0b; background: linear-gradient(90deg, rgba(245,158,11,0.05), var(--bg-card)); }
-    .notif-card.type-success { border-left: 3px solid #10b981; background: linear-gradient(90deg, rgba(16,185,129,0.05), var(--bg-card)); }
-    .notif-card.type-info { border-left: 3px solid #0ea5e9; background: linear-gradient(90deg, rgba(14,165,233,0.05), var(--bg-card)); }
+    .notif-card.unread { border-left:3px solid var(--primary); background:linear-gradient(90deg, var(--primary-subtle), var(--bg-card)); }
+    .notif-card.type-danger { border-left:3px solid var(--color-danger); background:linear-gradient(90deg, color-mix(in srgb, var(--color-danger) 5%, transparent), var(--bg-card)); }
+    .notif-card.type-warning { border-left:3px solid var(--color-warning); background:linear-gradient(90deg, color-mix(in srgb, var(--color-warning) 5%, transparent), var(--bg-card)); }
+    .notif-card.type-success { border-left:3px solid var(--color-success); background:linear-gradient(90deg, color-mix(in srgb, var(--color-success) 5%, transparent), var(--bg-card)); }
+    .notif-card.type-info { border-left:3px solid var(--color-info); background:linear-gradient(90deg, color-mix(in srgb, var(--color-info) 5%, transparent), var(--bg-card)); }
 
-    .notif-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
-    .notif-icon-danger { background: rgba(239,68,68,0.12); color: #f87171; }
-    .notif-icon-warning { background: rgba(245,158,11,0.12); color: #fbbf24; }
-    .notif-icon-success { background: rgba(16,185,129,0.12); color: #34d399; }
-    .notif-icon-info { background: rgba(14,165,233,0.12); color: #38bdf8; }
+    .notif-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .notif-icon-danger { background:color-mix(in srgb, var(--color-danger) 12%, transparent); color:var(--color-danger-text); }
+    .notif-icon-warning { background:color-mix(in srgb, var(--color-warning) 12%, transparent); color:var(--color-warning-text); }
+    .notif-icon-success { background:color-mix(in srgb, var(--color-success) 12%, transparent); color:var(--color-success-text); }
+    .notif-icon-info { background:color-mix(in srgb, var(--color-info) 12%, transparent); color:var(--color-info-text); }
 
-    .notif-body { flex: 1; min-width: 0; }
-    .notif-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.875rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
-    .notif-message { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 0.3rem; }
-    .notif-time { font-size: 0.73rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.3rem; }
-    .notif-badge-new { background: var(--primary); color: #fff; font-size: 0.62rem; font-weight: 700; padding: 0.12em 0.6em; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; box-shadow: 0 2px 8px var(--primary-glow); margin-top: 2px; }
-    .type-badge { font-size: 0.68rem; font-weight: 700; padding: 0.15em 0.6em; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .type-badge-danger { background: rgba(239,68,68,0.15); color: #f87171; }
-    .type-badge-warning { background: rgba(245,158,11,0.15); color: #fbbf24; }
-    .type-badge-success { background: rgba(16,185,129,0.15); color: #34d399; }
-    .type-badge-info { background: rgba(14,165,233,0.15); color: #38bdf8; }
+    .notif-body { flex:1; min-width:0; }
+    .notif-title { font-family:'Plus Jakarta Sans', sans-serif; font-size:0.875rem; font-weight:700; color:var(--text); margin-bottom:0.2rem; }
+    .notif-message { font-size:0.85rem; color:var(--text-muted); line-height:1.5; margin:0 0 0.3rem; }
+    .notif-time { font-size:0.73rem; color:var(--text-muted); display:flex; align-items:center; gap:0.3rem; }
+    .notif-badge-new { background:var(--primary); color:var(--color-on-solid); font-size:0.62rem; font-weight:700; padding:0.12em 0.6em; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px; flex-shrink:0; box-shadow:0 2px 8px var(--primary-glow); margin-top:2px; }
+    .type-badge { font-size:0.68rem; font-weight:700; padding:0.15em 0.6em; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px; }
+    .type-badge-danger { background:color-mix(in srgb, var(--color-danger) 15%, transparent); color:var(--color-danger-text); }
+    .type-badge-warning { background:color-mix(in srgb, var(--color-warning) 15%, transparent); color:var(--color-warning-text); }
+    .type-badge-success { background:color-mix(in srgb, var(--color-success) 15%, transparent); color:var(--color-success-text); }
+    .type-badge-info { background:color-mix(in srgb, var(--color-info) 15%, transparent); color:var(--color-info-text); }
 </style>
 @endpush
 
@@ -58,9 +58,7 @@
 <div class="notif-wrap fade-in-card">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="page-title">
-                <i class="bi bi-bell-fill me-2" style="color:var(--primary-light);"></i>
-                Notifications
+            <h1 class="page-title">Notifications
             </h1>
             <p class="page-subtitle">Your alerts, reminders, and health updates</p>
         </div>
@@ -89,6 +87,7 @@
                         <div class="notif-title">{{ $notification->title }}</div>
                     @endif
                     <p class="notif-message">{{ $notification->message }}</p>
+                    @include('includes.patient-alert-receipt')
                     <div class="d-flex align-items-center gap-2 mt-1">
                         <span class="type-badge type-badge-{{ $type }}">{{ ucfirst($type) }}</span>
                         <span class="notif-time">

@@ -9,124 +9,124 @@
     <style>
         @media print {
             body {
-                font-size: 12pt;
-                line-height: 1.4;
+                font-size:12pt;
+                line-height:1.4;
             }
             .no-print {
-                display: none !important;
+                display:none !important;
             }
             .page-break {
-                page-break-before: always;
+                page-break-before:always;
             }
             .container-fluid {
-                padding: 0;
+                padding:0;
             }
             table {
-                font-size: 10pt;
+                font-size:10pt;
             }
             .card {
-                border: 1px solid #dee2e6 !important;
-                break-inside: avoid;
+                border:1px solid var(--color-border) !important;
+                break-inside:avoid;
             }
         }
 
         @media screen {
             body {
-                background-color: #f8f9fa;
-                padding: 20px;
+                background-color:var(--color-surface-soft);
+                padding:20px;
             }
             .print-container {
-                max-width: 1000px;
-                margin: 0 auto;
-                background: white;
-                padding: 40px;
-                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+                max-width:1000px;
+                margin:0 auto;
+                background:var(--color-surface);
+                padding:40px;
+                box-shadow:0 0 20px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 10%, transparent);
             }
         }
 
         .report-header {
-            border-bottom: 3px solid #0d6efd;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            border-bottom:3px solid var(--color-info);
+            padding-bottom:20px;
+            margin-bottom:30px;
         }
 
         .org-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 2rem;
-            font-weight: bold;
+            width:80px;
+            height:80px;
+            background:linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary) 100%);
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:var(--color-on-solid);
+            font-size:2rem;
+            font-weight:bold;
         }
 
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
+            display:grid;
+            grid-template-columns:repeat(4, 1fr);
+            gap:15px;
+            margin-bottom:30px;
         }
 
         .stat-box {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
+            background:var(--color-surface-soft);
+            border:1px solid var(--color-border);
+            border-radius:8px;
+            padding:15px;
+            text-align:center;
         }
 
         .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #0d6efd;
+            font-size:2rem;
+            font-weight:bold;
+            color:var(--color-info-text);
         }
 
         .stat-label {
-            font-size: 0.875rem;
-            color: #6c757d;
+            font-size:0.875rem;
+            color:var(--color-text-muted);
         }
 
         .table th {
-            background-color: #e9ecef !important;
-            font-weight: 600;
+            background-color:var(--color-surface-soft) !important;
+            font-weight:600;
         }
 
         .risk-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            display:inline-block;
+            padding:4px 8px;
+            border-radius:4px;
+            font-size:0.75rem;
+            font-weight:600;
         }
 
         .risk-low {
-            background-color: #d1edff;
-            color: #0c5460;
+            background-color:var(--color-success-soft);
+            color:var(--color-success-text);
         }
 
         .risk-medium {
-            background-color: #fff3cd;
-            color: #856404;
+            background-color:var(--color-warning-soft);
+            color:var(--color-warning-text);
         }
 
         .risk-high {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color:var(--color-danger-soft);
+            color:var(--color-danger-text);
         }
 
         .bhw-signature {
-            margin-top: 50px;
-            border-top: 1px solid #dee2e6;
-            padding-top: 20px;
+            margin-top:50px;
+            border-top:1px solid var(--color-border);
+            padding-top:20px;
         }
 
         .signature-line {
-            border-bottom: 1px solid #000;
-            width: 300px;
-            margin-top: 60px;
+            border-bottom:1px solid var(--color-border);
+            width:300px;
+            margin-top:60px;
         }
     </style>
 </head>
@@ -175,7 +175,7 @@
         <!-- BHW Information -->
         <div class="card mb-4">
             <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="bi bi-person-badge"></i> BHW Information</h6>
+                <h6 class="mb-0">BHW Information</h6>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -238,7 +238,7 @@
         <!-- Health Records Table -->
         <div class="card">
             <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="bi bi-file-medical"></i> Health Records Detail</h6>
+                <h6 class="mb-0">Health Records Detail</h6>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">

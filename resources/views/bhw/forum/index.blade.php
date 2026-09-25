@@ -10,8 +10,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-chat-heart-fill me-2"></i>Community Forum
+            <div class="page-hero-title">Community Forum
             </div>
             <p class="page-hero-subtitle">
                 <i class="bi bi-calendar3 me-1"></i>{{ now()->format('l, F j, Y') }}
@@ -28,7 +27,7 @@
 
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert"
-         style="background:rgba(25,135,84,0.1); border:1px solid rgba(25,135,84,0.3); color:var(--success); border-radius:10px;">
+         style="background:color-mix(in srgb, var(--color-success-text) 10%, transparent); border:1px solid color-mix(in srgb, var(--color-success-text) 30%, transparent); color:var(--success); border-radius:10px;">
         <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" style="filter:invert(1);"></button>
     </div>
@@ -37,7 +36,7 @@
 {{-- ═══════════════════════════════
      FILTER TABS
 ════════════════════════════════ --}}
-<div class="card fade-in-card mb-4" style="border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+<div class="card fade-in-card mb-4" style="border:none; border-radius:16px; box-shadow:0 4px 20px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 8%, transparent);">
     <div class="card-body p-3">
         <div class="d-flex gap-2">
             <a href="{{ route('forum.index') }}" class="btn {{ !$filter ? 'btn-primary' : 'btn-outline-secondary' }}">
@@ -55,7 +54,7 @@
         @if($posts->count() > 0)
             <div class="posts-list">
         @foreach($posts as $post)
-            <div class="card fade-in-card mb-3" style="border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+            <div class="card fade-in-card mb-3" style="border:none; border-radius:16px; box-shadow:0 4px 20px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 8%, transparent);">
                 <div class="card-body p-4">
                     <!-- Post Header -->
                     <div class="d-flex justify-content-between align-items-start mb-3">
@@ -64,10 +63,10 @@
                                 <img src="{{ $post->user->profile_image_url }}"
                                      alt="{{ $post->user->name }}"
                                      class="rounded-circle me-3"
-                                     style="width: 48px; height: 48px; object-fit: cover; border:2px solid var(--primary);">
+                                     style="width:48px; height:48px; object-fit:cover; border:2px solid var(--primary);">
                             @else
                                 <div class="rounded-circle me-3 d-flex align-items-center justify-content-center"
-                                     style="width: 48px; height: 48px; background:linear-gradient(135deg, var(--primary), var(--accent-violet)); color:#fff; font-size:1.25rem; font-weight:800;">
+                                     style="width:48px; height:48px; background:linear-gradient(135deg, var(--primary), var(--accent-violet)); color:var(--color-on-solid); font-size:1.25rem; font-weight:800;">
                                     {{ $post->user ? strtoupper(substr($post->user->name, 0, 1)) : '?' }}
                                 </div>
                             @endif
@@ -98,14 +97,14 @@
 
                     <!-- Post Content -->
                     <div class="post-content mb-3">
-                        <p class="card-text" style="font-size: 1rem; line-height: 1.6; white-space: pre-wrap;">{{ $post->content }}</p>
+                        <p class="card-text" style="font-size:1rem; line-height:1.6; white-space:pre-wrap;">{{ $post->content }}</p>
 
                         @if($post->post_image)
                             <div class="mt-2">
                                 <img src="{{ $post->post_image_url }}"
                                      alt="Post image"
                                      class="img-fluid rounded"
-                                     style="max-height: 300px; cursor: pointer; border-radius:12px;"
+                                     style="max-height:300px; cursor:pointer; border-radius:12px;"
                                      onclick="window.location.href='{{ route('forum.show', $post->id) }}'">
                             </div>
                         @endif
@@ -140,8 +139,8 @@
                 {{ $posts->links() }}
             </div>
         @else
-            <div class="card fade-in-card text-center py-5" style="border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-                <i class="bi bi-chat-dots" style="font-size: 3rem; color:rgba(0,0,0,0.1);"></i>
+            <div class="card fade-in-card text-center py-5" style="border:none; border-radius:16px; box-shadow:0 4px 20px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 8%, transparent);">
+                <i class="bi bi-chat-dots" style="font-size:3rem; color:color-mix(in srgb, var(--color-text) 10%, transparent);"></i>
                 <h4 class="text-muted mt-3">No posts yet</h4>
                 <p class="text-muted">Be the first to share something with the community!</p>
                 <a href="{{ route('forum.create') }}" class="btn btn-primary">

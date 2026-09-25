@@ -5,7 +5,7 @@
 @section('bhw-content')
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-file-plus"></i> Add Health Record</h1>
+        <h1>Add Health Record</h1>
         <a href="{{ route('bhw.patient-details', $woman->id) }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back
         </a>
@@ -23,7 +23,8 @@
             <h5 class="mb-0">Add Health Record for {{ $woman->name }}</h5>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ route('bhw.health-records.store', $woman->id) }}">
+            {{-- rc-adaptive-form: ≥1024px multi-column (Layout A) · <1024px strictly stacked (Layout B) --}}
+            <form method="POST" action="{{ route('bhw.health-records.store', $woman->id) }}" class="rc-adaptive-form">
                 @csrf
                 
                 <div class="row mb-3">
@@ -208,7 +209,7 @@
                     </div>
                 </div>
                 
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 rc-form-actions">
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-save"></i> Save Health Record
                     </button>

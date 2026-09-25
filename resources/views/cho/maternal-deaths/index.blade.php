@@ -7,12 +7,9 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-journal-x me-2" style="color:var(--danger);"></i>Maternal Death Cases
+            <div class="page-hero-title">Maternal Death Cases
             </div>
-            <p class="page-hero-subtitle">
-                Conduct clinical reviews and maternal death audits (DOH MDSR standard).
-            </p>
+            <p class="page-hero-subtitle" style="font-weight:600;">Conduct clinical reviews and maternal death audits (DOH MDSR standard).</p>
         </div>
     </div>
 </div>
@@ -71,7 +68,7 @@
                                     <span style="font-size:0.875rem;">{{ $death->recordedBy->name ?? 'Unknown' }}</span>
                                 </td>
                                 <td class="pe-4 text-end">
-                                    <a href="{{ route('cho.maternal-deaths.show', $death->id) }}" class="btn btn-xs btn-primary text-white py-1 px-3" style="font-size:0.75rem; border-radius:8px;">
+                                    <a href="{{ route('cho.maternal-deaths.show', $death->id) }}" class="btn btn-xs btn-view text-white py-1 px-3" style="font-size:0.75rem; border-radius:8px;">
                                         Audit Case
                                     </a>
                                 </td>
@@ -88,7 +85,7 @@
             @endif
         @else
             <div class="text-center py-5">
-                <i class="bi bi-journal-x" style="font-size: 3rem; color: var(--text-muted);"></i>
+                <i class="bi bi-journal-x" style="font-size:3rem; color:var(--text-muted);"></i>
                 <h5 class="mt-3">No Maternal Death Cases Found</h5>
                 <p class="text-muted text-xs">There are no recorded maternal mortality cases in the system.</p>
             </div>

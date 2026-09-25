@@ -7,8 +7,7 @@
 <div class="page-hero fade-in-card mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <div class="page-hero-title">
-                <i class="bi bi-person-fill me-2" style="color:var(--primary-light);"></i>Staff Profile Details
+            <div class="page-hero-title">Staff Profile Details
             </div>
             <p class="page-hero-subtitle">
                 Detailed profile info and account status for health worker.
@@ -28,7 +27,7 @@
                 <img src="{{ $user->profile_image_url }}"
                      alt="{{ $user->name }}"
                      class="rounded-circle mb-3 border border-4 border-light"
-                     style="width: 110px; height: 110px; object-fit: cover;"
+                     style="width:110px; height:110px; object-fit:cover;"
                      onerror="this.onerror=null;this.src='{{ $user->gender === 'male' ? '/images/avatars/avatar-male.svg' : '/images/avatars/avatar-female.svg' }}';">
                 
                 <h4 class="fw-700 mb-1" style="color:var(--text); font-family:'Plus Jakarta Sans',sans-serif;">{{ $user->name }}</h4>
@@ -102,9 +101,7 @@
     <div class="col-lg-8">
         <div class="card fade-in-card">
             <div class="card-header">
-                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">
-                    <i class="bi bi-info-circle me-2" style="color:var(--primary-light);"></i>
-                    Personal & Station Information
+                <h5 class="mb-0 fw-700" style="font-family:'Plus Jakarta Sans',sans-serif;">Personal & Station Information
                 </h5>
             </div>
             <div class="card-body">

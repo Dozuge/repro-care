@@ -10,7 +10,7 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3" style="position:relative;z-index:1;">
         <div>
             <div class="page-hero-title">Coverage Report</div>
-            <p class="page-hero-subtitle">Registered women and walk-in patients covered by purok and service usage.</p>
+            <p class="page-hero-subtitle">Enrolled women and unlinked patients covered by purok and service usage.</p>
         </div>
     </div>
 </div>
@@ -86,7 +86,7 @@
 
 <div class="card fade-in-card mb-4">
     <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-pie-chart me-2" style="color:var(--success);"></i>Coverage Overview</h5>
+        <h5 class="mb-0">Coverage Overview</h5>
     </div>
     <div class="card-body">
         <div class="progress mb-3" style="height:30px;">
@@ -100,7 +100,7 @@
 
 <div class="card fade-in-card">
     <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Patient List</h5>
+        <h5 class="mb-0">Patient List</h5>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -120,7 +120,6 @@
                         @php
                             $isWalkIn = ($patient->coverage_type ?? 'registered') === 'walk_in';
                             $displayName = $isWalkIn ? $patient->full_name : $patient->name;
-                            $initial = strtoupper(substr($displayName, 0, 1));
                             $hasCheckups = $isWalkIn
                                 ? ($patient->checkupReferrals && $patient->checkupReferrals->count() > 0)
                                 : ($patient->checkups && $patient->checkups->count() > 0);
@@ -132,15 +131,17 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent-violet));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#fff;">
-                                        {{ $initial }}
-                                    </div>
-                                    <span style="font-weight:500;">{{ $displayName }}</span>
+                                    <x-patient-avatar :patient="$patient" :name="$displayName" :size="32" />
+                                    @if($isWalkIn)
+                                        <span style="font-weight:500;">{{ $displayName }}</span>
+                                    @else
+                                        <a href="{{ route('profile.view', $patient->id) }}" class="fw-semibold">{{ $displayName }}</a>
+                                    @endif
                                 </div>
                             </td>
                             <td>
                                 <span class="badge {{ $isWalkIn ? 'bg-info text-dark' : 'bg-primary' }}">
-                                    {{ $isWalkIn ? 'Walk-in' : 'Registered' }}
+                                    {{ $isWalkIn ? 'Unlinked' : 'Enrolled' }}
                                 </span>
                             </td>
                             <td>{{ $patient->purok?->name ?? 'N/A' }}</td>

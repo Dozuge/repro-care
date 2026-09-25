@@ -12,49 +12,49 @@
 
 @push('styles')
 <style>
-    .edit-post-wrap { max-width: 680px; margin: 0 auto; }
+    .edit-post-wrap { max-width:680px; margin:0 auto; }
     .post-textarea {
-        width: 100%; background: var(--bg-input); border: 1.5px solid var(--border);
-        border-radius: 14px; color: var(--text); font-size: 0.95rem; line-height: 1.7;
-        padding: 1rem 1.1rem; resize: vertical; min-height: 160px; outline: none;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+        width:100%; background:var(--bg-input); border:1.5px solid var(--border);
+        border-radius:14px; color:var(--text); font-size:0.95rem; line-height:1.7;
+        padding:1rem 1.1rem; resize:vertical; min-height:160px; outline:none;
+        transition:border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
     }
-    .post-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
-    .post-textarea::placeholder { color: var(--text-muted); opacity: 0.65; }
-    .char-counter { font-size: 0.78rem; color: var(--text-muted); text-align: right; margin-top: 0.3rem; }
-    .char-counter.over { color: var(--danger); }
+    .post-textarea:focus { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
+    .post-textarea::placeholder { color:var(--text-muted); opacity:0.65; }
+    .char-counter { font-size:0.78rem; color:var(--text-muted); text-align:right; margin-top:0.3rem; }
+    .char-counter.over { color:var(--danger); }
     .image-drop-zone {
-        background: var(--bg-input); border: 2px dashed var(--border); border-radius: 14px;
-        padding: 1.5rem; text-align: center; cursor: pointer;
-        transition: border-color 0.2s ease, background 0.2s ease; position: relative;
+        background:var(--bg-input); border:2px dashed var(--border); border-radius:14px;
+        padding:1.5rem; text-align:center; cursor:pointer;
+        transition:border-color 0.2s ease, background 0.2s ease; position:relative;
     }
     .image-drop-zone:hover, .image-drop-zone.drag-over {
-        border-color: var(--primary); background: var(--primary-subtle);
+        border-color:var(--primary); background:var(--primary-subtle);
     }
     .image-drop-zone input[type="file"] {
-        position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%;
     }
     .forum-image-preview, .forum-current-image {
-        width: 100%; max-height: 300px; object-fit: cover;
-        border-radius: 12px; border: 1px solid var(--border);
+        width:100%; max-height:300px; object-fit:cover;
+        border-radius:12px; border:1px solid var(--border);
     }
     .current-image-wrap {
-        background: var(--bg-card2); border: 1px solid var(--border);
-        border-radius: 14px; padding: 1rem; margin-bottom: 1rem;
-        transition: background 0.4s ease;
+        background:var(--bg-card2); border:1px solid var(--border);
+        border-radius:14px; padding:1rem; margin-bottom:1rem;
+        transition:background 0.4s ease;
     }
     .current-image-label {
-        font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 0.6rem;
-        display: flex; align-items: center; gap: 0.4rem;
+        font-size:0.75rem; font-weight:700; text-transform:uppercase;
+        letter-spacing:0.8px; color:var(--text-muted); margin-bottom:0.6rem;
+        display:flex; align-items:center; gap:0.4rem;
     }
     .edit-post-header {
-        background: linear-gradient(135deg, #7c3aed, var(--primary), var(--accent-pink));
-        padding: 1.25rem 1.5rem; border-radius: 18px 18px 0 0; color: #fff;
+        background:linear-gradient(135deg, var(--color-primary), var(--primary), var(--accent-pink));
+        padding:1.25rem 1.5rem; border-radius:18px 18px 0 0; color:var(--color-on-solid);
     }
     .edit-post-header h5 {
-        font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800;
-        font-size: 1.1rem; margin: 0;
+        font-family:'Plus Jakarta Sans', sans-serif; font-weight:800;
+        font-size:1.1rem; margin:0;
     }
 </style>
 @endpush
@@ -75,7 +75,7 @@
 
         {{-- Header --}}
         <div class="edit-post-header">
-            <h5><i class="bi bi-pencil-fill me-2"></i>Edit Post</h5>
+            <h5>Edit Post</h5>
             <p style="margin:0.2rem 0 0;font-size:0.8rem;opacity:0.8;">Update your post below</p>
         </div>
 
@@ -90,7 +90,7 @@
             {{-- Original post info --}}
             <div class="d-flex align-items-center gap-3 p-3 mb-4"
                  style="background:var(--bg-card2);border:1px solid var(--border);border-radius:12px;">
-                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent-violet));display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:700;color:#fff;flex-shrink:0;">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent-violet));display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:700;color:var(--color-on-solid);flex-shrink:0;">
                     {{ strtoupper(substr($forumUser->name, 0, 1)) }}
                 </div>
                 <div>

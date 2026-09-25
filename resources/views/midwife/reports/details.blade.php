@@ -7,7 +7,7 @@
     <div class="page-hero fade-in-card">
         <div class="workspace-toolbar" style="position:relative;z-index:1;">
             <div>
-                <div class="page-hero-title"><i class="bi bi-person-vcard-fill me-2"></i>Patient Report Details</div>
+                <div class="page-hero-title">Patient Report Details</div>
                 <p class="page-hero-subtitle">A complete snapshot of the patient's maternal history, checkups, and recorded health metrics.</p>
             </div>
             <div class="workspace-toolbar-actions">
@@ -34,7 +34,7 @@
 
     <div class="workspace-panel fade-in-card">
         <div class="workspace-panel-header">
-            <h2 class="workspace-panel-title"><i class="bi bi-info-circle-fill"></i>Patient Information</h2>
+            <h2 class="workspace-panel-title">Patient Information</h2>
         </div>
         <div class="workspace-panel-body">
             <div class="row g-4">
@@ -61,7 +61,7 @@
     @if($woman->pregnancies->count() > 0)
         <div class="workspace-panel fade-in-card">
             <div class="workspace-panel-header">
-                <h2 class="workspace-panel-title"><i class="bi bi-heart-pulse-fill"></i>Pregnancy History</h2>
+                <h2 class="workspace-panel-title">Pregnancy History</h2>
             </div>
             <div class="workspace-panel-body pt-3">
                 <div class="modern-table-wrap">
@@ -103,7 +103,7 @@
     @if($woman->checkups->count() > 0)
         <div class="workspace-panel fade-in-card">
             <div class="workspace-panel-header">
-                <h2 class="workspace-panel-title"><i class="bi bi-calendar-check-fill"></i>Checkups</h2>
+                <h2 class="workspace-panel-title">Checkups</h2>
             </div>
             <div class="workspace-panel-body pt-3">
                 <div class="modern-table-wrap">
@@ -144,7 +144,7 @@
     @if($woman->healthRecords->count() > 0)
         <div class="workspace-panel fade-in-card">
             <div class="workspace-panel-header">
-                <h2 class="workspace-panel-title"><i class="bi bi-file-medical-fill"></i>Health Records</h2>
+                <h2 class="workspace-panel-title">Health Records</h2>
             </div>
             <div class="workspace-panel-body pt-3">
                 <div class="modern-table-wrap">

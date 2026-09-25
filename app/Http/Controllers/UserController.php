@@ -78,8 +78,15 @@ class UserController extends Controller
     // Pregnancy Tracking
     public function pregnancies()
     {
-        $pregnancies = Auth::user()->pregnancies()->orderBy('created_at', 'desc')->paginate(10);
-        return view('user.pregnancies.index', compact('pregnancies'));
+        $pregnancies = Auth::user()->pregnancies()
+            ->with([
+                'healthRecords' => fn($q) => $q->orderBy('created_at', 'desc'),
+                'maternalCareTargetClient',
+            ])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        $activePregnancy = $pregnancies->firstWhere('is_active', true);
+        return view('user.pregnancies.index', compact('pregnancies', 'activePregnancy'));
     }
 
     public function createPregnancy()
@@ -132,20 +139,16 @@ class UserController extends Controller
         $pregnancy = Pregnancy::create([
             'user_id' => Auth::id(),
             'lmp' => $request->lmp,
-            'blood_pressure' => $this->combineBloodPressure($request),
-            'weight' => $request->weight,
-            'height' => $request->height,
-            'bmi' => $assessment['bmi'],
-            'smoking_status' => $request->smoking_status,
-            'alcohol_status' => $request->alcohol_status,
-            'drug_use_status' => $request->drug_use_status,
-            'obstetric_history' => $request->obstetric_history,
-            'lifestyle_notes' => $request->lifestyle_notes,
+            'gravida' => $request->gravida,
+            'para' => $request->para,
             'risk_assessment_mode' => 'automatic',
             'risk_level' => $assessment['risk_level'],
             'risk_notes' => $assessment['reasons'] ? implode(' ', $assessment['reasons']) : null,
             'is_high_risk' => $assessment['is_high_risk'],
             'notes' => $request->notes,
+            // Self-reported: enters the BHW President → Midwife validation queue,
+            // never treated as clinically validated on creation.
+            'workflow_status' => 'submitted_to_bhw_president',
         ]);
 
         HealthRecord::create([
@@ -165,6 +168,8 @@ class UserController extends Controller
             'risk_level' => $assessment['risk_level'],
             'risk_assessment_mode' => 'automatic',
             'risk_notes' => $assessment['reasons'] ? implode(' ', $assessment['reasons']) : null,
+            // Self-reported: enters the BHW President → Midwife validation queue.
+            'workflow_status' => 'submitted_to_bhw_president',
         ]);
 
         // Create maternal care target client with obstetric data
@@ -178,8 +183,60 @@ class UserController extends Controller
             );
         }
 
+        // Self-report loop: alert the care team so the report doesn't sit unseen.
+        $reporter = Auth::user();
+        $reportDetail = "{$reporter->name} self-reported a pregnancy (LMP {$pregnancy->lmp->format('M d, Y')})."
+            . ($reporter->contact_number ? " Patient contact: {$reporter->contact_number}." : '');
+        $careTeam = \App\Models\User::whereIn('role', ['midwife', 'bhw_president'])
+            ->where('status', 'approved')
+            ->when($reporter->barangay, fn ($query) => $query->where(fn ($w) => $w->whereNull('barangay')->orWhere('barangay', $reporter->barangay)))
+            ->get();
+        foreach ($careTeam as $member) {
+            \App\Models\Notification::createNotification(
+                $member->id,
+                $reportDetail,
+                '🤰 Patient Self-Reported Pregnancy',
+                'info',
+                $member->role === 'midwife' ? route('midwife.pregnancies.index') : route('bhw-president.pregnancies.index'),
+                $member->role
+            );
+        }
+        if ($reporter->created_by_bhw_id) {
+            \App\Models\Notification::createNotification(
+                (int) $reporter->created_by_bhw_id,
+                $reportDetail,
+                '🤰 Your patient self-reported a pregnancy',
+                'info',
+                route('bhw.pregnancies.index'),
+                'bhw'
+            );
+        }
+
         return redirect()->route('user.pregnancies.index')
-            ->with('success', 'Pregnancy record added successfully');
+            ->with('success', 'Pregnancy reported successfully. Your midwife and health worker have been notified.');
+    }
+
+    // Show single pregnancy details
+    public function showPregnancy($id)
+    {
+        $pregnancy = Pregnancy::with([
+            'healthRecords' => fn($q) => $q->orderBy('created_at', 'desc'),
+            'maternalCareTargetClient',
+        ])->findOrFail($id);
+
+        if ($pregnancy->user_id !== Auth::id()) {
+            abort(404);
+        }
+
+        $maternalCare = $pregnancy->maternalCareTargetClient;
+        $checkups = Auth::user()->checkups()
+            ->where('pregnancy_id', $pregnancy->id)
+            ->orderBy('scheduled_date', 'desc')
+            ->limit(10)
+            ->get();
+        $nextCheckup = Auth::user()->checkups()->scheduled()->upcoming()->orderBy('scheduled_date')->first();
+
+        return view('user.pregnancies.show', compact('pregnancy', 'maternalCare', 'checkups', 'nextCheckup'));
     }
 
     // Menstruation Tracking
@@ -194,7 +251,8 @@ class UserController extends Controller
         $averageCycle = Cycle::getAverageCycleLength(Auth::id());
         $averagePeriod = Cycle::getAveragePeriodLength(Auth::id());
 
-        return view('user.menstruation.index', compact('records', 'nextPeriod', 'averageCycle', 'averagePeriod'));
+        $predictionDetail = app(CyclePredictionService::class)->getPredictionDetail(Auth::id());
+        return view('user.menstruation.index', compact('records', 'nextPeriod', 'averageCycle', 'averagePeriod', 'predictionDetail'));
     }
 
     public function createMenstruationRecord()
@@ -205,10 +263,10 @@ class UserController extends Controller
     public function storeMenstruationRecord(Request $request)
     {
         $validated = $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'start_date' => 'required|date|before_or_equal:today|unique:cycles,period_start_date,NULL,id,user_id,'.Auth::id(),
+            'end_date' => 'nullable|date|after_or_equal:start_date|before_or_equal:today',
             'notes' => 'nullable|string',
-        ]);
+        ], ['start_date.unique' => 'That period start date is already logged.']);
 
         $record = Cycle::create([
             'user_id' => Auth::id(),
@@ -227,16 +285,20 @@ class UserController extends Controller
         $record->delete();
 
         return redirect()->route('user.menstruation.index')
-            ->with('success', 'Period record deleted successfully');
+            ->with('success', 'Period record archived successfully');
     }
 
     // Menstruation Calendar with Cycle Prediction
     public function menstruationCalendar()
     {
         $userId = Auth::id();
-        
+        $validated = request()->validate(['date' => 'nullable|date']);
         // Get current month/year from request or use current
-        $currentDate = request('date') ? \Carbon\Carbon::parse(request('date')) : now();
+        try {
+            $currentDate = !empty($validated['date']) ? \Carbon\Carbon::parse($validated['date']) : now();
+        } catch (\Throwable $e) {
+            $currentDate = now();
+        }
         $month = $currentDate->month;
         $year = $currentDate->year;
         
@@ -250,6 +312,7 @@ class UserController extends Controller
         $currentCyclePrediction = $calendarData['current_cycle_prediction'] ?? null;
         $averageCycle = $calendarData['average_cycle_length'];
         $averagePeriod = $calendarData['average_period_length'];
+        $predictionDetail = $calendarData['prediction_detail'];
         
         // Get last period for reference
         $lastPeriod = Cycle::where('user_id', $userId)
@@ -266,6 +329,7 @@ class UserController extends Controller
             'currentCyclePrediction',
             'averageCycle',
             'averagePeriod',
+            'predictionDetail',
             'lastPeriod'
         ));
     }
@@ -273,12 +337,19 @@ class UserController extends Controller
     // View Checkups (Read-only)
     public function checkups()
     {
+        $base = Auth::user()->checkups();
+        $totals = [
+            'all' => (clone $base)->count(),
+            'scheduled' => (clone $base)->where('status', 'Scheduled')->count(),
+            'completed' => (clone $base)->where('status', 'Completed')->count(),
+            'missed' => (clone $base)->where('status', 'Missed')->count(),
+        ];
         $checkups = Auth::user()->checkups()
             ->with('midwife')
             ->orderBy('scheduled_date', 'desc')
             ->paginate(10);
 
-        return view('user.checkups', compact('checkups'));
+        return view('user.checkups', compact('checkups', 'totals'));
     }
 
     // View Health Records (Read-only)
@@ -302,9 +373,10 @@ class UserController extends Controller
     public function storeHealthRecord(Request $request)
     {
         $request->validate([
-            'bp' => 'required|string|max:20',
+            'bp_systolic' => 'required|integer|min:50|max:300',
+            'bp_diastolic' => 'required|integer|min:30|max:200',
             'weight' => 'required|numeric|min:0|max:300',
-            'heart_rate' => 'required|numeric|min:0|max:250',
+            'heart_rate' => 'required|integer|min:0|max:250',
             'temperature' => 'required|numeric|min:30|max:45',
             'notes' => 'nullable|string|max:1000',
         ]);
@@ -312,28 +384,27 @@ class UserController extends Controller
         HealthRecord::create([
             'user_id' => Auth::id(),
             'pregnancy_id' => HealthRecord::resolvePregnancyIdForWoman(Auth::id(), now()),
-            'bp' => $request->bp,
+            'bp' => $request->bp_systolic.'/'.$request->bp_diastolic,
             'weight' => $request->weight,
             'heart_rate' => $request->heart_rate,
             'temperature' => $request->temperature,
             'notes' => $request->notes,
             'recorded_by_user_id' => Auth::id(),
             'risk_level' => 'Low', // Default risk level, can be updated by health worker
+            // Self-reported: enters the BHW President → Midwife validation queue.
+            'workflow_status' => 'submitted_to_bhw_president',
         ]);
 
         return redirect()->route('user.health-records')
-            ->with('success', 'Health record added successfully');
+            ->with('success', 'Health record submitted successfully. A health worker will review and validate it.');
     }
 
     // Notifications
     public function notifications()
     {
         $notifications = Auth::user()->notifications()
-            ->orderBy('created_at', 'desc')
+            ->orderByRaw('COALESCE(last_reminded_at, created_at) DESC')
             ->paginate(20);
-
-        // Mark all as read
-        Auth::user()->notifications()->unread()->update(['is_read' => true]);
 
         return view('user.notifications', compact('notifications'));
     }
@@ -341,7 +412,9 @@ class UserController extends Controller
     // Settings
     public function settings()
     {
-        return view('user.settings');
+        $user = Auth::user();
+        $barangays = \App\Models\Barangay::allNames();
+        return view('user.settings', compact('user', 'barangays'));
     }
 
     // Menstruation Statistics
@@ -374,7 +447,7 @@ class UserController extends Controller
             $cycleHistory[] = [
                 'id' => $current->id,
                 'cycle_length' => $cycleLength,
-                'period_length' => $current->duration,
+                'period_length' => $current->period_length,
                 'period_start_date' => $current->period_start_date,
                 'period_end_date' => $current->period_end_date,
                 'is_normal' => $isNormal,
@@ -452,18 +525,17 @@ class UserController extends Controller
     public function storeCycle(Request $request)
     {
         $validated = $request->validate([
-            'period_start_date' => 'required|date|before_or_equal:today',
+            'period_start_date' => 'required|date|before_or_equal:today|unique:cycles,period_start_date,NULL,id,user_id,'.Auth::id(),
             'period_end_date' => 'nullable|date|after_or_equal:period_start_date|before_or_equal:today',
-            'flow_intensity' => 'required|in:light,medium,heavy',
             'notes' => 'nullable|string',
-        ]);
+        ], ['period_start_date.unique' => 'That period start date is already logged.']);
 
-        $cycle = Auth::user()->cycles()->create($validated);
+        Auth::user()->cycles()->create($validated);
 
         // Recalculate cycle lengths
         $this->recalculateCycleLengths(Auth::id());
 
-        return redirect()->route('user.cycles.index')
+        return redirect()->route('user.menstruation.index')
             ->with('success', 'Cycle recorded successfully');
     }
 
@@ -476,8 +548,8 @@ class UserController extends Controller
         // Recalculate cycle lengths
         $this->recalculateCycleLengths(Auth::id());
 
-        return redirect()->route('user.cycles.index')
-            ->with('success', 'Cycle deleted successfully');
+        return redirect()->route('user.menstruation.index')
+            ->with('success', 'Cycle archived successfully');
     }
 
     // GET /cycles/prediction - Get next period prediction
@@ -493,14 +565,18 @@ class UserController extends Controller
             ->take(6)
             ->get();
 
+        $detail = app(CyclePredictionService::class)->getPredictionDetail($userId);
         return response()->json([
             'next_period_date' => $nextPeriod?->format('Y-m-d'),
             'next_period_formatted' => $nextPeriod?->format('F j, Y'),
-            'days_until' => $nextPeriod ? abs(round(now()->diffInDays($nextPeriod, false))) : null,
+            'days_until' => $nextPeriod ? (int) today()->diffInDays($nextPeriod, false) : null,
             'average_cycle_length' => $averageCycle,
             'average_period_length' => $averagePeriod,
             'recent_cycles' => $cycles,
-            'confidence' => $cycles->count() >= 3 ? 'high' : ($cycles->count() >= 1 ? 'medium' : 'low'),
+            'confidence' => $detail['confidence'],
+            'regularity' => $detail['regularity'],
+            'next_earliest' => $detail['next_earliest']?->toDateString(),
+            'next_latest' => $detail['next_latest']?->toDateString(),
         ]);
     }
 

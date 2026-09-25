@@ -5,7 +5,7 @@
 @section('user-content')
 <div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-clipboard-plus"></i> Add Health Record</h1>
+        <h1>Add Health Record</h1>
         <a href="{{ route('user.health-records') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back to Records
         </a>
@@ -20,16 +20,20 @@
 
     <div class="card shadow">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-clipboard-pulse-fill"></i> Self-Record Your Health Data</h5>
+            <h5 class="mb-0">Self-Record Your Health Data</h5>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ route('user.health-records.store') }}">
+            {{-- rc-adaptive-form: ≥1024px multi-column (Layout A) · <1024px strictly stacked (Layout B) --}}
+            <form method="POST" action="{{ route('user.health-records.store') }}" class="rc-adaptive-form">
                 @csrf
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="bp" class="form-label fw-bold">Blood Pressure <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="bp" name="bp" required placeholder="e.g., 120/80">
-                        <small class="text-muted">Format: systolic/diastolic (e.g., 120/80)</small>
+                    <div class="col-md-3 mb-3">
+                        <label for="bp_systolic" class="form-label fw-bold">Systolic <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="bp_systolic" name="bp_systolic" required min="50" max="300" placeholder="120">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="bp_diastolic" class="form-label fw-bold">Diastolic <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="bp_diastolic" name="bp_diastolic" required min="30" max="200" placeholder="80">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="weight" class="form-label fw-bold">Weight (kg) <span class="text-danger">*</span></label>

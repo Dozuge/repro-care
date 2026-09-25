@@ -61,11 +61,25 @@ class Checkup extends Model
     }
 
     /**
-     * Alias for scheduledBy - backward compatibility
+     * Alias for scheduledBy - checkup scheduled by a BHW.
+     * Schema consolidated to single scheduled_by_id column,
+     * so this points at the same FK for backward compatibility
+     * with eager loads like with('scheduledByBhw').
      */
     public function scheduledByBhw()
     {
-        return $this->scheduledBy();
+        return $this->belongsTo(User::class, 'scheduled_by_id');
+    }
+
+    /**
+     * Alias for scheduledBy - checkup scheduled by a midwife.
+     * Schema consolidated to single scheduled_by_id column,
+     * so this points at the same FK for backward compatibility
+     * with eager loads like with('scheduledByMidwife').
+     */
+    public function scheduledByMidwife()
+    {
+        return $this->belongsTo(User::class, 'scheduled_by_id');
     }
 
     /**
@@ -105,14 +119,6 @@ class Checkup extends Model
     }
 
     /**
-     * The user (BHW or midwife) who scheduled this checkup
-     */
-    public function getScheduledByAttribute()
-    {
-        return $this->scheduledBy();
-    }
-
-    /**
      * Get the assigned midwife
      */
     public function getAssignedMidwifeAttribute()
@@ -148,16 +154,17 @@ class Checkup extends Model
 
     public function scopeOverdue($query)
     {
-        return $query->where('scheduled_date', '<', Carbon::now())
+        return $query->whereDate('scheduled_date', '<', today())
                     ->where('status', 'Scheduled');
     }
 
     // Methods
     public function markAsMissed()
     {
-        if ($this->scheduled_date < Carbon::now() && $this->status === 'Scheduled') {
-            $this->status = 'Missed';
-            $this->save();
+        if ($this->scheduled_date < today() && $this->status === 'Scheduled') {
+            $changed = self::whereKey($this->id)->where('status', 'Scheduled')->update(['status' => 'Missed']);
+            if (!$changed) return;
+            $this->refresh();
 
             // Load user relation for notifications
             $this->loadMissing('user');
@@ -168,7 +175,9 @@ class Checkup extends Model
 
             // Also trigger risk analysis
             $riskService = new \App\Services\RiskAnalysisService();
-            $riskService->evaluate($this->user_id);
+            if ($this->user_id) {
+                $riskService->evaluate($this->user_id);
+            }
         }
     }
 

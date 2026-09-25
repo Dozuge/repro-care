@@ -16,13 +16,17 @@
         <div class="col-lg-8">
             <div class="card fade-in-card mb-4">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-file-medical me-2"></i>Health Record Details</h5>
+                    <h5 class="mb-0">Health Record Details</h5>
                 </div>
                 <div class="card-body">
                     <!-- Patient Information -->
                     <div class="mb-4">
                         <h6 class="text-primary fw-bold mb-3">Patient Information</h6>
                         @if($healthRecord->woman)
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <x-patient-avatar :patient="$healthRecord->woman" :size="56" />
+                            <a href="{{ route('profile.view', $healthRecord->woman->id) }}">View patient profile</a>
+                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <strong>Name:</strong> {{ $healthRecord->woman->first_name }} {{ $healthRecord->woman->middle_initial }} {{ $healthRecord->woman->last_name }}
@@ -153,7 +157,7 @@
             <!-- Recorder Information -->
             <div class="card fade-in-card mb-4">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Recorded By</h5>
+                    <h5 class="mb-0">Recorded By</h5>
                 </div>
                 <div class="card-body">
                     @if($healthRecord->recordedBy)
@@ -170,7 +174,7 @@
             <!-- Review Actions -->
             <div class="card fade-in-card">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Review Actions</h5>
+                    <h5 class="mb-0">Review Actions</h5>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('bhw-president.health-records.approve', $healthRecord->id) }}" method="POST">

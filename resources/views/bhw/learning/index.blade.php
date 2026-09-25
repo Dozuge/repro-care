@@ -7,7 +7,7 @@
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h2 mb-1"><i class="bi bi-book-half text-success"></i> Learning Materials</h1>
+            <h1 class="h2 mb-1">Learning Materials</h1>
             <p class="text-muted mb-0">Educational resources for your health journey</p>
         </div>
         <div class="d-flex gap-2">
@@ -108,19 +108,19 @@
                         <!-- Card Header with Thumbnail or Icon -->
                         <div class="card-header border-0 {{ $typeConfig['light'] }} py-4 text-center position-relative">
                             @if($material->image_url)
-                                <div class="rounded overflow-hidden shadow-sm" style="width: 100%; height: 120px;">
+                                <div class="rounded overflow-hidden shadow-sm" style="width:100%; height:120px;">
                                     <img src="{{ $material->image_url }}"
                                          alt="{{ $material->title }}"
                                          class="w-100 h-100"
-                                         style="object-fit: cover;"
+                                         style="object-fit:cover;"
                                          onerror="this.parentElement.style.display='none'; this.parentElement.nextElementSibling.style.display='inline-block';">
                                 </div>
-                                <div class="d-none p-3 rounded-circle bg-white shadow-sm" style="width: 80px; height: 80px; margin: 0 auto;">
-                                    <i class="bi {{ $typeConfig['icon'] }} {{ $typeConfig['bg'] }} text-white p-2 rounded fs-3" style="display: inline-block; width: 50px; height: 50px; line-height: 26px;"></i>
+                                <div class="d-none p-3 rounded-circle bg-white shadow-sm" style="width:80px; height:80px; margin:0 auto;">
+                                    <i class="bi {{ $typeConfig['icon'] }} {{ $typeConfig['bg'] }} text-white p-2 rounded fs-3" style="display:inline-block; width:50px; height:50px; line-height:26px;"></i>
                                 </div>
                             @else
                                 <div class="d-inline-block p-3 rounded-circle bg-white shadow-sm">
-                                    <i class="bi {{ $typeConfig['icon'] }} {{ $typeConfig['bg'] }} text-white p-2 rounded fs-3" style="display: inline-block; width: 50px; height: 50px; line-height: 26px;"></i>
+                                    <i class="bi {{ $typeConfig['icon'] }} {{ $typeConfig['bg'] }} text-white p-2 rounded fs-3" style="display:inline-block; width:50px; height:50px; line-height:26px;"></i>
                                 </div>
                             @endif
                             <span class="badge {{ $typeConfig['bg'] }} position-absolute top-0 end-0 m-3">
@@ -155,7 +155,7 @@
             <div class="col-12">
                 <div class="text-center py-5">
                     <div class="mb-4">
-                        <i class="bi bi-book text-muted" style="font-size: 5rem;"></i>
+                        <i class="bi bi-book text-muted" style="font-size:5rem;"></i>
                     </div>
                     <h3 class="text-muted">No learning materials found</h3>
                     <p class="text-muted">{{ request('search') ? 'Try a different search term.' : 'Check back later for educational resources.' }}</p>
@@ -179,11 +179,11 @@
 
 <style>
     .hover-card {
-        transition: all 0.3s ease;
+        transition:all 0.3s ease;
     }
     .hover-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+        transform:translateY(-5px);
+        box-shadow:0 10px 30px color-mix(in srgb, rgb(var(--color-shadow-rgb)) 15%, transparent) !important;
     }
 </style>
 @endsection
