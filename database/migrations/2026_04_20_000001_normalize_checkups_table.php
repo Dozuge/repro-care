@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -28,7 +29,7 @@ return new class extends Migration
             }
 
             // Get existing foreign keys
-            $foreignKeys = collect(DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'checkups' AND CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_NAME LIKE '%foreign'"))->pluck('CONSTRAINT_NAME')->toArray();
+            $foreignKeys = collect(Schema::getForeignKeys('checkups'))->pluck('name')->toArray();
 
             // Add foreign key constraints only if they don't already exist
             if (Schema::hasColumn('checkups', 'woman_id') && !in_array('checkups_woman_id_foreign', $foreignKeys)) {
@@ -45,7 +46,7 @@ return new class extends Migration
             }
 
             // Get existing indexes
-            $indexes = collect(DB::select("SHOW INDEX FROM checkups"))->pluck('Key_name')->unique()->values()->toArray();
+            $indexes = collect(Schema::getIndexes('checkups'))->pluck('name')->toArray();
 
             // Add indexes only if columns exist and they don't already exist
             if (Schema::hasColumn('checkups', 'woman_id') && !in_array('checkups_woman_id_index', $indexes)) {
@@ -57,30 +58,22 @@ return new class extends Migration
         });
 
         // Migrate data from polymorphic columns to specific columns
-        DB::statement("
-            UPDATE checkups c
-            SET 
-                c.woman_id = c.patient_id,
-                c.midwife_id = c.midwife_id
-            WHERE c.patient_type = 'App\\\\Models\\\\Woman' OR c.patient_type = 'App\\\\Models\\\\Patient'
-        ");
+        DB::table('checkups')
+            ->whereIn('patient_type', ['App\\Models\\Woman', 'App\\Models\\Patient'])
+            ->update(['woman_id' => DB::raw('patient_id')]);
 
-        DB::statement("
-            UPDATE checkups c
-            SET c.scheduled_by_midwife_id = c.scheduled_by_id
-            WHERE c.scheduled_by_type = 'App\\\\Models\\\\Midwife'
-        ");
+        DB::table('checkups')
+            ->where('scheduled_by_type', 'App\\Models\\Midwife')
+            ->update(['scheduled_by_midwife_id' => DB::raw('scheduled_by_id')]);
 
-        DB::statement("
-            UPDATE checkups c
-            SET c.scheduled_by_bhw_id = c.scheduled_by_id
-            WHERE c.scheduled_by_type = 'App\\\\Models\\\\Bhw'
-        ");
+        DB::table('checkups')
+            ->where('scheduled_by_type', 'App\\Models\\Bhw')
+            ->update(['scheduled_by_bhw_id' => DB::raw('scheduled_by_id')]);
 
         // Drop polymorphic columns
         Schema::table('checkups', function (Blueprint $table) {
             // Check if foreign key exists before dropping
-            $foreignKeys = collect(DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'checkups' AND CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_NAME LIKE '%foreign'"))->pluck('CONSTRAINT_NAME')->toArray();
+            $foreignKeys = collect(Schema::getForeignKeys('checkups'))->pluck('name')->toArray();
             
             if (in_array('checkups_scheduled_by_id_foreign', $foreignKeys)) {
                 $table->dropForeign(['scheduled_by_id']);
