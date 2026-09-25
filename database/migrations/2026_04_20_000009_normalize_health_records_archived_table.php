@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,7 +14,7 @@ return new class extends Migration
     {
         // Get existing columns and foreign keys
         $existingColumns = Schema::getColumnListing('health_records_archived');
-        $foreignKeys = collect(DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'health_records_archived' AND CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_NAME LIKE '%foreign'"))->pluck('CONSTRAINT_NAME')->toArray();
+        $foreignKeys = collect(Schema::getForeignKeys('health_records_archived'))->pluck('name')->toArray();
 
         Schema::table('health_records_archived', function (Blueprint $table) use ($existingColumns, $foreignKeys) {
             // Add new specific foreign key columns only if they don't exist
@@ -39,7 +40,7 @@ return new class extends Migration
             }
 
             // Add index if column exists and index doesn't
-            $indexes = collect(DB::select("SHOW INDEX FROM health_records_archived"))->pluck('Key_name')->unique()->values()->toArray();
+            $indexes = collect(Schema::getIndexes('health_records_archived'))->pluck('name')->toArray();
             if (in_array('woman_id', $existingColumns) && !in_array('health_records_archived_woman_id_index', $indexes)) {
                 $table->index('woman_id');
             }
@@ -48,23 +49,23 @@ return new class extends Migration
         // Migrate data - assuming archived records use role to determine table
         if (in_array('user_id', $existingColumns) && in_array('created_by_role', $existingColumns)) {
             DB::statement("
-                UPDATE health_records_archived hra
-                SET hra.woman_id = hra.user_id
-                WHERE hra.created_by_role = 'user'
+                UPDATE health_records_archived
+                SET woman_id = user_id
+                WHERE created_by_role = 'user'
             ");
         }
 
         if (in_array('recorded_by_id', $existingColumns) && in_array('created_by_role', $existingColumns)) {
             DB::statement("
-                UPDATE health_records_archived hra
-                SET hra.recorded_by_midwife_id = hra.recorded_by_id
-                WHERE hra.created_by_role = 'midwife'
+                UPDATE health_records_archived
+                SET recorded_by_midwife_id = recorded_by_id
+                WHERE created_by_role = 'midwife'
             ");
 
             DB::statement("
-                UPDATE health_records_archived hra
-                SET hra.recorded_by_bhw_id = hra.recorded_by_id
-                WHERE hra.created_by_role = 'bhw'
+                UPDATE health_records_archived
+                SET recorded_by_bhw_id = recorded_by_id
+                WHERE created_by_role = 'bhw'
             ");
         }
 

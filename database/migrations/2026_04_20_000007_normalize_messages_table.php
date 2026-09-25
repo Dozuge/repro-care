@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -41,40 +42,40 @@ return new class extends Migration
 
         // Migrate sender data
         DB::statement("
-            UPDATE messages m
-            SET m.sender_woman_id = m.sender_id
-            WHERE m.sender_type = 'App\\\\Models\\\\Woman' OR m.sender_type = 'App\\\\Models\\\\Patient'
+            UPDATE messages
+            SET sender_woman_id = sender_id
+            WHERE sender_type = 'App\\\\Models\\\\Woman' OR sender_type = 'App\\\\Models\\\\Patient'
         ");
 
         DB::statement("
-            UPDATE messages m
-            SET m.sender_midwife_id = m.sender_id
-            WHERE m.sender_type = 'App\\\\Models\\\\Midwife'
+            UPDATE messages
+            SET sender_midwife_id = sender_id
+            WHERE sender_type = 'App\\\\Models\\\\Midwife'
         ");
 
         DB::statement("
-            UPDATE messages m
-            SET m.sender_bhw_id = m.sender_id
-            WHERE m.sender_type = 'App\\\\Models\\\\Bhw'
+            UPDATE messages
+            SET sender_bhw_id = sender_id
+            WHERE sender_type = 'App\\\\Models\\\\Bhw'
         ");
 
         // Migrate receiver data
         DB::statement("
-            UPDATE messages m
-            SET m.receiver_woman_id = m.receiver_id
-            WHERE m.receiver_type = 'App\\\\Models\\\\Woman' OR m.receiver_type = 'App\\\\Models\\\\Patient'
+            UPDATE messages
+            SET receiver_woman_id = receiver_id
+            WHERE receiver_type = 'App\\\\Models\\\\Woman' OR receiver_type = 'App\\\\Models\\\\Patient'
         ");
 
         DB::statement("
-            UPDATE messages m
-            SET m.receiver_midwife_id = m.receiver_id
-            WHERE m.receiver_type = 'App\\\\Models\\\\Midwife'
+            UPDATE messages
+            SET receiver_midwife_id = receiver_id
+            WHERE receiver_type = 'App\\\\Models\\\\Midwife'
         ");
 
         DB::statement("
-            UPDATE messages m
-            SET m.receiver_bhw_id = m.receiver_id
-            WHERE m.receiver_type = 'App\\\\Models\\\\Bhw'
+            UPDATE messages
+            SET receiver_bhw_id = receiver_id
+            WHERE receiver_type = 'App\\\\Models\\\\Bhw'
         ");
 
         // Drop polymorphic columns

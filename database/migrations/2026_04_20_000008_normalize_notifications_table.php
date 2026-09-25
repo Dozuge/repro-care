@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -30,21 +31,21 @@ return new class extends Migration
 
         // Migrate data from polymorphic columns to specific columns
         DB::statement("
-            UPDATE notifications n
-            SET n.woman_id = n.user_id
-            WHERE n.user_type = 'App\\\\Models\\\\Woman' OR n.user_type = 'App\\\\Models\\\\Patient'
+            UPDATE notifications
+            SET woman_id = user_id
+            WHERE user_type = 'App\\\\Models\\\\Woman' OR user_type = 'App\\\\Models\\\\Patient'
         ");
 
         DB::statement("
-            UPDATE notifications n
-            SET n.midwife_id = n.user_id
-            WHERE n.user_type = 'App\\\\Models\\\\Midwife'
+            UPDATE notifications
+            SET midwife_id = user_id
+            WHERE user_type = 'App\\\\Models\\\\Midwife'
         ");
 
         DB::statement("
-            UPDATE notifications n
-            SET n.bhw_id = n.user_id
-            WHERE n.user_type = 'App\\\\Models\\\\Bhw'
+            UPDATE notifications
+            SET bhw_id = user_id
+            WHERE user_type = 'App\\\\Models\\\\Bhw'
         ");
 
         // Drop polymorphic columns
