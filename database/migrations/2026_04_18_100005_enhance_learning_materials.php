@@ -27,8 +27,7 @@ return new class extends Migration
             }
         });
 
-        // Extend material_type ENUM to include video and quiz
-        DB::statement("ALTER TABLE learning_materials MODIFY COLUMN material_type ENUM('article','link','file','video','quiz') DEFAULT 'article'");
+        $this->setMaterialTypes(['article', 'link', 'file', 'video', 'quiz']);
     }
 
     public function down(): void
@@ -36,6 +35,23 @@ return new class extends Migration
         Schema::table('learning_materials', function (Blueprint $table) {
             $table->dropColumn(['category', 'video_url', 'quiz_data', 'week_number']);
         });
-        DB::statement("ALTER TABLE learning_materials MODIFY COLUMN material_type ENUM('article','link','file') DEFAULT 'article'");
+        $this->setMaterialTypes(['article', 'link', 'file']);
+    }
+
+    /**
+     * Laravel implements enum columns as CHECK constraints on PostgreSQL, not
+     * MySQL ENUMs. Update that constraint without issuing MySQL MODIFY SQL.
+     */
+    private function setMaterialTypes(array $types): void
+    {
+        if (DB::getDriverName() !== 'pgsql') {
+            $values = implode(',', array_map(fn ($type) => "'{$type}'", $types));
+            DB::statement("ALTER TABLE learning_materials MODIFY COLUMN material_type ENUM({$values}) DEFAULT 'article'");
+            return;
+        }
+
+        $values = implode(', ', array_map(fn ($type) => "'{$type}'", $types));
+        DB::statement('ALTER TABLE learning_materials DROP CONSTRAINT IF EXISTS learning_materials_material_type_check');
+        DB::statement("ALTER TABLE learning_materials ADD CONSTRAINT learning_materials_material_type_check CHECK (material_type IN ({$values}))");
     }
 };
