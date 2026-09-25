@@ -12,17 +12,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Get all foreign keys referencing the users table
-        $constraints = DB::select(
-            "SELECT TABLE_NAME, CONSTRAINT_NAME
-             FROM information_schema.KEY_COLUMN_USAGE
-             WHERE TABLE_SCHEMA = DATABASE()
-             AND REFERENCED_TABLE_NAME = 'users'"
-        );
+        // Inspect foreign keys through Laravel rather than MySQL's DATABASE()
+        // catalog function, which PostgreSQL does not implement.
+        foreach (Schema::getTableListing(null, false) as $tableName) {
+            $constraints = collect(Schema::getForeignKeys($tableName))
+                ->filter(fn (array $foreign) => $foreign['foreign_table'] === 'users');
 
-        // Drop each foreign key
-        foreach ($constraints as $constraint) {
-            DB::statement("ALTER TABLE {$constraint->TABLE_NAME} DROP FOREIGN KEY {$constraint->CONSTRAINT_NAME}");
+            foreach ($constraints as $constraint) {
+                Schema::table($tableName, function (Blueprint $table) use ($constraint) {
+                    $table->dropForeign($constraint['name']);
+                });
+            }
         }
 
         // Drop the users table
