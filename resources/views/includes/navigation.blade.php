@@ -59,7 +59,7 @@
                 <img src="{{ asset('images/brand/reprocare-logo.png?v=4') }}" alt="ReproCare Logo"
                      style="width:36px; height:36px; object-fit:contain; border-radius:10px; background:var(--color-surface);">
                 <span class="fw-800" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--text); font-size:1.15rem; letter-spacing:-0.4px;">
-                    Repro<span style="color:var(--color-secondary-text);">Care</span>
+                    Repro<span class="brand-care" style="color:#9B64B9 !important;">Care</span>
                 </span>
             </a>
         </div>
