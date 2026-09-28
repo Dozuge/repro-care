@@ -512,8 +512,8 @@
     .navbar .navbar-brand div.rounded-3 {
         background:linear-gradient(135deg, var(--color-secondary-soft), var(--color-secondary)) !important;
     }
-    /* The wordmark is a fixed brand asset, not a portal accent. */
-    body .navbar .navbar-brand .brand-care { color:#9B64B9 !important; }
+    /* The staff wordmark matches the public landing page's pink accent. */
+    body .navbar .navbar-brand .brand-care { color:#F06292 !important; }
 
     /* ── Badges / pills: soft pink default ── */
     .main-content .badge.bg-primary { background:var(--color-secondary-soft) !important; color:var(--color-secondary-text) !important; border:1px solid var(--color-secondary-soft); }
